@@ -8,7 +8,7 @@ from datetime import datetime
 import requests as req_lib
 from flask import Flask, Response, jsonify, render_template, request
 
-from dns_utils import filter_results, resolve_a_record, reverse_dns_lookup
+from dns_utils import resolve_a_record, reverse_dns_lookup
 from formatter import save_results
 from scanner import check_nmap_available, run_dns_brute, run_port_scan
 from tools.dnsx import run_dnsx
@@ -16,13 +16,28 @@ from tools.httpx_tool import run_httpx
 from tools.masscan import run_masscan
 from tools.rustscan import run_rustscan
 from tools.subfinder import run_subfinder
-from tools.registry import get_available_tools, best_tool_for, CAP_SUBDOMAIN, CAP_PORTSCAN, CAP_WEBPROBE, CAP_DNS
+from tools.registry import get_available_tools
 from utils import extract_root_domain, is_ip_address, validate_input
 from web_probe import probe_web_for_host
 from wordlist import get_default_wordlist_path, load_external_wordlist
 
 app = Flask(__name__)
 tasks: dict[str, dict] = {}
+
+# 自动清理已完成任务（超过 1 小时的）
+_TASK_MAX_AGE = 3600
+
+
+def _cleanup_old_tasks():
+    """清理超时的已完成任务，防止内存泄漏。"""
+    now = datetime.now()
+    expired = [
+        tid for tid, t in tasks.items()
+        if t.get('status') in ('done', 'error')
+        and (now - t.get('created_at', now)).total_seconds() > _TASK_MAX_AGE
+    ]
+    for tid in expired:
+        del tasks[tid]
 
 
 def parse_targets(raw: str) -> list[str]:
@@ -299,7 +314,8 @@ def scan_single_target(target: str, options: dict, emit) -> list[dict]:
     for host in all_hosts:
         ip = host['ip']
         if ip in scan_results:
-            host['ports'] = scan_results[ip].get('ports', scan_results[ip]) if isinstance(scan_results[ip], dict) else scan_results[ip]
+            data = scan_results[ip]
+            host['ports'] = data if isinstance(data, list) else data.get('ports', [])
         else:
             host['ports'] = []
 
@@ -403,7 +419,9 @@ def api_scan():
         'queue': queue.Queue(),
         'hosts': [],
         'base_domain': '',
+        'created_at': datetime.now(),
     }
+    _cleanup_old_tasks()
 
     options = {
         'no_dns_brute': body.get('no_dns_brute', False),

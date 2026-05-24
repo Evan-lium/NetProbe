@@ -4,14 +4,12 @@ import requests
 
 # Web 常见端口与协议映射
 WEB_PORTS = {
-    80: 'http',
-    443: 'https',
-    8080: 'http',
-    8443: 'https',
-    8000: 'http',
-    3000: 'http',
-    5000: 'http',
-    9000: 'http',
+    80: 'http', 443: 'https',
+    8080: 'http', 8443: 'https', 8000: 'http',
+    3000: 'http', 5000: 'http', 9000: 'http',
+    8888: 'http', 9090: 'http', 7001: 'http',
+    8880: 'http', 8001: 'http', 8002: 'http',
+    10000: 'http', 4000: 'http', 6000: 'http',
 }
 
 REQUEST_TIMEOUT = 8

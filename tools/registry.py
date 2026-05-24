@@ -1,14 +1,9 @@
 """工具注册表 — 自动检测已安装的扫描工具，统一调度。"""
 
 import os
-import platform
 import shutil
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    pass
 
 
 def _get_extra_paths() -> list[str]:

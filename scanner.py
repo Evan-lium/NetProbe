@@ -43,10 +43,9 @@ PORTS_STR = ','.join(str(p) for p in COMMON_PORTS)
 
 
 def check_nmap_available() -> bool:
-    """检查 nmap 是否可用。"""
+    """检查 nmap 是否可用（仅检测可执行文件，不发起扫描）。"""
     try:
-        nm = nmap.PortScanner()
-        nm.scan('127.0.0.1', arguments='-sn')
+        nmap.PortScanner()
         return True
     except (nmap.PortScannerError, FileNotFoundError, OSError):
         return False
