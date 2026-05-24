@@ -19,6 +19,7 @@ from tools.subfinder import run_subfinder
 from tools.registry import get_available_tools
 from utils import extract_root_domain, is_ip_address, validate_input
 from web_probe import probe_web_for_host
+from banner_grab import grab_banners_for_host
 from wordlist import get_default_wordlist_path, load_external_wordlist
 
 app = Flask(__name__)
@@ -316,6 +317,8 @@ def scan_single_target(target: str, options: dict, emit) -> list[dict]:
         if ip in scan_results:
             data = scan_results[ip]
             host['ports'] = data if isinstance(data, list) else data.get('ports', [])
+            if isinstance(data, dict) and data.get('os'):
+                host['os'] = data['os']
         else:
             host['ports'] = []
 
@@ -325,6 +328,14 @@ def scan_single_target(target: str, options: dict, emit) -> list[dict]:
     else:
         for host in all_hosts:
             host['web_info'] = []
+
+    # 4. Banner 抓取
+    for host in all_hosts:
+        open_ports = [p['port'] for p in host.get('ports', [])]
+        host['banners'] = grab_banners_for_host(host['ip'], open_ports)
+    banner_total = sum(len(h.get('banners', [])) for h in all_hosts)
+    if banner_total:
+        emit('progress', text=f'  Banner 抓取完成: {banner_total} 条')
 
     return all_hosts
 

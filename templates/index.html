@@ -822,6 +822,14 @@ function showResults(hosts, baseDomain) {
             idx++;
             const ports = host.ports || [];
             const webInfo = host.web_info || [];
+            const banners = host.banners || [];
+            const osInfo = host.os || '';
+
+            let osHtml = '';
+            if (osInfo) {
+                osHtml = `<div class="section-label">操作系统</div><div style="padding:6px 0;font-size:13px"><span class="tag tag-blue">${escHtml(osInfo)}</span></div>`;
+            }
+
             let portHtml = '';
             if (ports.length) {
                 portHtml = '<div class="section-label">开放端口</div><table><tr><th>端口</th><th>状态</th><th>服务</th></tr>';
@@ -831,6 +839,16 @@ function showResults(hosts, baseDomain) {
                 });
                 portHtml += '</table>';
             }
+
+            let bannerHtml = '';
+            if (banners.length) {
+                bannerHtml = '<div class="section-label">Banner 信息</div><table><tr><th>端口</th><th>服务</th><th>Banner</th></tr>';
+                banners.forEach(b => {
+                    bannerHtml += `<tr><td><span class="tag tag-green">${b.port}</span></td><td>${escHtml(b.service)}</td><td style="font-family:var(--mono);font-size:11px;color:var(--text-secondary);word-break:break-all">${escHtml(b.banner)}</td></tr>`;
+                });
+                bannerHtml += '</table>';
+            }
+
             let webHtml = '';
             if (webInfo.length) {
                 webHtml = '<div class="section-label">Web 站点</div><table><tr><th>URL</th><th>状态</th><th>信息</th></tr>';
@@ -839,17 +857,36 @@ function showResults(hosts, baseDomain) {
                     const redirect = w.redirect ? ` <span style="color:var(--warning)">&rarr; ${escHtml(w.redirect)}</span>` : '';
                     const title = w.title ? ` <span class="web-title">"${escHtml(w.title)}"</span>` : '';
                     const tech = w.tech ? ` <span style="color:var(--info);font-size:11px">[${escHtml(w.tech)}]</span>` : '';
-                    webHtml += `<tr><td style="font-family:var(--mono);font-size:11.5px">${escHtml(w.url)}</td><td><span class="tag ${cls}">${w.status}</span></td><td>${title}${tech}${redirect}</td></tr>`;
+                    // HTTP 指纹
+                    let fingerprint = '';
+                    if (w.headers) {
+                        const fp = [];
+                        if (w.headers.server) fp.push(w.headers.server);
+                        if (w.headers.powered_by) fp.push(w.headers.powered_by);
+                        if (w.headers.framework) fp.push(w.headers.framework);
+                        if (w.headers.cms) fp.push(w.headers.cms);
+                        if (fp.length) fingerprint = ` <span style="color:var(--info);font-size:11px">[${fp.map(escHtml).join(', ')}]</span>`;
+                    }
+                    // SSL 证书
+                    let sslHtml = '';
+                    if (w.ssl && w.ssl.subject) {
+                        const sslWarn = w.ssl.expired ? ' <span style="color:var(--danger)">[已过期]</span>' : '';
+                        sslHtml = `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">SSL: ${escHtml(w.ssl.subject)} | 颁发: ${escHtml(w.ssl.issuer)}${sslHtml ? '' : ''} | ${escHtml(w.ssl.not_after)}${sslWarn}</div>`;
+                    }
+                    webHtml += `<tr><td style="font-family:var(--mono);font-size:11.5px">${escHtml(w.url)}</td><td><span class="tag ${cls}">${w.status}</span></td><td>${title}${tech}${fingerprint}${redirect}${sslHtml}</td></tr>`;
                 });
                 webHtml += '</table>';
             }
+
             html += `<div class="host-card">
                 <div class="host-top">
                     <span class="host-name">[${idx}] ${escHtml(host.hostname||host.ip)}</span>
                     <span class="host-ip">${escHtml(host.ip)}</span>
                 </div>
                 <div class="host-body">
+                    ${osHtml}
                     ${ports.length ? portHtml : '<div class="no-data">无开放端口</div>'}
+                    ${bannerHtml}
                     ${webInfo.length ? webHtml : ''}
                 </div>
             </div>`;

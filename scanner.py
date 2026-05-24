@@ -118,16 +118,30 @@ def run_port_scan(
     if not ip_open_ports:
         return {}
 
-    # 第二步：对 open 端口做 -sV 服务版本检测（逐 IP，端口少速度快）
+    # 第二步：对 open 端口做 -sV 服务版本检测 + OS 识别
     results = {}
     for ip, port_list in ip_open_ports.items():
         port_str = ','.join(str(p[0]) for p in port_list)
         try:
             nm_sv = nmap.PortScanner()
-            nm_sv.scan(hosts=ip, arguments=f'-Pn -sV -p {port_str} --max-retries 2')
+            # -O 需要 root/管理员权限，失败不影响其他结果
+            try:
+                nm_sv.scan(hosts=ip, arguments=f'-Pn -sV -O -p {port_str} --max-retries 2')
+            except nmap.PortScannerError:
+                nm_sv.scan(hosts=ip, arguments=f'-Pn -sV -p {port_str} --max-retries 2')
             sv_data = nm_sv[ip] if ip in nm_sv.all_hosts() else {}
         except nmap.PortScannerError:
             sv_data = {}
+
+        # 提取 OS 信息
+        os_info = ''
+        os_matches = sv_data.get('osmatch', [])
+        if os_matches:
+            best = os_matches[0]
+            os_info = best.get('name', '')
+            accuracy = best.get('accuracy', '')
+            if accuracy:
+                os_info += f' ({accuracy}%)'
 
         ports_result = []
         for port_num, proto in port_list:
@@ -148,6 +162,7 @@ def run_port_scan(
 
         results[ip] = {
             'hostname': hostnames_map.get(ip, ''),
+            'os': os_info,
             'ports': ports_result,
         }
 
