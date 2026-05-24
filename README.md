@@ -1,15 +1,21 @@
 # NetProbe
 
-多引擎域名探测平台，集成 Subfinder、Nmap、Masscan、RustScan、Httpx、DNSx 六大扫描引擎，自动检测可用引擎并按优先级调度。支持子域名发现、端口扫描、服务版本检测、Web 站点探测，提供 Web 界面和命令行两种使用方式。跨平台支持 Windows、macOS、Linux。
+多引擎域名探测平台，集成 Subfinder、Nmap、Masscan、RustScan、Httpx、DNSx 六大扫描引擎，自动检测可用引擎并按优先级调度。支持子域名发现、端口扫描、服务版本检测、Web 技术指纹识别、敏感路径探测、SSL 证书分析、Banner 抓取、JS 文件分析，提供 Web 界面和命令行两种使用方式。跨平台支持 Windows、macOS、Linux。
 
 ## 功能特性
 
 - **跨平台支持** — 支持 Windows、macOS、Linux，自动适配不同平台的工具安装路径
 - **多引擎支持** — 集成 6 个扫描引擎，自动检测已安装工具，按可靠性优先级调度，优雅降级
 - **智能路径检测** — 自动搜索 GOPATH/bin、Homebrew、系统目录等平台特定路径，无需手动配置 PATH
+- **DNS 容错** — dnspython 解析失败时自动 fallback 到系统 DNS，确保不会因 DNS 超时跳过目标
+- **被动情报收集** — crt.sh 证书透明度日志（免费）、FOFA 网络空间搜索、Hunter 奇安信鹰图，多源聚合子域名
 - **子域名枚举** — Subfinder（被动聚合 30+ 数据源）+ Nmap dns-brute（主动字典枚举），结果合并去重
 - **端口扫描** — 两步扫描策略（快速发现 + 服务版本检测），auto 模式按可靠性优先级自动降级
-- **Web 站点探测** — Python requests（最可靠）> Httpx（批量探测、技术栈识别），获取状态码、标题、技术栈
+- **Web 技术指纹** — 42 条指纹规则，覆盖 CMS、前端框架、Web 服务器、CDN、WAF、统计分析等 8 大类，支持 HTTP 头部 + HTML 内容 + Cookie 多维度匹配
+- **敏感路径探测** — 53 条规则，检测 Git/SVN 泄露、配置文件、备份文件、管理后台、API 文档、Spring Actuator 等，并发探测提升速度
+- **JS 文件分析** — 从页面 JavaScript 中提取 API 端点和泄露的密钥/Token（AWS Key、GitHub Token、JWT 等）
+- **SSL/TLS 证书分析** — 提取证书主体、颁发者、有效期、SAN 域名、加密套件、协议版本
+- **Banner 抓取** — 支持 FTP、SSH、SMTP、MySQL、Redis、MongoDB 等 12 种协议的 Banner 识别
 - **DNS 验证** — dnspython（最可靠）> DNSx（批量快速），验证子域名可解析性
 - **域名过滤** — 自动过滤不属于目标域名的结果，支持多段 TLD（如 .com.cn、.co.uk）
 - **多目标输入** — 支持逗号、换行、空格分隔多个目标，按目标分组展示结果
@@ -57,20 +63,34 @@ Nmap 端口扫描采用两步策略，兼顾速度和准确性：
     ├─ IP? ──→ 反向 DNS 解析 → 提取根域名
     │
     ▼
-阶段1: 子域名枚举
+阶段1: 被动情报收集
+    ├─ crt.sh 证书透明度日志（免费，无需 API Key）
+    ├─ FOFA 网络空间搜索（需 API Key）
+    └─ Hunter 奇安信鹰图（需 API Key）
+    │
+    ▼
+阶段2: 子域名枚举
     ├─ Subfinder（被动枚举，发现率高）
     ├─ Nmap dns-brute（主动字典枚举，内置 210 条字典）
     └─ 合并去重 → DNS 验证过滤
     │
     ▼
-阶段2: 端口扫描 + 服务检测
+阶段3: 端口扫描 + 服务检测
     ├─ Nmap 两步扫描（快速发现 + -sV 版本检测）
-    └─ 每个主机的开放端口、服务、版本
+    └─ OS 指纹识别
     │
     ▼
-阶段3: Web 站点探测
+阶段4: Web 站点探测
     ├─ Python requests / Httpx（按可用性自动选择）
-    └─ 状态码、页面标题、技术栈、跳转地址
+    ├─ 技术栈指纹识别（42 条规则，8 大类）
+    ├─ SSL/TLS 证书信息提取
+    ├─ 敏感路径探测（53 条规则，并发扫描）
+    └─ JS 文件分析（API 端点提取 + 密钥泄露检测）
+    │
+    ▼
+阶段5: Banner 抓取
+    ├─ 并发 TCP Banner 获取（12 种协议）
+    └─ FTP、SSH、SMTP、MySQL、Redis 等
     │
     ▼
 结果展示 + 导出文件 (TXT/CSV/JSON)
@@ -127,6 +147,117 @@ flask>=3.0
 requests>=2.28
 ```
 
+### 被动情报 API（可选）
+
+被动情报收集功能需要配置 API Key，通过环境变量设置：
+
+| 服务 | 环境变量 | 说明 |
+|------|---------|------|
+| **crt.sh** | 无需配置 | 证书透明度日志，免费，直接使用 |
+| **FOFA** | `FOFA_EMAIL` + `FOFA_KEY` | [注册](https://fofa.info/)获取免费额度 |
+| **Hunter** | `HUNTER_KEY` | [注册](https://hunter.qianxin.com/)获取免费额度 |
+
+不配置 API Key 时，crt.sh 仍可正常使用，FOFA/Hunter 自动跳过。
+
+## 使用方式
+
+### 方式一：Web 界面（推荐）
+
+```bash
+python app.py
+```
+
+浏览器访问 **http://127.0.0.1:5000**
+
+Web 界面功能：
+- 多目标输入（逗号或换行分隔）
+- 引擎选择（子域名/端口/DNS/Web 各阶段可单独指定引擎，或选 auto 自动调度）
+- 勾选控制：子域名枚举 / Web 探测 / DNS 验证
+- 实时进度日志，显示每个引擎的运行状态和降级情况
+- 结果按目标分组展示（主机、端口、服务、Web 站点、技术栈标签、SSL 证书、敏感路径、JS 分析、Banner）
+- 一键导出 TXT / CSV / JSON 文件
+
+### 方式二：命令行
+
+```bash
+# 完整探测（被动情报 + 子域名 + 端口 + Web + 敏感路径 + JS 分析 + Banner）
+python main.py example.com
+
+# 多目标探测
+python main.py example.com baidu.com qq.com
+
+# 输入 IP，自动反向解析后探测
+python main.py 8.8.8.8
+
+# 保存结果为 JSON
+python main.py example.com -f json
+
+# 保存结果为 CSV
+python main.py example.com -f csv -o my_report.csv
+
+# 使用自定义子域名字典
+python main.py example.com -w custom_wordlist.txt
+
+# 只探测主域名，跳过子域名枚举
+python main.py example.com --no-dns-brute
+
+# 跳过 Web 探测
+python main.py example.com --no-web
+```
+
+命令行参数说明：
+
+| 参数 | 说明 |
+|------|------|
+| `targets` | 目标域名或 IP，多个用空格分隔（必填）|
+| `-f, --format` | 输出格式：txt / csv / json（默认 txt）|
+| `-o, --output` | 自定义输出文件路径（不指定则自动按 `域名_时间.格式` 命名）|
+| `-w, --wordlist` | 外部子域名字典文件（不指定则使用内置 210 条字典）|
+| `--no-dns-brute` | 跳过子域名枚举，只探测主域名 |
+| `--no-web` | 跳过 Web 站点探测 |
+| `--no-validate` | 跳过 DNS 解析验证 |
+| `--timeout` | 扫描超时秒数（默认 300）|
+
+## 项目结构
+
+```
+domain-Identify/
+├── app.py                  # Web 入口 (Flask 路由 + 任务管理 + SSE)
+├── main.py                 # CLI 入口 (argparse)
+├── netprobe/               # 核心包
+│   ├── __init__.py         # 包定义
+│   ├── engine.py           # 扫描引擎 (统一流水线，CLI/Web 共用)
+│   ├── scanner.py          # Nmap 交互层 (dns-brute + 两步端口扫描)
+│   ├── dns_utils.py        # DNS 工具 (反向查询、A 记录、域名过滤，含系统 DNS fallback)
+│   ├── utils.py            # 输入校验 (IP/域名判断、根域名提取)
+│   ├── web_probe.py        # Web 探测 (HTTP/HTTPS + SSL 证书 + 编码检测 + JS URL 提取)
+│   ├── fingerprint.py      # 技术栈指纹识别 (从 JSON 加载规则)
+│   ├── sensitive_probe.py  # 敏感路径探测 (从 JSON 加载规则，并发扫描)
+│   ├── js_analyzer.py      # JS 文件分析 (API 端点提取 + 密钥泄露检测)
+│   ├── banner_grab.py      # Banner 抓取 (12 种协议)
+│   ├── formatter.py        # 结果格式化 (终端表格 + TXT/CSV/JSON)
+│   ├── wordlist.py         # 内置 210 条子域名字典
+│   ├── data/
+│   │   ├── fingerprints.json     # 42 条技术指纹规则
+│   │   └── sensitive_paths.json  # 53 条敏感路径规则
+│   └── tools/
+│       ├── registry.py     # 工具注册表 (跨平台路径检测、能力查询)
+│       ├── subfinder.py    # Subfinder — 被动子域名枚举
+│       ├── masscan.py      # Masscan — 快速端口扫描
+│       ├── rustscan.py     # RustScan — 快速端口发现 + nmap 服务检测
+│       ├── httpx_tool.py   # Httpx — 批量 Web 探测
+│       ├── dnsx.py         # DNSx — 快速 DNS 解析验证
+│       ├── crtsh.py        # crt.sh — 证书透明度日志查询
+│       ├── fofa.py         # FOFA — 网络空间搜索
+│       └── hunter.py       # Hunter — 奇安信鹰图
+├── static/
+│   └── favicon.svg         # 网站图标
+├── templates/
+│   └── index.html          # Web 前端页面
+├── requirements.txt
+└── README.md
+```
+
 ## 工具路径自动检测
 
 程序会根据运行平台自动搜索工具安装路径，无需手动配置。搜索顺序：
@@ -152,162 +283,7 @@ requests>=2.28
 
 如果工具安装在其他位置，可以：
 1. 将工具所在目录加入系统 PATH 环境变量
-2. 在 `tools/registry.py` 的 `_get_extra_paths()` 函数中添加自定义路径
-
-## 使用方式
-
-### 方式一：Web 界面（推荐）
-
-```bash
-python app.py
-```
-
-浏览器访问 **http://127.0.0.1:5000**
-
-Web 界面功能：
-- 多目标输入（逗号或换行分隔）
-- 引擎选择（子域名/端口/DNS/Web 各阶段可单独指定引擎，或选 auto 自动调度）
-- 勾选控制：子域名枚举 / Web 探测 / DNS 验证
-- 实时进度日志，显示每个引擎的运行状态和降级情况
-- 结果按目标分组展示（主机、端口、服务、Web 站点、技术栈）
-- 一键导出 TXT / CSV / JSON 文件
-
-### 方式二：命令行
-
-```bash
-# 完整探测（子域名 + 端口 + Web）
-python main.py example.com
-
-# 多目标探测
-python main.py example.com baidu.com qq.com
-
-# 输入 IP，自动反向解析后探测
-python main.py 8.8.8.8
-
-# 保存结果为 JSON
-python main.py example.com -f json
-
-# 保存结果为 CSV
-python main.py example.com -f csv -o my_report.csv
-
-# 使用自定义子域名字典
-python main.py example.com -w custom_wordlist.txt
-
-# 只探测主域名，跳过子域名枚举
-python main.py example.com --no-dns-brute
-
-# 跳过 Web 探测
-python main.py example.com --no-web
-
-# 显示详细过程
-python main.py example.com -v
-```
-
-命令行参数说明：
-
-| 参数 | 说明 |
-|------|------|
-| `targets` | 目标域名或 IP，多个用空格分隔（必填）|
-| `-f, --format` | 输出格式：txt / csv / json（默认 txt）|
-| `-o, --output` | 自定义输出文件路径（不指定则自动按 `域名_时间.格式` 命名）|
-| `-w, --wordlist` | 外部子域名字典文件（不指定则使用内置 210 条字典）|
-| `--no-dns-brute` | 跳过子域名枚举，只探测主域名 |
-| `--no-web` | 跳过 Web 站点探测 |
-| `--no-validate` | 跳过 DNS 解析验证 |
-| `--timeout` | nmap 扫描超时秒数（默认 300）|
-| `-v, --verbose` | 显示详细过程 |
-
-## 项目结构
-
-```
-domain-Identify/
-├── app.py              # Web 后端 (Flask)，API、SSE 实时推送、多引擎调度
-├── main.py             # 命令行入口，多目标扫描
-├── tools/              # 扫描引擎模块
-│   ├── registry.py     # 工具注册表（跨平台路径检测、优先级调度）
-│   ├── subfinder.py    # Subfinder — 被动子域名枚举
-│   ├── masscan.py      # Masscan — 快速端口扫描
-│   ├── rustscan.py     # RustScan — 快速端口发现 + nmap 服务检测
-│   ├── httpx_tool.py   # Httpx — 批量 Web 探测
-│   └── dnsx.py         # DNSx — 快速 DNS 解析验证
-├── scanner.py          # Nmap 交互层（跨平台路径注入、dns-brute 枚举、两步端口扫描）
-├── dns_utils.py        # DNS 工具 (反向查询、A 记录、域名过滤)
-├── web_probe.py        # Python 内置 Web 探测 (HTTP/HTTPS 状态码、标题、编码检测)
-├── formatter.py        # 结果格式化 (终端表格 + TXT/CSV/JSON 文件输出)
-├── wordlist.py         # 内置 210 条子域名字典 + 外部字典加载
-├── utils.py            # 输入校验、IP/域名判断、根域名提取（支持多段 TLD）
-├── templates/
-│   └── index.html      # Web 前端页面
-├── requirements.txt    # Python 依赖
-└── README.md
-```
-
-## 模块说明
-
-| 模块 | 职责 |
-|------|------|
-| `app.py` | Flask Web 后端，提供 API 和 SSE 实时推送，按可靠性优先级编排多引擎扫描流程 |
-| `main.py` | CLI 入口，argparse 解析参数，按目标逐个执行扫描 |
-| `tools/registry.py` | 工具注册表，跨平台自动检测已安装工具（Windows/macOS/Linux 路径自适应），按能力查询和优先级调度 |
-| `tools/subfinder.py` | Subfinder 引擎封装，运行被动子域名枚举，解析 JSON 输出 |
-| `tools/masscan.py` | Masscan 引擎封装，运行快速端口扫描，解析列表格式输出 |
-| `tools/rustscan.py` | RustScan 引擎封装，快速端口发现后自动调用 nmap -sV 做服务检测 |
-| `tools/httpx_tool.py` | Httpx 引擎封装，批量 Web 探测，获取状态码、标题、技术栈 |
-| `tools/dnsx.py` | DNSx 引擎封装，批量 DNS 解析验证 |
-| `scanner.py` | Nmap 交互层，自动注入 Nmap 路径到 PATH，两步端口扫描策略（快速发现 + -sV 版本检测） |
-| `dns_utils.py` | DNS 工具函数，使用 dnspython 实现反向查询、A 记录查询、域名归属判断 |
-| `web_probe.py` | Python 内置 Web 探测，使用 requests 库探测 HTTP/HTTPS 站点，支持 GBK/GB2312 编码检测 |
-| `formatter.py` | 结果格式化，支持终端表格展示和 TXT/CSV/JSON 文件输出 |
-| `wordlist.py` | 内置 210 条常见子域名字典（www、mail、api、admin 等），支持加载外部字典文件 |
-| `utils.py` | 输入校验工具，IP/域名判断，根域名提取（支持 .com.cn、.co.uk 等多段 TLD）|
-
-## 输出示例
-
-终端输出：
-
-```
-======================================================================
-  域名探测结果 - example.com
-  主机数: 2 | 开放端口: 4 | Web站点: 3
-======================================================================
-
-  [1] example.com
-      IP: 93.184.216.34
-      开放端口:
-        - 80/tcp  http nginx 1.18.0
-        - 443/tcp  https nginx 1.18.0
-        - 22/tcp  ssh OpenSSH 8.9
-      Web站点:
-        - http://example.com:80 [200] "Example Domain" [Nginx]
-        - https://example.com:443 [200] "Example Domain" [Nginx]
-
-  [2] www.example.com
-      IP: 93.184.216.35
-      开放端口:
-        - 80/tcp  http nginx
-      Web站点:
-        - http://www.example.com:80 [301] -> https://www.example.com/
-======================================================================
-```
-
-Web 日志（显示引擎调度和降级）：
-
-```
-[12:30:01] 可用工具: Nmap, Subfinder, Httpx, DNSx
-[12:30:01] 共 1 个目标: example.com
-[12:30:01] ━━━ 目标 [1/1] example.com ━━━
-[12:30:02]   子域名枚举 (example.com)...
-[12:30:05]   [subfinder] 发现 12 个子域名
-[12:30:08]   [nmap dns-brute] 发现 3 个 (共 8 条)
-[12:30:10]   [dnspython] 验证完成: 11/14 可解析
-[12:30:10]   子域名枚举完成: 11 个有效
-[12:30:11]   端口扫描 (12 个主机)...
-[12:30:15]   [masscan] 不可用，降级到下一引擎...
-[12:30:16]   [rustscan] 不可用，降级到下一引擎...
-[12:30:25]   [nmap] 扫描完成: 18 个端口
-[12:30:26]   [python] Web 探测...
-[12:30:28]   [python] 发现 8 个 Web 站点
-```
+2. 在 `netprobe/tools/registry.py` 的 `_get_extra_paths()` 函数中添加自定义路径
 
 ## Web API
 
@@ -338,6 +314,42 @@ curl -X POST http://127.0.0.1:5000/api/scan \
 
 `*_tool` 参数可选值：`auto`（按可靠性优先级自动调度）、`nmap`、`subfinder`、`masscan`、`rustscan`、`httpx`、`dnsx`。
 
+## 输出示例
+
+Web 日志（显示引擎调度和降级）：
+
+```
+[12:30:01] 可用工具: Nmap, Subfinder, Httpx, DNSx
+[12:30:01] 共 1 个目标: example.com
+[12:30:01] ━━━ 目标 [1/1] example.com ━━━
+[12:30:02]   被动情报收集 (example.com)...
+[12:30:04]   [crt.sh] 发现 15 个子域名
+[12:30:05]   子域名枚举 (example.com)...
+[12:30:08]   [subfinder] 发现 12 个子域名
+[12:30:11]   [nmap dns-brute] 发现 3 个 (共 8 条)
+[12:30:13]   [dnspython] 验证完成: 18/26 可解析
+[12:30:13]   子域名枚举完成: 18 个有效
+[12:30:14]   端口扫描 (19 个主机)...
+[12:30:28]   [nmap] 扫描完成: 24 个端口
+[12:30:29]   [python] Web 探测...
+[12:30:33]   [python] 发现 10 个 Web 站点
+[12:30:34]   敏感路径探测...
+[12:30:40]   敏感路径探测完成: 5 条发现
+[12:30:41]   JavaScript 文件分析...
+[12:30:43]   JS 分析完成: 3 个文件, 1 条泄露
+[12:30:44]   Banner 抓取完成: 8 条
+```
+
+Web 界面展示内容包括：
+- 主机列表（主机名、IP、操作系统）
+- 开放端口表（端口/协议、状态、服务/版本）
+- Web 站点表（URL、状态码、标题、技术栈标签、HTTP 指纹、SSL 证书信息、重定向）
+- 敏感路径表（路径、说明、状态码、风险等级）
+- JS 文件分析表（JS 文件 URL、API 端点、泄露密钥/Token）
+- Banner 信息表（端口、服务、Banner 内容）
+
+技术栈标签按类别颜色区分：CMS（紫色）、Framework（蓝色）、Server（绿色）、CDN（黄色）、WAF（红色）、Analytics（靛蓝）、Runtime（粉色）。
+
 ## 常见问题
 
 ### 工具已安装但检测不到？
@@ -345,15 +357,34 @@ curl -X POST http://127.0.0.1:5000/api/scan \
 程序会根据平台自动搜索常见安装路径（见「工具路径自动检测」章节）。如果工具安装在其他位置：
 
 1. 将工具所在目录加入系统 PATH 环境变量
-2. 在 `tools/registry.py` 的 `_get_extra_paths()` 函数中添加自定义路径
+2. 在 `netprobe/tools/registry.py` 的 `_get_extra_paths()` 函数中添加自定义路径
 
 ### Httpx 检测到错误的程序？
 
 如果系统中存在其他同名程序（如 hermes-agent 的 httpx），程序会优先从 GOPATH/bin 查找 ProjectDiscovery 的 httpx，避免冲突。
 
+### 域名解析失败？
+
+程序使用 dnspython 进行 DNS 解析，部分域名的 DNS 服务器可能对 dnspython 的查询超时。此时程序会自动 fallback 到系统 DNS（`socket.getaddrinfo`），确保不会因 DNS 超时而跳过目标。
+
 ### 中文标题显示乱码？
 
-Web 探测模块已内置多编码检测：优先检查 HTTP Content-Type 头中的 charset 声明，再检查 HTML meta 标签中的 charset，最后使用 chardet 自动检测。支持 GBK、GB2312、UTF-8 等常见中文编码。
+Web 探测模块已内置多编码检测：优先检查 HTTP Content-Type 头中的 charset 声明，再检查 HTML meta 标签中的 charset，最后使用 apparent_encoding 自动检测。支持 GBK、GB2312、UTF-8 等常见中文编码。
+
+### 如何添加自定义指纹规则？
+
+编辑 `netprobe/data/fingerprints.json`，按现有格式添加新的规则对象即可，无需修改 Python 代码。每条规则包含 `name`（名称）、`category`（类别）、`patterns`（匹配模式数组）。
+
+### 如何添加自定义敏感路径？
+
+编辑 `netprobe/data/sensitive_paths.json`，按现有格式添加新的路径规则即可。每条规则包含 `path`（路径）、`description`（说明）、`indicator`（响应内容指示器）、`severity`（风险等级：high/medium/low/info）。
+
+### JS 文件分析支持哪些检测？
+
+JS 分析模块从页面中提取 JavaScript 文件并分析：
+- **API 端点** — `/api/...`、`/v1/...`、`fetch()`、`axios`、`XMLHttpRequest` 等调用
+- **密钥泄露** — AWS Key、GitHub Token、JWT、API Key、硬编码密码、Private Key 等 9 类
+- 自动跳过第三方 CDN（googleapis、cloudflare 等），减少噪音
 
 ### 国内 Go 工具安装失败？
 

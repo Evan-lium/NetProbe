@@ -4,7 +4,7 @@ import json
 import subprocess
 
 # 先确保 nmap 路径注入（必须在 import nmap 之前）
-from scanner import COMMON_PORTS  # noqa: E402 (triggers _ensure_nmap_in_path)
+from ..scanner import COMMON_PORTS  # noqa: E402 (triggers _ensure_nmap_in_path)
 
 import nmap as nmap_lib
 
@@ -29,7 +29,7 @@ def run_rustscan(
     targets_str = ' '.join(targets)
 
     # 第一步：RustScan 快速发现端口（不调用 nmap，自己解析）
-    from tools.registry import get_tool_path
+    from .registry import get_tool_path
     cmd = [
         get_tool_path('rustscan'),
         '-a', targets_str,

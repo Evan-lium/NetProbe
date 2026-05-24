@@ -1,6 +1,7 @@
 """Banner 抓取 — 对非 HTTP 服务获取 banner 指纹信息。"""
 
 import socket
+import struct
 
 # 支持 banner 抓取的服务端口和协议
 BANNER_PORTS = {
@@ -40,10 +41,12 @@ def grab_banner(ip: str, port: int) -> dict:
                 data = sock.recv(4096)
                 banner = _parse_redis_info(data)
             elif port == 27017:
-                # MongoDB ismaster
-                import struct
-                import bson
-                ismaster = bson.BSON.encode({'ismaster': 1, 'helloOk': True})
+                try:
+                    import bson as _bson
+                except ImportError:
+                    banner = 'MongoDB'
+                    return {'port': port, 'service': service, 'banner': banner}
+                ismaster = _bson.BSON.encode({'ismaster': 1, 'helloOk': True})
                 header = struct.pack('<iiii', 16 + len(ismaster), 0, 0, 1)
                 sock.sendall(header + ismaster)
                 data = sock.recv(4096)
@@ -103,13 +106,12 @@ def _parse_redis_info(data: bytes) -> str:
 def _parse_mongo_info(data: bytes) -> str:
     """解析 MongoDB ismaster 响应。"""
     try:
-        import struct
-        import bson
+        import bson as _bson
         if len(data) < 16:
             return ''
         msg_len = struct.unpack('<i', data[0:4])[0]
         body = data[16:msg_len]
-        doc = bson.BSON(body).decode()
+        doc = _bson.BSON(body).decode()
         version = doc.get('version', '')
         if version:
             return f'MongoDB {version}'

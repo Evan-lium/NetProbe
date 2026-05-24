@@ -118,20 +118,33 @@ def run_port_scan(
     if not ip_open_ports:
         return {}
 
-    # 第二步：对 open 端口做 -sV 服务版本检测 + OS 识别
+    # 第二步：批量对所有 IP 的 open 端口做 -sV 服务版本检测 + OS 识别
+    # 合并所有端口，nmap 只对 open 端口做版本检测
+    all_ports = sorted(set(p[0] for ports in ip_open_ports.values() for p in ports))
+    all_ips = list(ip_open_ports.keys())
+    port_str = ','.join(str(p) for p in all_ports)
+    targets_str = ' '.join(all_ips)
+
+    try:
+        nm_sv = nmap.PortScanner()
+        try:
+            nm_sv.scan(hosts=targets_str, arguments=f'-Pn -sV -O -p {port_str} --max-retries 2')
+        except nmap.PortScannerError:
+            nm_sv.scan(hosts=targets_str, arguments=f'-Pn -sV -p {port_str} --max-retries 2')
+    except nmap.PortScannerError:
+        # 全部失败，返回基础端口信息
+        results = {}
+        for ip, port_list in ip_open_ports.items():
+            results[ip] = {
+                'hostname': hostnames_map.get(ip, ''),
+                'os': '',
+                'ports': [{'port': p, 'proto': pr, 'state': 'open', 'service': '', 'product': '', 'version': ''} for p, pr in port_list],
+            }
+        return results
+
     results = {}
     for ip, port_list in ip_open_ports.items():
-        port_str = ','.join(str(p[0]) for p in port_list)
-        try:
-            nm_sv = nmap.PortScanner()
-            # -O 需要 root/管理员权限，失败不影响其他结果
-            try:
-                nm_sv.scan(hosts=ip, arguments=f'-Pn -sV -O -p {port_str} --max-retries 2')
-            except nmap.PortScannerError:
-                nm_sv.scan(hosts=ip, arguments=f'-Pn -sV -p {port_str} --max-retries 2')
-            sv_data = nm_sv[ip] if ip in nm_sv.all_hosts() else {}
-        except nmap.PortScannerError:
-            sv_data = {}
+        sv_data = nm_sv[ip] if ip in nm_sv.all_hosts() else {}
 
         # 提取 OS 信息
         os_info = ''
@@ -145,7 +158,6 @@ def run_port_scan(
 
         ports_result = []
         for port_num, proto in port_list:
-            # 从 -sV 结果中获取详细信息（nmap 返回 int key）
             proto_data = sv_data.get(proto, {})
             if isinstance(proto_data, dict):
                 port_info = proto_data.get(port_num) or proto_data.get(str(port_num), {})

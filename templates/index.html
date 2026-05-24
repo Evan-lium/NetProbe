@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NetProbe</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -856,7 +857,15 @@ function showResults(hosts, baseDomain) {
                     const cls = w.status >= 300 && w.status < 400 ? 'tag-orange' : 'tag-blue';
                     const redirect = w.redirect ? ` <span style="color:var(--warning)">&rarr; ${escHtml(w.redirect)}</span>` : '';
                     const title = w.title ? ` <span class="web-title">"${escHtml(w.title)}"</span>` : '';
-                    const tech = w.tech ? ` <span style="color:var(--info);font-size:11px">[${escHtml(w.tech)}]</span>` : '';
+                    // 技术栈标签
+                    let techTags = '';
+                    if (w.tech && Array.isArray(w.tech) && w.tech.length) {
+                        const catColors = {'CMS': '#8B5CF6', 'Framework': '#3B82F6', 'Server': '#10B981', 'CDN': '#F59E0B', 'WAF': '#EF4444', 'Analytics': '#6366F1', 'Runtime': '#EC4899'};
+                        techTags = ' ' + w.tech.map(t => {
+                            const c = catColors[t.category] || '#6B7280';
+                            return `<span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;background:${c}18;color:${c};border:1px solid ${c}40;margin:0 2px">${escHtml(t.name)}</span>`;
+                        }).join('');
+                    }
                     // HTTP 指纹
                     let fingerprint = '';
                     if (w.headers) {
@@ -874,9 +883,40 @@ function showResults(hosts, baseDomain) {
                         const cipherInfo = w.ssl.cipher ? ` | ${escHtml(w.ssl.cipher)}` : '';
                         sslHtml = `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">SSL: ${escHtml(w.ssl.subject)} | 颁发: ${escHtml(w.ssl.issuer)} | ${escHtml(w.ssl.not_after)}${cipherInfo}${sslWarn}</div>`;
                     }
-                    webHtml += `<tr><td style="font-family:var(--mono);font-size:11.5px">${escHtml(w.url)}</td><td><span class="tag ${cls}">${w.status}</span></td><td>${title}${tech}${fingerprint}${redirect}${sslHtml}</td></tr>`;
+                    webHtml += `<tr><td style="font-family:var(--mono);font-size:11.5px">${escHtml(w.url)}</td><td><span class="tag ${cls}">${w.status}</span></td><td>${title}${techTags}${fingerprint}${redirect}${sslHtml}</td></tr>`;
                 });
                 webHtml += '</table>';
+            }
+
+            // 敏感路径
+            const sensitive = host.sensitive || [];
+            let sensitiveHtml = '';
+            if (sensitive.length) {
+                sensitiveHtml = '<div class="section-label">敏感路径</div><table><tr><th>路径</th><th>说明</th><th>状态</th><th>风险</th></tr>';
+                const sevColors = {high: '#EF4444', medium: '#F59E0B', low: '#3B82F6', info: '#94A3B8'};
+                sensitive.forEach(s => {
+                    const c = sevColors[s.severity] || '#94A3B8';
+                    sensitiveHtml += `<tr><td style="font-family:var(--mono);font-size:11px">${escHtml(s.path)}</td><td>${escHtml(s.description)}</td><td><span class="tag ${s.status===200?'tag-green':'tag-orange'}">${s.status}</span></td><td><span style="color:${c};font-weight:600;font-size:11px">${s.severity.toUpperCase()}</span></td></tr>`;
+                });
+                sensitiveHtml += '</table>';
+            }
+
+            // JS 文件分析
+            const jsFindings = host.js_findings || [];
+            let jsHtml = '';
+            if (jsFindings.length) {
+                jsHtml = '<div class="section-label">JS 文件分析</div><table><tr><th>JS 文件</th><th>API 端点</th><th>泄露信息</th></tr>';
+                jsFindings.forEach(j => {
+                    const apis = (j.api_endpoints || []).slice(0, 10).map(a =>
+                        `<span style="display:inline-block;font-family:var(--mono);font-size:10px;background:#F1F5F9;padding:1px 5px;border-radius:3px;margin:1px">${escHtml(a)}</span>`
+                    ).join(' ');
+                    const secrets = (j.secrets || []).map(s => {
+                        const sc = s.severity === 'high' ? '#EF4444' : '#F59E0B';
+                        return `<div style="margin:1px 0"><span style="display:inline-block;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:600;background:${sc}18;color:${sc};border:1px solid ${sc}40">${escHtml(s.type)}</span> <span style="font-family:var(--mono);font-size:10px;color:var(--text-secondary)">${escHtml(s.match)}</span></div>`;
+                    }).join('');
+                    jsHtml += `<tr><td style="font-family:var(--mono);font-size:11px;max-width:300px;word-break:break-all">${escHtml(j.js_url)}</td><td>${apis || '<span style="color:var(--text-muted)">-</span>'}</td><td>${secrets || '<span style="color:var(--text-muted)">-</span>'}</td></tr>`;
+                });
+                jsHtml += '</table>';
             }
 
             html += `<div class="host-card">
@@ -889,6 +929,8 @@ function showResults(hosts, baseDomain) {
                     ${ports.length ? portHtml : '<div class="no-data">无开放端口</div>'}
                     ${bannerHtml}
                     ${webInfo.length ? webHtml : ''}
+                    ${sensitiveHtml}
+                    ${jsHtml}
                 </div>
             </div>`;
         });

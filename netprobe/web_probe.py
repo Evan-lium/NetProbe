@@ -51,7 +51,25 @@ def probe_web(hostname: str, ip: str, port: int) -> dict | None:
                 'title': title,
                 'redirect': redirect,
                 'headers': _extract_http_fingerprint(resp),
+                '_raw_headers': dict(resp.headers),
+                '_raw_html': resp.text[:65536],
+                '_js_urls': _extract_script_urls(resp.text, url),
             }
+
+            # 重定向时再请求最终页面获取完整 HTML 用于指纹识别
+            if redirect and resp.status_code in (301, 302, 303, 307, 308):
+                try:
+                    resp2 = requests.get(
+                        redirect, timeout=REQUEST_TIMEOUT,
+                        verify=False, allow_redirects=True,
+                    )
+                    resp2.encoding = _detect_charset(resp2) or resp2.apparent_encoding
+                    result['_raw_html'] = resp2.text[:65536]
+                    if not title:
+                        result['title'] = _extract_title(resp2.text)
+                    result['_js_urls'] = _extract_script_urls(resp2.text, redirect)
+                except requests.RequestException:
+                    pass
 
             # SSL/TLS 证书信息
             if scheme == 'https':
@@ -280,3 +298,16 @@ def _extract_title(html: str) -> str:
     if end == -1:
         return ''
     return html[start:end].strip()[:200]
+
+
+def _extract_script_urls(html: str, base_url: str) -> list[str]:
+    """从 HTML 中提取 script src URL 列表（供 JS 分析器使用）。"""
+    if not html:
+        return []
+    from urllib.parse import urljoin
+    urls = []
+    for m in re.finditer(r'<script[^>]+src=["\']([^"\']+)["\']', html, re.IGNORECASE):
+        src = m.group(1).strip()
+        if src and not src.startswith('data:'):
+            urls.append(urljoin(base_url, src))
+    return urls[:20]

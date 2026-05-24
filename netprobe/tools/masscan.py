@@ -3,7 +3,7 @@
 import re
 import subprocess
 
-from scanner import COMMON_PORTS
+from ..scanner import COMMON_PORTS
 
 
 def run_masscan(

@@ -13,7 +13,7 @@ def run_subfinder(
 
     返回 [{'hostname': str, 'ip': str}, ...]
     """
-    from tools.registry import get_tool_path
+    from .registry import get_tool_path
     cmd = [
         get_tool_path('subfinder'),
         '-d', domain,

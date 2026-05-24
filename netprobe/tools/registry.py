@@ -77,6 +77,7 @@ CAP_SUBDOMAIN = 'subdomain'
 CAP_PORTSCAN = 'portscan'
 CAP_WEBPROBE = 'webprobe'
 CAP_DNS = 'dns'
+CAP_PASSIVE = 'passive'
 
 # 注册的工具信息: name -> {cmd, caps, label}
 TOOL_INFO = {
@@ -86,6 +87,7 @@ TOOL_INFO = {
     'rustscan':   {'cmd': 'rustscan',   'caps': [CAP_PORTSCAN],  'label': 'RustScan'},
     'httpx':      {'cmd': 'httpx',      'caps': [CAP_WEBPROBE],  'label': 'Httpx'},
     'dnsx':       {'cmd': 'dnsx',       'caps': [CAP_DNS],       'label': 'DNSx'},
+    'nuclei':     {'cmd': 'nuclei',     'caps': [CAP_WEBPROBE],  'label': 'Nuclei'},
 }
 
 

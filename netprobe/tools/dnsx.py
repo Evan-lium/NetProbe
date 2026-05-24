@@ -1,6 +1,7 @@
 """DNSx — 快速 DNS 解析验证工具。"""
 
 import json
+import os
 import subprocess
 import tempfile
 
@@ -19,11 +20,11 @@ def run_dnsx(
 
     fd, path = tempfile.mkstemp(suffix='.txt', prefix='dnsx_')
     try:
-        with __import__('os').fdopen(fd, 'w') as f:
+        with os.fdopen(fd, 'w') as f:
             for h in hostnames:
                 f.write(h + '\n')
 
-        from tools.registry import get_tool_path
+        from .registry import get_tool_path
         cmd = [
             get_tool_path('dnsx'),
             '-l', path,
@@ -44,7 +45,7 @@ def run_dnsx(
 
     finally:
         try:
-            __import__('os').remove(path)
+            os.remove(path)
         except OSError:
             pass
 

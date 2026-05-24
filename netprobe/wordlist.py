@@ -45,7 +45,7 @@ COMMON_SUBDOMAINS = [
     'backup', 'bak', 'old', 'new', 'next', 'v2', 'v3',
     'tv', 'live', 'stream', 'radio', 'news', 'press',
     'support', 'help', 'faq', 'feedback', 'contact',
-    ' Careers', 'job', 'jobs', 'recruit', 'hire',
+    'careers', 'job', 'jobs', 'recruit', 'hire',
     'en', 'zh', 'cn', 'us', 'eu', 'asia',
     'www2', 'www3', 'web1', 'web2', 'web3',
     'server', 'server1', 'server2', 'node1', 'node2',

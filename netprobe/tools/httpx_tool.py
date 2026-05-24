@@ -1,6 +1,7 @@
 """Httpx — ProjectDiscovery 出品的批量 Web 探测工具。"""
 
 import json
+import os
 import subprocess
 import tempfile
 
@@ -20,11 +21,11 @@ def run_httpx(
     # 写入临时文件作为 httpx 输入
     fd, path = tempfile.mkstemp(suffix='.txt', prefix='httpx_')
     try:
-        with __import__('os').fdopen(fd, 'w') as f:
+        with os.fdopen(fd, 'w') as f:
             for h in hosts:
                 f.write(h + '\n')
 
-        from tools.registry import get_tool_path
+        from .registry import get_tool_path
         cmd = [
             get_tool_path('httpx'),
             '-l', path,
@@ -48,7 +49,7 @@ def run_httpx(
 
     finally:
         try:
-            __import__('os').remove(path)
+            os.remove(path)
         except OSError:
             pass
 

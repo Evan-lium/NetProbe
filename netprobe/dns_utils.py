@@ -1,3 +1,5 @@
+import socket
+
 import dns.resolver
 import dns.reversename
 
@@ -24,6 +26,13 @@ def resolve_a_record(hostname: str) -> list[str]:
     except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer,
             dns.resolver.Timeout, dns.resolver.NoNameservers,
             dns.exception.DNSException):
+        pass
+    # dnspython 失败时，用系统 DNS fallback
+    try:
+        results = socket.getaddrinfo(hostname, None, socket.AF_INET)
+        ips = list({r[4][0] for r in results})
+        return ips
+    except socket.gaierror:
         return []
 
 
