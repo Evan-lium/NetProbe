@@ -8,6 +8,7 @@ from .settings import router as settings_router
 from .tools import router as tools_router
 from .tasks import router as tasks_router
 from .schedules import router as schedules_router
+from .correlations import router as correlations_router
 
 
 def include_all_routers(app: FastAPI):
@@ -19,3 +20,4 @@ def include_all_routers(app: FastAPI):
     app.include_router(tools_router, prefix="/api")
     app.include_router(tasks_router, prefix="/api")
     app.include_router(schedules_router, prefix="/api")
+    app.include_router(correlations_router, prefix="/api")
