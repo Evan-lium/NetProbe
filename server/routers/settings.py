@@ -19,6 +19,7 @@ _DEFAULTS = {
         "shodan": "",
         "fofa_email": "",
         "fofa_key": "",
+        "hunter_key": "",
         "censys_id": "",
         "censys_secret": "",
     },

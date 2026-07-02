@@ -1,6 +1,7 @@
 """扫描任务管理服务 — 线程、SSE 队列、双写 DB、取消机制。"""
 
 import json
+import os
 import queue
 import threading
 import uuid
@@ -9,12 +10,43 @@ from datetime import datetime
 from netprobe.engine import parse_targets, scan_all_targets
 from netprobe.formatter import save_results
 
+from ..config import DATA_DIR
 from ..db import SessionLocal
 from ..models import Scan, Host, Port, Banner, WebInfo, SensitivePath, JSFinding
 
 # 全局任务存储（内存 + DB 双写）
 _tasks: dict[str, dict] = {}
 _TASK_MAX_AGE = 3600
+
+# settings.json api_keys 字段 → os.environ 环境变量名 的映射
+# netprobe 工具（fofa/hunter/shodan）读取环境变量，UI 填的 key 存在 settings.json，
+# 此映射在每次扫描前把两者打通。
+_API_KEY_ENV_MAP = {
+    "fofa_email": "FOFA_EMAIL",
+    "fofa_key": "FOFA_KEY",
+    "hunter_key": "HUNTER_KEY",
+    "shodan": "SHODAN_API_KEY",
+    "censys_id": "CENSYS_ID",
+    "censys_secret": "CENSYS_SECRET",
+}
+
+_SETTINGS_FILE = os.path.join(DATA_DIR, "settings.json")
+
+
+def _inject_api_keys():
+    """从 data/settings.json 读取 api_keys 并注入 os.environ，让 UI 配置的 key 对扫描引擎生效。"""
+    if not os.path.isfile(_SETTINGS_FILE):
+        return
+    try:
+        with open(_SETTINGS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return
+    api_keys = data.get("api_keys") or {}
+    for settings_key, env_name in _API_KEY_ENV_MAP.items():
+        value = (api_keys.get(settings_key) or "").strip()
+        if value:
+            os.environ[env_name] = value
 
 
 def get_tasks() -> dict[str, dict]:
@@ -117,6 +149,9 @@ def start_scan(raw_targets: str, options: dict) -> str:
     """启动扫描任务，返回 task_id。"""
     task_id = uuid.uuid4().hex[:12]
     cancel_event = threading.Event()
+
+    # 把 UI 配置的 API key 注入环境变量，让 netprobe 工具（fofa/hunter/shodan）能读到
+    _inject_api_keys()
 
     _tasks[task_id] = {
         "id": task_id,
