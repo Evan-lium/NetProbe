@@ -1,6 +1,6 @@
 # NetProbe v3.0 架构设计文档
 
-> 版本: 3.0 | 日期: 2026-05-25 | 状态: 设计阶段
+> 版本: 3.0 | 日期: 2026-07-02 | 状态: 已实施（Phase 1-4 落地，v2.2 剩余：定时扫描、Diff 对比）
 
 ---
 
@@ -94,6 +94,7 @@ NetProbe v2.x 是 Flask 单体应用，所有前端代码内联在一个 995 行
 | 状态管理 | Pinia | 2.x | 全局状态 | Vue 官方推荐，轻量，TypeScript 友好 |
 | 路由 | Vue Router | 4.x | 前端路由 | 声明式路由、嵌套路由、URL 参数 |
 | HTTP | Axios | 1.x | API 请求 | 拦截器、取消请求、JSON 自动转换 |
+| 国际化 | vue-i18n | 11.x | 中英文切换 | 内置 zh-CN / en 两套 locale，按浏览器语言默认 |
 | **后端** | | | | |
 | 框架 | FastAPI | 0.115+ | REST API | 自动 OpenAPI 文档、原生 SSE、Pydantic 校验 |
 | 服务器 | Uvicorn | 0.30+ | ASGI 服务器 | FastAPI 标准运行时，支持 async |
@@ -149,6 +150,7 @@ NetProbe/
 │   │   ├── __init__.py                # include_all_routers(app)
 │   │   ├── scan.py                    # POST /api/scan, GET /api/stream/:id
 │   │   ├── result.py                  # GET /api/result/:id, GET /api/download/:id/:fmt
+│   │   ├── tasks.py                   # GET /api/tasks, GET/POST-cancel /api/tasks/:id, DELETE
 │   │   ├── history.py                 # GET /api/history, GET/DELETE /api/history/:id
 │   │   ├── assets.py                  # GET /api/assets
 │   │   ├── settings.py                # GET/PUT /api/settings
@@ -268,6 +270,7 @@ settings (独立 key-value 表)
 | 字段 | 类型 | 约束 | 说明 |
 |------|------|------|------|
 | scan_id | TEXT | PK | uuid hex（12 位） |
+| name | TEXT | DEFAULT '' | 任务名称（用户可自定义，默认自动生成） |
 | target_raw | TEXT | NOT NULL | 用户原始输入 |
 | base_domain | TEXT | DEFAULT '' | 显示标签（如 `baidu.com+qq.com+1more`） |
 | status | TEXT | DEFAULT 'running' | running / done / error |
@@ -400,6 +403,7 @@ CREATE INDEX idx_js_findings_host ON js_findings(host_id);
 ```json
 {
   "target": "example.com",
+  "name": "任务名称（可选，默认自动生成）",
   "no_dns_brute": false,
   "no_web": false,
   "no_validate": false,
@@ -407,14 +411,18 @@ CREATE INDEX idx_js_findings_host ON js_findings(host_id);
   "subdomain_tool": "auto",
   "portscan_tool": "auto",
   "web_tool": "auto",
-  "dns_tool": "auto"
+  "dns_tool": "auto",
+  "port_preset": "common",
+  "custom_ports": ""
 }
 ```
+
+> `port_preset` 取值：`common`（常用端口）/ `top1000` / `all` / `custom`（自定义，此时填 `custom_ports`，如 `"80,443,8080"`）。
 
 **响应:**
 ```json
 {
-  "scan_id": "a1b2c3d4e5f6",
+  "task_id": "a1b2c3d4e5f6",
   "status": "running"
 }
 ```
@@ -463,7 +471,31 @@ data: {"event": "heartbeat"}
 - `fmt`: txt / csv / json / pdf
 - 返回文件附件
 
-### 4.3 历史 API
+### 4.3 任务 API
+
+> 任务 API 是前端 `/tasks` 页面的数据来源，合并展示「内存中活跃任务」与「数据库中已完成任务」，并提供运行中任务的取消能力。
+
+#### GET /api/tasks — 任务列表
+
+合并返回内存中活跃任务（含运行进度）与 DB 中最近 50 条已完成任务，运行中任务排在前。
+
+**响应:** `{"items": [...], "total": N}`，每项含 `id/scan_id/name/target/status/host_count/port_count/web_count/started_at/finished_at/duration_secs/progress/options/error_msg`。
+
+#### GET /api/tasks/\<task_id\> — 任务详情
+
+先查内存（运行中，带实时 progress），未命中则回退 DB。
+
+#### POST /api/tasks/\<task_id\>/cancel — 取消任务
+
+仅对运行中任务生效。置 `cancel_event` 信号 → 终止所有跟踪的子进程（nmap/masscan/rustscan）→ 推送 `cancelled` SSE 事件 → 更新 DB 状态为 `cancelled`。
+
+#### DELETE /api/tasks/\<task_id\> — 删除任务
+
+若仍在运行先取消，再从内存移除并级联删除 DB 中该 scan 及其全部关联数据。
+
+### 4.4 历史 API
+
+> 历史 API（`/api/history`）仍保留可用，但前端默认入口已迁移到 `/api/tasks`。两者底层共用同一批 scan 记录。
 
 #### GET /api/history — 扫描列表
 
@@ -503,7 +535,7 @@ data: {"event": "heartbeat"}
 
 **响应:** `{"ok": true}`
 
-### 4.4 资产 API
+### 4.5 资产 API
 
 #### GET /api/assets — 跨扫描资产汇总
 
@@ -542,7 +574,7 @@ GROUP BY h.ip, h.hostname
 
 返回该 IP 在所有扫描中的端口、Web、技术栈聚合信息。
 
-### 4.5 设置 API
+### 4.6 设置 API
 
 #### GET /api/tools — 工具可用性
 
@@ -585,10 +617,12 @@ GROUP BY h.ip, h.hostname
 |------|------|------|
 | `/` | Dashboard | 扫描首页（表单 + 最近扫描） |
 | `/scan/:id` | ScanResult | 实时扫描结果（SSE 驱动） |
-| `/history` | History | 历史扫描列表 |
-| `/history/:id` | ScanDetail | 历史扫描详情（数据库加载） |
+| `/tasks` | Tasks | 任务列表（活跃运行中 + 历史已完成，含取消/删除/内嵌表单） |
+| `/tasks/:id` | ScanDetail | 任务详情（数据库加载） |
 | `/assets` | Assets | 资产清单 |
 | `/settings` | Settings | 系统设置 |
+
+> 旧版 `/history` 与 `/history/:id` 已重定向到 `/tasks` 与 `/tasks/:id`。History 组件保留但默认路由不再挂载。
 
 ### 5.2 页面详细设计
 
@@ -1041,6 +1075,8 @@ app.add_middleware(
 
 **总计预计：5-7 天**
 
+> **实施状态（2026-07-02 核对）**：Phase 1-4 已全部落地。后端 7 张表已建（`data/netprobe.db` 内有真实扫描数据验证），前端 `npm run build` 通过，端到端扫描链路（Vue → FastAPI → netprobe → SQLite → 展示）已跑通。额外完成超出原设计的：任务取消机制、子进程跟踪、中英文 i18n。v2.2 尚余两项（定时扫描 cron、结果 Diff 对比）待实现。
+
 ---
 
 ## 10. 后端请求流
@@ -1128,12 +1164,16 @@ app.add_middleware(
   │──────────────────────>│         │                 │
 ```
 
-### 10.3 并发扫描管理
+### 10.3 并发与任务管理
 
 - 使用 `threading.Thread` 执行扫描（非 asyncio，因为 netprobe 引擎是同步的）
-- 全局 `dict[str, Queue]` 维护 scan_id → SSE 消息队列的映射
-- 同时只允许一个扫描任务运行（单机模式），后续请求返回 `409 Conflict`
-- 未来可扩展为线程池支持并行扫描
+- 全局 `_tasks: dict[task_id, dict]` 维护每个任务的队列、状态、取消信号、跟踪的子进程
+- **支持并发多任务**：每次 `POST /api/scan` 起独立线程，互不阻塞；活跃任务超过 `_TASK_MAX_AGE`（1 小时）自动清理
+- **任务取消机制**：`POST /api/tasks/:id/cancel` 置 `cancel_event` →
+  - 终止所有已跟踪的底层子进程（通过 `_process_callback` 注册的 nmap/masscan/rustscan 进程）
+  - 引擎在每个阶段检查 `_is_cancelled()` 提前退出
+  - 推送 `cancelled` SSE 事件，DB 状态置为 `cancelled`
+- 任务结果双写：内存 `_tasks[task_id]["hosts"]`（供 SSE 实时推送）+ SQLite（持久化供历史/资产查询）
 
 ---
 
