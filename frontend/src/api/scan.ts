@@ -1,5 +1,5 @@
 import api from './index'
-import type { ScanRequest, ScanResponse, ScanResult, HistoryList, AssetSummary, ToolStatus, Settings, TaskInfo, TaskList, ScheduleTask, ScheduleList, ScheduleRequest, ScanDiff } from '../types'
+import type { ScanRequest, ScanResponse, ScanResult, HistoryList, AssetSummary, ToolStatus, Settings, TaskInfo, TaskList, ScheduleTask, ScheduleList, ScheduleRequest, ScanDiff, CorrelationResult, CorrelationType } from '../types'
 
 /** 启动扫描 */
 export function startScan(req: ScanRequest): Promise<ScanResponse> {
@@ -108,4 +108,11 @@ export function runScheduleNow(id: number): Promise<{ ok: boolean }> {
 /** 对比两次扫描 */
 export function getDiff(scanA: string, scanB: string): Promise<ScanDiff> {
   return api.get('/result/diff', { params: { a: scanA, b: scanB } })
+}
+
+// ── 资产关联 ──
+
+/** 获取资产关联簇 */
+export function getCorrelations(type?: CorrelationType): Promise<CorrelationResult> {
+  return api.get('/correlations', { params: type ? { type } : {} })
 }

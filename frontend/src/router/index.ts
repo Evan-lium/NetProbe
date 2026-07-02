@@ -40,6 +40,12 @@ const router = createRouter({
       meta: { title: 'Compare Scans', icon: 'DataExchange' },
     },
     {
+      path: '/correlations',
+      name: 'correlations',
+      component: () => import('../views/Correlations.vue'),
+      meta: { title: 'Correlations', icon: 'Share' },
+    },
+    {
       path: '/assets',
       name: 'assets',
       component: () => import('../views/Assets.vue'),

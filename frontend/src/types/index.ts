@@ -261,3 +261,36 @@ export interface ScanDiff {
   summary: DiffSummary
   hosts: HostDiff[]
 }
+
+// ── 资产关联 ──
+
+/** 关联类型 */
+export type CorrelationType = 'ip' | 'cert' | 'tech' | 'service'
+
+/** 关联簇成员 */
+export interface CorrelationMember {
+  hostname: string
+  ip: string
+  url?: string
+}
+
+/** 关联簇 */
+export interface CorrelationCluster {
+  type: CorrelationType
+  key: string
+  count: number
+  members: CorrelationMember[]
+  // 各类型特有字段（可选）
+  issuer?: string
+  not_after?: string
+  expired?: boolean
+  names?: string[]
+  product?: string
+  version?: string
+}
+
+/** 关联查询响应（按类型分组） */
+export interface CorrelationResult {
+  groups: Partial<Record<CorrelationType, CorrelationCluster[]>>
+  total: number
+}

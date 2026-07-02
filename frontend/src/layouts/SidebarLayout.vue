@@ -113,6 +113,7 @@ const navItems = [
   { path: '/tasks', icon: 'List', labelKey: 'nav.tasks' },
   { path: '/schedules', icon: 'Timer', labelKey: 'nav.schedules' },
   { path: '/assets', icon: 'Grid', labelKey: 'nav.assets' },
+  { path: '/correlations', icon: 'Share', labelKey: 'nav.correlations' },
   { path: '/settings', icon: 'Setting', labelKey: 'nav.settings' },
 ]
 
@@ -144,6 +145,8 @@ const breadcrumbs = computed(() => {
     crumbs.push({ label: t('breadcrumb.schedules') })
   } else if (route.path === '/diff') {
     crumbs.push({ label: t('breadcrumb.diff') })
+  } else if (route.path === '/correlations') {
+    crumbs.push({ label: t('breadcrumb.correlations') })
   } else if (route.path === '/assets') {
     crumbs.push({ label: t('breadcrumb.assets') })
   } else if (route.path === '/settings') {
