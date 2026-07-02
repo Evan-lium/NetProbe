@@ -19,7 +19,7 @@ from .fingerprint import detect_technologies
 from .web_probe import probe_web_for_host
 from .banner_grab import grab_banners_for_host
 from .sensitive_probe import probe_sensitive_for_hosts
-from .tools.crtsh import query_crtsh
+from .tools.crtsh import query_crtsh, query_crtsh_certificates
 from .tools.fofa import query_fofa
 from .tools.hunter import query_hunter
 from .wordlist import get_default_wordlist_path, load_external_wordlist
@@ -276,6 +276,27 @@ def do_passive_recon(base_domain: str, emit) -> list[dict]:
         emit('progress', text=f'  [crt.sh] 发现 {new} 个子域名')
     except Exception as e:
         emit('progress', text=f'  [crt.sh] 查询失败: {e}')
+
+    # 证书透明度日志增强：保留证书元数据 + 通配符发现
+    try:
+        cert_results = query_crtsh_certificates(base_domain)
+        new = 0
+        wildcards = 0
+        for r in cert_results:
+            h = r['hostname'].lower()
+            if r.get('wildcard'):
+                wildcards += 1
+                continue  # 通配符域名不能直接扫描，仅统计
+            if h not in seen:
+                seen.add(h)
+                results.append(r)
+                new += 1
+        if wildcards:
+            emit('progress', text=f'  [crt.sh 证书] 发现 {new} 个子域名，{wildcards} 个通配符证书线索')
+        elif new:
+            emit('progress', text=f'  [crt.sh 证书] 补充发现 {new} 个子域名')
+    except Exception as e:
+        emit('progress', text=f'  [crt.sh 证书] 查询失败: {e}')
 
     fofa_results = query_fofa(base_domain)
     if fofa_results:
