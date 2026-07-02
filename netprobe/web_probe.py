@@ -216,7 +216,7 @@ def _get_ssl_info(hostname: str, port: int) -> dict:
     if cipher:
         result['cipher'] = cipher[0]
     if san:
-        result['san'] = san[:10]
+        result['san'] = san
 
     return result
 
@@ -264,7 +264,7 @@ def _parse_der_cert(der_data: bytes, protocol: str | None, cipher: tuple | None)
             if ext[0] == 'DNS':
                 san.append(ext[1])
         if san:
-            result['san'] = san[:10]
+            result['san'] = san
 
     except Exception:
         pass
