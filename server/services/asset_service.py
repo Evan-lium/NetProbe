@@ -1,9 +1,11 @@
-"""资产聚合服务 — 跨扫描的主机/Web 汇总。"""
+"""资产聚合服务 — 跨扫描的主机/Web 汇总 + 反向搜索。"""
+
+import json
 
 from sqlalchemy import func
 
 from ..db import SessionLocal
-from ..models import Host, Port, WebInfo
+from ..models import Host, Port, WebInfo, Banner, WhoisRecord
 
 
 def list_assets(q: str = "", sort: str = "last_seen") -> dict:
@@ -66,5 +68,74 @@ def list_assets(q: str = "", sort: str = "last_seen") -> dict:
             items.sort(key=lambda x: x["hostname"])
 
         return {"items": items, "total": len(items)}
+    finally:
+        db.close()
+
+
+def get_asset_by_ip(ip: str) -> dict | None:
+    """反向搜索：给定 IP，返回该 IP 在所有扫描中的关联资产。
+
+    聚合: distinct hostname 列表 + 所有端口 + 所有 Web 站点(含 SSL) +
+    所有 Banner + WHOIS 记录 + 出现过的扫描列表。
+    """
+    db = SessionLocal()
+    try:
+        hosts = db.query(Host).filter(Host.ip == ip).all()
+        if not hosts:
+            return None
+
+        host_ids = [h.host_id for h in hosts]
+        hostnames = sorted({h.hostname for h in hosts if h.hostname})
+        scan_ids = sorted({h.scan_id for h in hosts})
+
+        # 端口聚合（去重）
+        ports_rows = db.query(Port).filter(Port.host_id.in_(host_ids)).all()
+        seen_ports = set()
+        ports = []
+        for p in ports_rows:
+            key = (p.port, p.proto, p.state, p.service, p.product, p.version)
+            if key not in seen_ports:
+                seen_ports.add(key)
+                ports.append({
+                    "port": p.port, "proto": p.proto, "state": p.state,
+                    "service": p.service, "product": p.product, "version": p.version,
+                })
+
+        # Web 站点（含 SSL/技术栈/favicon）
+        web_rows = db.query(WebInfo).filter(WebInfo.host_id.in_(host_ids)).all()
+        web_info = []
+        for w in web_rows:
+            web_info.append({
+                "url": w.url, "port": w.port, "status": w.status_code,
+                "title": w.title, "redirect": w.redirect,
+                "headers": json.loads(w.headers_json) if w.headers_json else {},
+                "tech": json.loads(w.tech_json) if w.tech_json else [],
+                "ssl": json.loads(w.ssl_json) if w.ssl_json and w.ssl_json != "null" else None,
+                "favicon_hash": w.favicon_hash or "",
+            })
+
+        # Banner
+        banner_rows = db.query(Banner).filter(Banner.host_id.in_(host_ids)).all()
+        banners = [{"port": b.port, "service": b.service, "banner": b.banner} for b in banner_rows]
+
+        # WHOIS 记录
+        whois_rows = db.query(WhoisRecord).filter(WhoisRecord.host_id.in_(host_ids)).all()
+        whois = [{
+            "type": wr.type, "target": wr.target,
+            "data": json.loads(wr.data_json) if wr.data_json else {},
+        } for wr in whois_rows]
+
+        return {
+            "ip": ip,
+            "hostnames": hostnames,
+            "scan_count": len(scan_ids),
+            "scan_ids": scan_ids,
+            "ports": ports,
+            "web_info": web_info,
+            "banners": banners,
+            "whois": whois,
+            "port_count": len(ports),
+            "web_count": len(web_info),
+        }
     finally:
         db.close()

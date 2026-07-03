@@ -12,7 +12,7 @@ from netprobe.formatter import save_results
 
 from ..config import DATA_DIR
 from ..db import SessionLocal
-from ..models import Scan, Host, Port, Banner, WebInfo, SensitivePath, JSFinding
+from ..models import Scan, Host, Port, Banner, WebInfo, SensitivePath, JSFinding, WhoisRecord
 
 # 全局任务存储（内存 + DB 双写）
 _tasks: dict[str, dict] = {}
@@ -317,6 +317,7 @@ def _write_results_to_db(scan_id: str, hosts: list[dict], base_domain: str):
                     headers_json=json.dumps(w.get("headers", {}), ensure_ascii=False),
                     tech_json=json.dumps(w.get("tech", []), ensure_ascii=False),
                     ssl_json=json.dumps(w.get("ssl"), ensure_ascii=False) if w.get("ssl") else "null",
+                    favicon_hash=w.get("favicon_hash", ""),
                 ))
                 total_web += 1
 
@@ -336,6 +337,15 @@ def _write_results_to_db(scan_id: str, hosts: list[dict], base_domain: str):
                     js_url=j.get("js_url", ""),
                     api_endpoints_json=json.dumps(j.get("api_endpoints", []), ensure_ascii=False),
                     secrets_json=json.dumps(j.get("secrets", []), ensure_ascii=False),
+                ))
+
+            # WHOIS/RDAP 记录
+            for w in h.get("_whois", []):
+                db.add(WhoisRecord(
+                    host_id=host.host_id,
+                    type=w.get("type", ""),
+                    target=w.get("target", ""),
+                    data_json=json.dumps(w.get("data", {}), ensure_ascii=False),
                 ))
 
             total_hosts += 1
