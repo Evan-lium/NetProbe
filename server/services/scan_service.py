@@ -249,6 +249,13 @@ def _run_scan_task(task_id: str, raw_targets: str, options: dict):
 
         # 双写 DB
         _write_results_to_db(task_id, hosts, label)
+
+        # 扫描完成后检查告警规则（延迟 import 避免循环依赖）
+        try:
+            from .alert_service import check_after_scan
+            check_after_scan(task_id)
+        except Exception as e:
+            print(f"[!] 告警检查失败: {e}")
     except Exception as e:
         if not task["cancel_event"].is_set():
             emit("error", text=f"扫描异常: {e}")

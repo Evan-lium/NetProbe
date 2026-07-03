@@ -3,6 +3,7 @@ from .scan import Scan
 from .host import Host, Port, Banner
 from .web import WebInfo, SensitivePath, JSFinding, WhoisRecord
 from .schedule import Schedule
+from .alert import Alert, AlertEvent
 
 __all__ = [
     "Base",
@@ -16,4 +17,6 @@ __all__ = [
     "JSFinding",
     "WhoisRecord",
     "Schedule",
+    "Alert",
+    "AlertEvent",
 ]

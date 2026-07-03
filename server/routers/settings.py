@@ -23,6 +23,12 @@ _DEFAULTS = {
         "censys_id": "",
         "censys_secret": "",
     },
+    "notifications": {
+        "webhook": {
+            "url": "",
+            "headers": {},
+        },
+    },
 }
 
 
@@ -47,6 +53,7 @@ class SettingsUpdate(BaseModel):
     layout: str | None = None
     theme: str | None = None
     api_keys: dict | None = None
+    notifications: dict | None = None
 
 
 @router.get("/settings")

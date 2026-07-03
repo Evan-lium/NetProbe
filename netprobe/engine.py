@@ -22,6 +22,7 @@ from .fingerprint import detect_technologies
 from .web_probe import probe_web_for_host
 from .banner_grab import grab_banners_for_host
 from .sensitive_probe import probe_sensitive_for_hosts
+from .takeover_detect import detect_takeover_for_hosts
 from .risk import compute_risk_score
 from .screenshot import capture_screenshot
 from .tools.crtsh import query_crtsh, query_crtsh_certificates
@@ -594,6 +595,17 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
             emit('progress', text=f'  ✓ 敏感路径探测完成: {sensitive_total} 条发现 ({elapsed:.1f}s)')
         else:
             emit('progress', text=f'  ✓ 敏感路径探测完成: 无发现 ({elapsed:.1f}s)')
+
+    # ── 子域名接管检测 ──
+    if not skip_web:
+        emit('progress', text=ph('子域名接管检测 ...'))
+        t0 = time.time()
+        takeover_count = detect_takeover_for_hosts(all_hosts)
+        elapsed = time.time() - t0
+        if takeover_count:
+            emit('progress', text=f'  ✓ 接管检测完成: 发现 {takeover_count} 个可接管子域名 ({elapsed:.1f}s)')
+        else:
+            emit('progress', text=f'  ✓ 接管检测完成: 无发现 ({elapsed:.1f}s)')
 
     # ── JS 文件分析 ──
     if not skip_web:

@@ -1,6 +1,5 @@
 python-nmap>=0.7.1
 dnspython>=2.8.0
-flask>=3.0
 requests>=2.28
 playwright>=1.40
 ipwhois>=1.2.0
