@@ -23,6 +23,7 @@
                 <el-dropdown-item command="csv">{{ t('export.csv') }}</el-dropdown-item>
                 <el-dropdown-item command="json">{{ t('export.json') }}</el-dropdown-item>
                 <el-dropdown-item command="pdf">{{ t('export.pdf') }}</el-dropdown-item>
+                <el-dropdown-item command="html">{{ t('export.html') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>

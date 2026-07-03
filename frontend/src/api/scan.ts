@@ -110,9 +110,19 @@ export function getDiff(scanA: string, scanB: string): Promise<ScanDiff> {
   return api.get('/result/diff', { params: { a: scanA, b: scanB } })
 }
 
+/** 获取资产生命周期时间线 */
+export function getTimeline(target: string): Promise<any> {
+  return api.get('/result/timeline', { params: { target } })
+}
+
 // ── 资产关联 ──
 
 /** 获取资产关联簇 */
 export function getCorrelations(type?: CorrelationType): Promise<CorrelationResult> {
   return api.get('/correlations', { params: type ? { type } : {} })
+}
+
+/** 获取关系图谱数据 */
+export function getCorrelationGraph(): Promise<{ nodes: any[]; links: any[]; categories: any[] }> {
+  return api.get('/correlations/graph')
 }

@@ -195,6 +195,11 @@
                 <label class="form-label">{{ t('dashboard.timeout') }}</label>
                 <el-input-number v-model="form.timeout" :min="30" :max="3600" :step="30" style="width: 100%" />
               </div>
+              <div class="adv-field">
+                <label class="form-label">{{ t('dashboard.screenshot') }}</label>
+                <el-switch v-model="form.screenshot" />
+                <span class="form-hint">{{ t('dashboard.screenshotHint') }}</span>
+              </div>
             </div>
           </el-collapse-item>
         </el-collapse>
@@ -258,6 +263,7 @@ const form = reactive({
   subdomainTool: 'auto',
   webTool: 'auto',
   timeout: 300,
+  screenshot: false,
   advOpen: [] as string[],
 })
 
@@ -351,6 +357,7 @@ async function handleScan() {
       name: form.taskName.trim() || defaultTaskName(),
       port_preset: form.portPreset,
       timeout: form.timeout,
+      screenshot: form.screenshot,
     }
     if (form.scanMode === 'quick') {
       opts.portscan_tool = 'masscan'

@@ -12,6 +12,7 @@ export interface ScanRequest {
   dns_tool?: string
   port_preset?: string
   custom_ports?: string
+  screenshot?: boolean
 }
 
 /** 扫描响应 */

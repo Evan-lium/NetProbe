@@ -46,6 +46,24 @@ const router = createRouter({
       meta: { title: 'Correlations', icon: 'Share' },
     },
     {
+      path: '/stats',
+      name: 'stats',
+      component: () => import('../views/Stats.vue'),
+      meta: { title: 'Statistics', icon: 'DataLine' },
+    },
+    {
+      path: '/graph',
+      name: 'graph',
+      component: () => import('../views/Graph.vue'),
+      meta: { title: 'Graph', icon: 'Connection' },
+    },
+    {
+      path: '/timeline',
+      name: 'timeline',
+      component: () => import('../views/Timeline.vue'),
+      meta: { title: 'Timeline', icon: 'Timer' },
+    },
+    {
       path: '/assets',
       name: 'assets',
       component: () => import('../views/Assets.vue'),
