@@ -281,6 +281,8 @@ export default {
     tabCert: '同证书',
     tabTech: '同技术栈',
     tabService: '同服务',
+    tabFavicon: '同 Favicon',
+    tabBanner: '同 Banner',
     assets: '资产',
     expiry: '有效期',
     expired: '已过期',

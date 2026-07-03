@@ -77,6 +77,8 @@ const tabs = [
   { value: 'cert' as CorrelationType, labelKey: 'correlations.tabCert' },
   { value: 'tech' as CorrelationType, labelKey: 'correlations.tabTech' },
   { value: 'service' as CorrelationType, labelKey: 'correlations.tabService' },
+  { value: 'favicon' as CorrelationType, labelKey: 'correlations.tabFavicon' },
+  { value: 'banner' as CorrelationType, labelKey: 'correlations.tabBanner' },
 ]
 
 const activeType = ref<CorrelationType>('ip')

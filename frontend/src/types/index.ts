@@ -265,7 +265,7 @@ export interface ScanDiff {
 // ── 资产关联 ──
 
 /** 关联类型 */
-export type CorrelationType = 'ip' | 'cert' | 'tech' | 'service'
+export type CorrelationType = 'ip' | 'cert' | 'tech' | 'service' | 'favicon' | 'banner'
 
 /** 关联簇成员 */
 export interface CorrelationMember {

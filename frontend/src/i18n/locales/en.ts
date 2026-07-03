@@ -281,6 +281,8 @@ export default {
     tabCert: 'Same Cert',
     tabTech: 'Same Tech',
     tabService: 'Same Service',
+    tabFavicon: 'Same Favicon',
+    tabBanner: 'Same Banner',
     assets: 'assets',
     expiry: 'Expiry',
     expired: 'Expired',
