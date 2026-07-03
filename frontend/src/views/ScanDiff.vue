@@ -1,7 +1,7 @@
 <template>
   <div class="diff-page">
     <!-- Header -->
-    <div class="tasks-header">
+    <div class="np-page-header">
       <div>
         <h2 class="np-page-title">{{ t('diff.title') }}</h2>
         <span class="np-page-desc">{{ t('diff.desc') }}</span>
@@ -65,22 +65,22 @@
     <!-- 对比结果 -->
     <template v-else>
       <!-- Summary 卡片 -->
-      <div class="summary-grid">
-        <div class="summary-item added">
-          <div class="summary-num">{{ diff.summary.hosts_added }}</div>
-          <div class="summary-label">{{ t('diff.hostsAdded') }}</div>
+      <div class="np-stat-grid">
+        <div class="np-stat-card np-stat-card--success">
+          <div class="np-stat-num">{{ diff.summary.hosts_added }}</div>
+          <div class="np-stat-label">{{ t('diff.hostsAdded') }}</div>
         </div>
-        <div class="summary-item removed">
-          <div class="summary-num">{{ diff.summary.hosts_removed }}</div>
-          <div class="summary-label">{{ t('diff.hostsRemoved') }}</div>
+        <div class="np-stat-card np-stat-card--danger">
+          <div class="np-stat-num">{{ diff.summary.hosts_removed }}</div>
+          <div class="np-stat-label">{{ t('diff.hostsRemoved') }}</div>
         </div>
-        <div class="summary-item changed">
-          <div class="summary-num">{{ diff.summary.ports_added + diff.summary.ports_removed + diff.summary.ports_changed }}</div>
-          <div class="summary-label">{{ t('diff.portsChanged') }}</div>
+        <div class="np-stat-card np-stat-card--warning">
+          <div class="np-stat-num">{{ diff.summary.ports_added + diff.summary.ports_removed + diff.summary.ports_changed }}</div>
+          <div class="np-stat-label">{{ t('diff.portsChanged') }}</div>
         </div>
-        <div class="summary-item changed">
-          <div class="summary-num">{{ diff.summary.tech_changed }}</div>
-          <div class="summary-label">{{ t('diff.techChanged') }}</div>
+        <div class="np-stat-card np-stat-card--warning">
+          <div class="np-stat-num">{{ diff.summary.tech_changed }}</div>
+          <div class="np-stat-label">{{ t('diff.techChanged') }}</div>
         </div>
       </div>
 
@@ -98,14 +98,14 @@
           <!-- 端口差异 -->
           <div class="dim-section" v-if="hasDim(h.ports)">
             <div class="dim-title">{{ t('scanResult.ports') }}</div>
-            <div class="dim-items">
-              <span v-for="p in h.ports.added" :key="'pa' + p.port + p.proto" class="tag-added">
+            <div class="np-tag-group">
+              <span v-for="p in h.ports.added" :key="'pa' + p.port + p.proto" class="np-tag-add">
                 + {{ p.port }}/{{ p.proto }} {{ p.service }}
               </span>
-              <span v-for="p in h.ports.removed" :key="'pr' + p.port + p.proto" class="tag-removed">
+              <span v-for="p in h.ports.removed" :key="'pr' + p.port + p.proto" class="np-tag-remove">
                 − {{ p.port }}/{{ p.proto }} {{ p.service }}
               </span>
-              <span v-for="(c, i) in h.ports.changed" :key="'pc' + i" class="tag-changed">
+              <span v-for="(c, i) in h.ports.changed" :key="'pc' + i" class="np-tag-change">
                 ~ {{ c.key[0] }}/{{ c.key[1] }}: {{ c.from.service || '?' }} → {{ c.to.service || '?' }}
               </span>
             </div>
@@ -114,14 +114,14 @@
           <!-- Web 站点差异 -->
           <div class="dim-section" v-if="hasWeb(h.web)">
             <div class="dim-title">{{ t('scanResult.webSites') }}</div>
-            <div class="dim-items">
-              <span v-for="w in h.web.added" :key="'wa' + w.url" class="tag-added">
+            <div class="np-tag-group">
+              <span v-for="w in h.web.added" :key="'wa' + w.url" class="np-tag-add">
                 + {{ w.title || w.url }} [{{ w.status }}]
               </span>
-              <span v-for="w in h.web.removed" :key="'wr' + w.url" class="tag-removed">
+              <span v-for="w in h.web.removed" :key="'wr' + w.url" class="np-tag-remove">
                 − {{ w.title || w.url }} [{{ w.status }}]
               </span>
-              <span v-for="c in h.web.changed" :key="'wc' + c.url" class="tag-changed">
+              <span v-for="c in h.web.changed" :key="'wc' + c.url" class="np-tag-change">
                 ~ {{ c.url }}
                 <template v-if="c.changes.tech">
                   ({{ c.changes.tech.added?.length || 0 }}+ / {{ c.changes.tech.removed?.length || 0 }}−)
@@ -133,27 +133,27 @@
           <!-- 敏感路径差异 -->
           <div class="dim-section" v-if="h.sensitive.added.length || h.sensitive.removed.length">
             <div class="dim-title">{{ t('scanResult.sensitivePaths') }}</div>
-            <div class="dim-items">
-              <span v-for="s in h.sensitive.added" :key="'sa' + s.path" class="tag-added">+ {{ s.path }}</span>
-              <span v-for="s in h.sensitive.removed" :key="'sr' + s.path" class="tag-removed">− {{ s.path }}</span>
+            <div class="np-tag-group">
+              <span v-for="s in h.sensitive.added" :key="'sa' + s.path" class="np-tag-add">+ {{ s.path }}</span>
+              <span v-for="s in h.sensitive.removed" :key="'sr' + s.path" class="np-tag-remove">− {{ s.path }}</span>
             </div>
           </div>
 
           <!-- JS 分析差异 -->
           <div class="dim-section" v-if="h.js.added.length || h.js.removed.length">
             <div class="dim-title">{{ t('scanResult.jsFindings') }}</div>
-            <div class="dim-items">
-              <span v-for="j in h.js.added" :key="'ja' + j.js_url" class="tag-added">+ {{ j.js_url }}</span>
-              <span v-for="j in h.js.removed" :key="'jr' + j.js_url" class="tag-removed">− {{ j.js_url }}</span>
+            <div class="np-tag-group">
+              <span v-for="j in h.js.added" :key="'ja' + j.js_url" class="np-tag-add">+ {{ j.js_url }}</span>
+              <span v-for="j in h.js.removed" :key="'jr' + j.js_url" class="np-tag-remove">− {{ j.js_url }}</span>
             </div>
           </div>
 
           <!-- Banner 差异 -->
           <div class="dim-section" v-if="h.banners.added.length || h.banners.removed.length">
             <div class="dim-title">{{ t('scanResult.banners') }}</div>
-            <div class="dim-items">
-              <span v-for="b in h.banners.added" :key="'ba' + b.port + b.service" class="tag-added">+ {{ b.port }} {{ b.service }}</span>
-              <span v-for="b in h.banners.removed" :key="'br' + b.port + b.service" class="tag-removed">− {{ b.port }} {{ b.service }}</span>
+            <div class="np-tag-group">
+              <span v-for="b in h.banners.added" :key="'ba' + b.port + b.service" class="np-tag-add">+ {{ b.port }} {{ b.service }}</span>
+              <span v-for="b in h.banners.removed" :key="'br' + b.port + b.service" class="np-tag-remove">− {{ b.port }} {{ b.service }}</span>
             </div>
           </div>
         </div>
@@ -245,21 +245,14 @@ onMounted(loadCandidates)
   margin: 0 auto;
 }
 
-.tasks-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
-}
-
 .diff-select-card {
-  margin-bottom: 20px;
+  margin-bottom: var(--np-space-5);
 }
 
 .select-bar {
   display: flex;
   align-items: flex-end;
-  gap: 12px;
+  gap: var(--np-space-3);
 }
 
 .select-item {
@@ -269,63 +262,25 @@ onMounted(loadCandidates)
 .select-label {
   display: block;
   font-size: 13px;
-  color: var(--el-text-color-secondary);
+  color: var(--np-text-secondary);
   margin-bottom: 6px;
 }
 
 .select-arrow {
   font-size: 20px;
-  color: var(--el-text-color-secondary);
+  color: var(--np-text-secondary);
   padding-bottom: 8px;
 }
 
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.summary-item {
-  padding: 16px;
-  border-radius: 8px;
-  text-align: center;
-  background: var(--el-fill-color-light);
-}
-
-.summary-item.added {
-  border-left: 3px solid var(--el-color-success);
-}
-
-.summary-item.removed {
-  border-left: 3px solid var(--el-color-danger);
-}
-
-.summary-item.changed {
-  border-left: 3px solid var(--el-color-warning);
-}
-
-.summary-num {
-  font-size: 28px;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.summary-label {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  margin-top: 4px;
-}
-
 .host-diff-card {
-  margin-bottom: 12px;
+  margin-bottom: var(--np-space-3);
 }
 
 .host-diff-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: var(--np-space-3);
 }
 
 .host-name {
@@ -335,12 +290,12 @@ onMounted(loadCandidates)
 
 .host-ip {
   font-size: 13px;
-  color: var(--el-text-color-secondary);
-  font-family: 'SFMono-Regular', Consolas, monospace;
+  color: var(--np-text-secondary);
+  font-family: var(--np-font-mono);
 }
 
 .dim-section {
-  margin-bottom: 10px;
+  margin-bottom: var(--np-space-2);
 }
 
 .dim-section:last-child {
@@ -349,40 +304,9 @@ onMounted(loadCandidates)
 
 .dim-title {
   font-size: 12px;
-  color: var(--el-text-color-secondary);
+  color: var(--np-text-secondary);
   margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-.dim-items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.tag-added,
-.tag-removed,
-.tag-changed {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 4px;
-  font-size: 13px;
-  font-family: 'SFMono-Regular', Consolas, monospace;
-}
-
-.tag-added {
-  background: var(--el-color-success-light-9);
-  color: var(--el-color-success);
-}
-
-.tag-removed {
-  background: var(--el-color-danger-light-9);
-  color: var(--el-color-danger);
-}
-
-.tag-changed {
-  background: var(--el-color-warning-light-9);
-  color: var(--el-color-warning);
 }
 </style>

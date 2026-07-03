@@ -1,7 +1,7 @@
 <template>
   <div class="corr-page">
     <!-- Header -->
-    <div class="tasks-header">
+    <div class="np-page-header">
       <div>
         <h2 class="np-page-title">{{ t('correlations.title') }}</h2>
         <span class="np-page-desc">{{ t('correlations.desc') }}</span>
@@ -45,8 +45,8 @@
           </div>
 
           <!-- 成员资产列表 -->
-          <div class="member-list">
-            <span v-for="(m, i) in c.members" :key="i" class="member-chip">
+          <div class="np-tag-group">
+            <span v-for="(m, i) in c.members" :key="i" class="np-member-chip">
               <el-icon><Monitor /></el-icon>
               {{ m.hostname || m.ip }}
               <span v-if="m.hostname && m.ip" class="member-ip">{{ m.ip }}</span>
@@ -115,13 +115,6 @@ onMounted(loadData)
   margin: 0 auto;
 }
 
-.tasks-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
-}
-
 .cluster-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
@@ -129,10 +122,10 @@ onMounted(loadData)
 }
 
 .cluster-card {
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
+  border: 1px solid var(--np-border);
+  border-radius: var(--np-radius-lg);
   padding: 14px 16px;
-  background: var(--el-bg-color-page);
+  background: var(--np-bg-layout);
 }
 
 .cluster-head {
@@ -153,33 +146,17 @@ onMounted(loadData)
   flex-wrap: wrap;
   gap: 10px;
   font-size: 12px;
-  color: var(--el-text-color-secondary);
+  color: var(--np-text-secondary);
   margin-bottom: 10px;
 }
 
-.member-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.member-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  border-radius: 4px;
-  background: var(--el-fill-color-light);
-  font-size: 13px;
-}
-
-.member-chip .el-icon {
+.np-member-chip .el-icon {
   font-size: 12px;
-  color: var(--el-text-color-secondary);
+  color: var(--np-text-secondary);
 }
 
 .member-ip {
-  color: var(--el-text-color-secondary);
+  color: var(--np-text-secondary);
   font-size: 12px;
   margin-left: 2px;
 }

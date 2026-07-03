@@ -1,6 +1,6 @@
 <template>
   <div class="alerts-page">
-    <div class="tasks-header">
+    <div class="np-page-header">
       <div>
         <h2 class="np-page-title">{{ t('alerts.title') }}</h2>
         <span class="np-page-desc">{{ t('alerts.desc') }}</span>
@@ -70,13 +70,13 @@
 
     <!-- 创建规则对话框 -->
     <el-dialog v-model="showForm" :title="t('alerts.newRule')" width="500px">
-      <div class="alert-form">
-        <div class="form-row">
-          <label class="form-label">{{ t('alerts.name') }}</label>
+      <div class="alert-form np-form">
+        <div class="np-form-row">
+          <label class="np-form-label">{{ t('alerts.name') }}</label>
           <el-input v-model="form.name" :placeholder="t('alerts.namePlaceholder')" />
         </div>
-        <div class="form-row">
-          <label class="form-label">{{ t('alerts.condition') }}</label>
+        <div class="np-form-row">
+          <label class="np-form-label">{{ t('alerts.condition') }}</label>
           <el-select v-model="form.condition_type" style="width: 100%">
             <el-option :label="t('alerts.condNewPort')" value="new_port" />
             <el-option :label="t('alerts.condNewSubdomain')" value="new_subdomain" />
@@ -85,8 +85,8 @@
             <el-option :label="t('alerts.condTechChange')" value="tech_change" />
           </el-select>
         </div>
-        <div class="form-row">
-          <label class="form-label">{{ t('alerts.target') }}</label>
+        <div class="np-form-row">
+          <label class="np-form-label">{{ t('alerts.target') }}</label>
           <el-input v-model="form.target" :placeholder="t('alerts.targetPlaceholder')" />
         </div>
       </div>
@@ -185,9 +185,6 @@ onMounted(loadData)
 
 <style scoped>
 .alerts-page { max-width: 1200px; margin: 0 auto; }
-.tasks-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-.alert-form .form-row { margin-bottom: 16px; }
-.alert-form .form-label { display: block; font-size: 13px; color: var(--el-text-color-secondary); margin-bottom: 6px; }
 .event-summary { font-size: 14px; margin-bottom: 4px; }
 .event-meta { display: flex; gap: 6px; }
 </style>

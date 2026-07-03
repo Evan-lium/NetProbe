@@ -1,6 +1,6 @@
 <template>
   <div class="graph-page">
-    <div class="tasks-header">
+    <div class="np-page-header">
       <div>
         <h2 class="np-page-title">{{ t('graph.title') }}</h2>
         <span class="np-page-desc">{{ t('graph.desc') }}</span>
@@ -85,7 +85,6 @@ onMounted(loadData)
 
 <style scoped>
 .graph-page { max-width: 1400px; margin: 0 auto; }
-.tasks-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
 .graph-meta { display: flex; gap: 8px; }
 .graph-chart { height: 600px; }
 </style>

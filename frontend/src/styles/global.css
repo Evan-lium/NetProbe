@@ -432,7 +432,7 @@ a:hover {
 /* ── Page Header (consistent across all pages) ──────────────── */
 .np-page-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: var(--np-space-5);
   flex-wrap: wrap;
@@ -460,6 +460,115 @@ a:hover {
   display: flex;
   gap: var(--np-space-2);
   align-items: center;
+}
+
+/* ── Stat Grid / Cards (数字概览卡片，统一 Stats/Timeline/ScanDiff/Correlations) ── */
+.np-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--np-space-3);
+  margin-bottom: var(--np-space-5);
+}
+
+.np-stat-card {
+  padding: var(--np-space-4);
+  border-radius: var(--np-radius-lg);
+  text-align: center;
+  background: var(--np-bg-surface);
+  border: 1px solid var(--np-border);
+  transition: border-color var(--np-transition);
+}
+
+.np-stat-card:hover {
+  border-color: var(--np-border-light);
+}
+
+.np-stat-card .np-stat-num {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--np-text-primary);
+  font-family: var(--np-font-mono);
+}
+
+.np-stat-card .np-stat-label {
+  font-size: 12px;
+  color: var(--np-text-muted);
+  margin-top: var(--np-space-1);
+}
+
+/* 语义变体：左侧色条 */
+.np-stat-card--success { border-left: 3px solid var(--np-success); }
+.np-stat-card--danger  { border-left: 3px solid var(--np-danger); }
+.np-stat-card--warning { border-left: 3px solid var(--np-warning); }
+.np-stat-card--info    { border-left: 3px solid var(--np-info); }
+
+/* ── Form (对话框内表单，统一 Tasks/Schedules/Alerts/ScanDiff) ─── */
+.np-form .np-form-row {
+  margin-bottom: var(--np-space-4);
+}
+
+.np-form .np-form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--np-text-secondary);
+  margin-bottom: var(--np-space-2);
+}
+
+.np-form .np-form-hint {
+  font-size: 12px;
+  color: var(--np-text-muted);
+  margin-left: var(--np-space-2);
+}
+
+/* ── Cluster / Tag groups (关联簇、diff 标签等) ─────────────── */
+.np-tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--np-space-2);
+}
+
+.np-tag-add {
+  display: inline-block;
+  padding: 3px var(--np-space-2);
+  border-radius: var(--np-radius-sm);
+  font-size: 13px;
+  font-family: var(--np-font-mono);
+  background: var(--np-success-bg);
+  color: var(--np-success);
+}
+
+.np-tag-remove {
+  display: inline-block;
+  padding: 3px var(--np-space-2);
+  border-radius: var(--np-radius-sm);
+  font-size: 13px;
+  font-family: var(--np-font-mono);
+  background: var(--np-danger-bg);
+  color: var(--np-danger);
+}
+
+.np-tag-change {
+  display: inline-block;
+  padding: 3px var(--np-space-2);
+  border-radius: var(--np-radius-sm);
+  font-size: 13px;
+  font-family: var(--np-font-mono);
+  background: var(--np-warning-bg);
+  color: var(--np-warning);
+}
+
+/* ── Member chip (关联簇成员、资产标签) ──────────────────────── */
+.np-member-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--np-space-1);
+  padding: 3px var(--np-space-2);
+  border-radius: var(--np-radius-sm);
+  background: var(--np-bg-elevated);
+  font-size: 13px;
+  color: var(--np-text-primary);
 }
 
 /* ── Filter Bar ─────────────────────────────────────────────── */

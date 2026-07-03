@@ -1,6 +1,6 @@
 <template>
   <div class="stats-page">
-    <div class="tasks-header">
+    <div class="np-page-header">
       <div>
         <h2 class="np-page-title">{{ t('stats.title') }}</h2>
         <span class="np-page-desc">{{ t('stats.desc') }}</span>
@@ -13,22 +13,22 @@
 
     <template v-else>
       <!-- 概览数字 -->
-      <div class="overview-grid">
-        <div class="overview-item">
-          <div class="overview-num">{{ assets.length }}</div>
-          <div class="overview-label">{{ t('stats.totalAssets') }}</div>
+      <div class="np-stat-grid">
+        <div class="np-stat-card">
+          <div class="np-stat-num">{{ assets.length }}</div>
+          <div class="np-stat-label">{{ t('stats.totalAssets') }}</div>
         </div>
-        <div class="overview-item">
-          <div class="overview-num">{{ totalPorts }}</div>
-          <div class="overview-label">{{ t('stats.totalPorts') }}</div>
+        <div class="np-stat-card">
+          <div class="np-stat-num">{{ totalPorts }}</div>
+          <div class="np-stat-label">{{ t('stats.totalPorts') }}</div>
         </div>
-        <div class="overview-item">
-          <div class="overview-num">{{ totalWeb }}</div>
-          <div class="overview-label">{{ t('stats.totalWeb') }}</div>
+        <div class="np-stat-card">
+          <div class="np-stat-num">{{ totalWeb }}</div>
+          <div class="np-stat-label">{{ t('stats.totalWeb') }}</div>
         </div>
-        <div class="overview-item">
-          <div class="overview-num">{{ highRisk }}</div>
-          <div class="overview-label">{{ t('stats.highRisk') }}</div>
+        <div class="np-stat-card">
+          <div class="np-stat-num">{{ highRisk }}</div>
+          <div class="np-stat-label">{{ t('stats.highRisk') }}</div>
         </div>
       </div>
 
@@ -145,11 +145,6 @@ onMounted(loadData)
 
 <style scoped>
 .stats-page { max-width: 1400px; margin: 0 auto; }
-.tasks-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-.overview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-.overview-item { padding: 16px; border-radius: 8px; text-align: center; background: var(--el-fill-color-light); }
-.overview-num { font-size: 28px; font-weight: 600; line-height: 1.2; }
-.overview-label { font-size: 12px; color: var(--el-text-color-secondary); margin-top: 4px; }
 .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 14px; }
 .chart-card { min-height: 360px; }
 .chart { height: 300px; }

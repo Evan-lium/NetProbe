@@ -1,7 +1,7 @@
 <template>
   <div class="tasks-page">
     <!-- Header -->
-    <div class="tasks-header">
+    <div class="np-page-header">
       <div>
         <h2 class="np-page-title">{{ t('tasks.title') }}</h2>
         <span class="np-page-desc" v-if="total">{{ t('history.scans', { n: total }) }}</span>
@@ -128,20 +128,20 @@
 
     <!-- Create scan dialog -->
     <el-dialog v-model="showForm" :title="t('tasks.newScan')" width="680px" destroy-on-close>
-      <div class="scan-form">
+      <div class="scan-form np-form">
         <!-- Task name -->
-        <div class="form-field">
-          <label class="form-label">{{ t('dashboard.taskName') }}</label>
+        <div class="np-form-row">
+          <label class="np-form-label">{{ t('dashboard.taskName') }}</label>
           <el-input v-model="form.taskName" :placeholder="t('dashboard.taskNamePlaceholder')" clearable />
         </div>
         <!-- Targets -->
-        <div class="form-field">
-          <label class="form-label">{{ t('dashboard.target') }}</label>
+        <div class="np-form-row">
+          <label class="np-form-label">{{ t('dashboard.target') }}</label>
           <el-input v-model="form.target" type="textarea" :rows="4" :placeholder="t('dashboard.targetPlaceholder')" />
         </div>
         <!-- Scan mode -->
-        <div class="form-field">
-          <label class="form-label">{{ t('dashboard.scanMode') }}</label>
+        <div class="np-form-row">
+          <label class="np-form-label">{{ t('dashboard.scanMode') }}</label>
           <div class="mode-group">
             <label v-for="m in scanModes" :key="m.value" class="mode-option" :class="{ active: form.scanMode === m.value }">
               <input type="radio" v-model="form.scanMode" :value="m.value" class="sr-only" />
@@ -151,8 +151,8 @@
           </div>
         </div>
         <!-- Port range -->
-        <div class="form-field">
-          <label class="form-label">{{ t('dashboard.portRange') }}</label>
+        <div class="np-form-row">
+          <label class="np-form-label">{{ t('dashboard.portRange') }}</label>
           <div class="port-group">
             <label v-for="p in portPresets" :key="p.value" class="port-option" :class="{ active: form.portPreset === p.value }">
               <input type="radio" v-model="form.portPreset" :value="p.value" class="sr-only" />
@@ -167,7 +167,7 @@
           <el-collapse-item :title="t('dashboard.advancedOptions')" name="adv">
             <div class="adv-grid">
               <div class="adv-field">
-                <label class="form-label">{{ t('dashboard.portscanTool') }}</label>
+                <label class="np-form-label">{{ t('dashboard.portscanTool') }}</label>
                 <el-select v-model="form.portscanTool" size="default" style="width: 100%">
                   <el-option label="auto" value="auto" />
                   <el-option label="nmap" value="nmap" />
@@ -176,7 +176,7 @@
                 </el-select>
               </div>
               <div class="adv-field">
-                <label class="form-label">{{ t('dashboard.subdomainTool') }}</label>
+                <label class="np-form-label">{{ t('dashboard.subdomainTool') }}</label>
                 <el-select v-model="form.subdomainTool" size="default" style="width: 100%">
                   <el-option label="auto" value="auto" />
                   <el-option label="subfinder" value="subfinder" />
@@ -184,7 +184,7 @@
                 </el-select>
               </div>
               <div class="adv-field">
-                <label class="form-label">{{ t('dashboard.webTool') }}</label>
+                <label class="np-form-label">{{ t('dashboard.webTool') }}</label>
                 <el-select v-model="form.webTool" size="default" style="width: 100%">
                   <el-option label="auto" value="auto" />
                   <el-option label="httpx" value="httpx" />
@@ -192,13 +192,13 @@
                 </el-select>
               </div>
               <div class="adv-field">
-                <label class="form-label">{{ t('dashboard.timeout') }}</label>
+                <label class="np-form-label">{{ t('dashboard.timeout') }}</label>
                 <el-input-number v-model="form.timeout" :min="30" :max="3600" :step="30" style="width: 100%" />
               </div>
               <div class="adv-field">
-                <label class="form-label">{{ t('dashboard.screenshot') }}</label>
+                <label class="np-form-label">{{ t('dashboard.screenshot') }}</label>
                 <el-switch v-model="form.screenshot" />
-                <span class="form-hint">{{ t('dashboard.screenshotHint') }}</span>
+                <span class="np-form-hint">{{ t('dashboard.screenshotHint') }}</span>
               </div>
             </div>
           </el-collapse-item>
@@ -430,35 +430,8 @@ onUnmounted(() => {
   margin: 0 auto;
 }
 
-.tasks-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--np-space-5);
-}
-
-.np-page-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--np-text-primary);
-  margin: 0;
-}
-
-.np-page-desc {
-  font-size: 13px;
-  color: var(--np-text-muted);
-  margin-left: 8px;
-}
-
 .task-list-card {
   min-height: 200px;
-}
-
-.np-filter-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: var(--np-space-4);
 }
 
 .task-loading {
@@ -498,18 +471,6 @@ onUnmounted(() => {
 }
 
 /* ── Scan form (dialog) ──────────────────────────────── */
-.form-field {
-  margin-bottom: var(--np-space-4);
-}
-
-.form-label {
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--np-text-secondary);
-  margin-bottom: 6px;
-}
-
 .mode-group {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -576,7 +537,7 @@ onUnmounted(() => {
   gap: 12px;
 }
 
-.adv-field .form-label { font-size: 12px; margin-bottom: 4px; }
+.adv-field .np-form-label { font-size: 12px; margin-bottom: var(--np-space-1); }
 
 /* ── SR only ─────────────────────────────────────────── */
 .sr-only {

@@ -1,7 +1,7 @@
 <template>
   <div class="schedules-page">
     <!-- Header -->
-    <div class="tasks-header">
+    <div class="np-page-header">
       <div>
         <h2 class="np-page-title">{{ t('schedules.title') }}</h2>
         <span class="np-page-desc">{{ t('schedules.desc') }}</span>
@@ -63,10 +63,10 @@
 
     <!-- Create / Edit dialog -->
     <el-dialog v-model="showForm" :title="editing ? t('schedules.edit') : t('schedules.newSchedule')" width="620px" @close="resetForm">
-      <div class="schedule-form">
+      <div class="schedule-form np-form">
         <!-- Cron -->
-        <div class="form-row">
-          <label class="form-label">{{ t('schedules.cronExpr') }}</label>
+        <div class="np-form-row">
+          <label class="np-form-label">{{ t('schedules.cronExpr') }}</label>
           <el-input v-model="form.cron_expr" :placeholder="t('schedules.cronPlaceholder')">
             <template #append>
               <el-select v-model="cronPreset" :placeholder="t('schedules.cronPresets')" style="width: 150px" @change="applyPreset">
@@ -80,20 +80,20 @@
         </div>
 
         <!-- Name -->
-        <div class="form-row">
-          <label class="form-label">{{ t('schedules.name') }}</label>
+        <div class="np-form-row">
+          <label class="np-form-label">{{ t('schedules.name') }}</label>
           <el-input v-model="form.name" :placeholder="t('dashboard.taskNamePlaceholder')" />
         </div>
 
         <!-- Target -->
-        <div class="form-row">
-          <label class="form-label">{{ t('schedules.target') }}</label>
+        <div class="np-form-row">
+          <label class="np-form-label">{{ t('schedules.target') }}</label>
           <el-input v-model="form.target" type="textarea" :rows="2" :placeholder="t('dashboard.targetPlaceholder')" />
         </div>
 
         <!-- Scan mode -->
-        <div class="form-row">
-          <label class="form-label">{{ t('dashboard.scanMode') }}</label>
+        <div class="np-form-row">
+          <label class="np-form-label">{{ t('dashboard.scanMode') }}</label>
           <div class="mode-cards">
             <div v-for="m in scanModes" :key="m.value" class="mode-card" :class="{ active: form.scanMode === m.value }" @click="form.scanMode = m.value">
               <div class="mode-card-title">{{ t(m.labelKey) }}</div>
@@ -103,8 +103,8 @@
         </div>
 
         <!-- Port range -->
-        <div class="form-row">
-          <label class="form-label">{{ t('dashboard.portRange') }}</label>
+        <div class="np-form-row">
+          <label class="np-form-label">{{ t('dashboard.portRange') }}</label>
           <div class="mode-cards">
             <div v-for="p in portPresets" :key="p.value" class="mode-card port-card" :class="{ active: form.portPreset === p.value }" @click="form.portPreset = p.value">
               <div class="mode-card-title">{{ t(p.labelKey) }}</div>
@@ -115,8 +115,8 @@
         </div>
 
         <!-- Enabled -->
-        <div class="form-row">
-          <label class="form-label">{{ t('schedules.enabled') }}</label>
+        <div class="np-form-row">
+          <label class="np-form-label">{{ t('schedules.enabled') }}</label>
           <el-switch v-model="form.enabled" />
         </div>
       </div>
@@ -342,53 +342,35 @@ onMounted(loadData)
   margin: 0 auto;
 }
 
-.tasks-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
-}
-
 .cron-code {
   font-family: 'SFMono-Regular', Consolas, monospace;
-  background: var(--el-fill-color-light);
+  background: var(--np-bg-surface);
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: var(--np-radius-sm);
   font-size: 13px;
-}
-
-.schedule-form .form-row {
-  margin-bottom: 16px;
-}
-
-.schedule-form .form-label {
-  display: block;
-  font-size: 13px;
-  color: var(--el-text-color-secondary);
-  margin-bottom: 6px;
 }
 
 .mode-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 8px;
+  gap: var(--np-space-2);
 }
 
 .mode-card {
-  border: 1px solid var(--el-border-color);
-  border-radius: 6px;
-  padding: 10px 12px;
+  border: 1px solid var(--np-border);
+  border-radius: var(--np-radius-md);
+  padding: var(--np-space-3);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--np-transition);
 }
 
 .mode-card:hover {
-  border-color: var(--el-color-primary);
+  border-color: var(--np-blue-500);
 }
 
 .mode-card.active {
-  border-color: var(--el-color-primary);
-  background: var(--el-color-primary-light-9);
+  border-color: var(--np-blue-500);
+  background: rgba(37, 99, 235, 0.1);
 }
 
 .mode-card-title {
@@ -399,6 +381,6 @@ onMounted(loadData)
 
 .mode-card-desc {
   font-size: 12px;
-  color: var(--el-text-color-secondary);
+  color: var(--np-text-secondary);
 }
 </style>

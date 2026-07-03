@@ -100,15 +100,15 @@ onMounted(loadData)
   font-size: 13px;
 }
 .risk-high {
-  background: var(--el-color-danger-light-9);
-  color: var(--el-color-danger);
+  background: var(--np-danger-bg);
+  color: var(--np-danger);
 }
 .risk-medium {
-  background: var(--el-color-warning-light-9);
-  color: var(--el-color-warning);
+  background: var(--np-warning-bg);
+  color: var(--np-warning);
 }
 .risk-low {
-  background: var(--el-color-success-light-9);
-  color: var(--el-color-success);
+  background: var(--np-success-bg);
+  color: var(--np-success);
 }
 </style>

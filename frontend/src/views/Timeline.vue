@@ -1,6 +1,6 @@
 <template>
   <div class="timeline-page">
-    <div class="tasks-header">
+    <div class="np-page-header">
       <div>
         <h2 class="np-page-title">{{ t('timeline.title') }}</h2>
         <span class="np-page-desc">{{ t('timeline.desc') }}</span>
@@ -21,11 +21,11 @@
 
     <template v-else-if="timelineData && timelineData.points.length">
       <!-- 概览统计 -->
-      <div class="summary-grid">
-        <div class="summary-item"><div class="summary-num">{{ timelineData.summary.total_scans }}</div><div class="summary-label">{{ t('stats.totalAssets') }}</div></div>
-        <div class="summary-item added"><div class="summary-num">{{ timelineData.summary.total_added }}</div><div class="summary-label">{{ t('timeline.added') }}</div></div>
-        <div class="summary-item removed"><div class="summary-num">{{ timelineData.summary.total_removed }}</div><div class="summary-label">{{ t('timeline.removed') }}</div></div>
-        <div class="summary-item changed"><div class="summary-num">{{ timelineData.summary.total_changed }}</div><div class="summary-label">{{ t('timeline.changed') }}</div></div>
+      <div class="np-stat-grid">
+        <div class="np-stat-card"><div class="np-stat-num">{{ timelineData.summary.total_scans }}</div><div class="np-stat-label">{{ t('stats.totalAssets') }}</div></div>
+        <div class="np-stat-card np-stat-card--success"><div class="np-stat-num">{{ timelineData.summary.total_added }}</div><div class="np-stat-label">{{ t('timeline.added') }}</div></div>
+        <div class="np-stat-card np-stat-card--danger"><div class="np-stat-num">{{ timelineData.summary.total_removed }}</div><div class="np-stat-label">{{ t('timeline.removed') }}</div></div>
+        <div class="np-stat-card np-stat-card--warning"><div class="np-stat-num">{{ timelineData.summary.total_changed }}</div><div class="np-stat-label">{{ t('timeline.changed') }}</div></div>
       </div>
 
       <el-card>
@@ -121,14 +121,6 @@ onMounted(loadTargets)
 
 <style scoped>
 .timeline-page { max-width: 1400px; margin: 0 auto; }
-.tasks-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
 .select-card { margin-bottom: 16px; }
-.summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
-.summary-item { padding: 14px; border-radius: 8px; text-align: center; background: var(--el-fill-color-light); }
-.summary-item.added { border-left: 3px solid var(--el-color-success); }
-.summary-item.removed { border-left: 3px solid var(--el-color-danger); }
-.summary-item.changed { border-left: 3px solid var(--el-color-warning); }
-.summary-num { font-size: 24px; font-weight: 600; }
-.summary-label { font-size: 12px; color: var(--el-text-color-secondary); margin-top: 2px; }
 .trend-chart { height: 400px; }
 </style>
