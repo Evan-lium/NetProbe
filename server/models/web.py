@@ -19,6 +19,7 @@ class WebInfo(Base):
     tech_json = Column(Text, default="[]")
     ssl_json = Column(Text, default="null")
     favicon_hash = Column(String(32), default="")
+    cdn_detected = Column(String(64), default="")
 
 
 class WhoisRecord(Base):

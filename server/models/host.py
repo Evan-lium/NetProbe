@@ -14,6 +14,8 @@ class Host(Base):
     ip = Column(String(64), default="", index=True)
     os_info = Column(Text, default="")
     sort_order = Column(Integer, default=0)
+    risk_score = Column(Integer, default=0)
+    risk_factors_json = Column(Text, default="{}")
 
     ports = relationship("Port", backref="host", cascade="all, delete-orphan")
     banners = relationship("Banner", backref="host", cascade="all, delete-orphan")
@@ -33,6 +35,7 @@ class Port(Base):
     service = Column(String(64), default="")
     product = Column(String(128), default="")
     version = Column(String(64), default="")
+    cpe = Column(String(255), default="")
 
 
 class Banner(Base):

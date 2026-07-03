@@ -277,6 +277,7 @@ def run_port_scan(
                 'service': port_info.get('name', '') if isinstance(port_info, dict) else '',
                 'product': port_info.get('product', '') if isinstance(port_info, dict) else '',
                 'version': port_info.get('version', '') if isinstance(port_info, dict) else '',
+                'cpe': ','.join(port_info.get('cpe', [])) if isinstance(port_info, dict) and port_info.get('cpe') else '',
             })
 
         results[ip] = {

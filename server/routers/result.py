@@ -53,9 +53,12 @@ def get_result(scan_id: str):
                 "hostname": host.hostname,
                 "ip": host.ip,
                 "os": host.os_info,
+                "risk_score": host.risk_score or 0,
+                "risk_factors": json.loads(host.risk_factors_json) if host.risk_factors_json else {},
                 "ports": [
                     {"port": p.port, "proto": p.proto, "state": p.state,
-                     "service": p.service, "product": p.product, "version": p.version}
+                     "service": p.service, "product": p.product, "version": p.version,
+                     "cpe": p.cpe or ""}
                     for p in host.ports
                 ],
                 "banners": [

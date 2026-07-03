@@ -22,6 +22,7 @@ from .fingerprint import detect_technologies
 from .web_probe import probe_web_for_host
 from .banner_grab import grab_banners_for_host
 from .sensitive_probe import probe_sensitive_for_hosts
+from .risk import compute_risk_score
 from .tools.crtsh import query_crtsh, query_crtsh_certificates
 from .tools.fofa import query_fofa
 from .tools.hunter import query_hunter
@@ -667,6 +668,29 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
         emit('progress', text=f'  ✓ WHOIS 查询完成: {whois_count} 条 ({elapsed:.1f}s)')
     else:
         emit('progress', text=f'  ✓ WHOIS 查询完成: 无结果 ({elapsed:.1f}s)')
+
+    # ── 风险评分（综合敏感路径/高危端口/CVE/SSL/威胁情报）──
+    emit('progress', text=ph('风险评分 ...'))
+    t0 = time.time()
+    high_risk = 0
+    for host in all_hosts:
+        # 从 passive recon 结果透传 Hunter threat risk_level
+        threat_level = 0
+        for src in host.get('_sources', []):
+            if src.get('source') == 'hunter' and src.get('risk_level', 0) >= 2:
+                threat_level = src.get('risk_level', 0)
+        if threat_level:
+            host['threat_risk_level'] = threat_level
+        result = compute_risk_score(host)
+        host['risk_score'] = result['score']
+        host['risk_factors'] = result['factors']
+        if result['score'] >= 70:
+            high_risk += 1
+    elapsed = time.time() - t0
+    if high_risk:
+        emit('progress', text=f'  ✓ 风险评分完成: {high_risk} 台高危主机 ({elapsed:.1f}s)')
+    else:
+        emit('progress', text=f'  ✓ 风险评分完成: 无高危主机 ({elapsed:.1f}s)')
 
     # ── 种子扩展（单层 pivot: IP→ASN→网段→反向DNS 发现新域名）──
     if not options.get('no_seed_expansion'):

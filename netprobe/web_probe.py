@@ -6,6 +6,7 @@ from datetime import datetime
 import requests
 
 from .favicon import compute_favicon_hash
+from .cdn import detect_cdn
 
 # Web 常见端口与协议映射
 WEB_PORTS = {
@@ -79,6 +80,9 @@ def probe_web(hostname: str, ip: str, port: int) -> dict | None:
 
             # Favicon 哈希指纹（FOFA icon_hash 同款，用于跨资产关联）
             result['favicon_hash'] = compute_favicon_hash(url)
+
+            # CDN 检测（HTTP 头特征 + IP 网段）
+            result['cdn'] = detect_cdn(ip or target, dict(resp.headers))
 
             return result
         except requests.RequestException:

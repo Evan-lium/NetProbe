@@ -48,6 +48,8 @@ def query_hunter(domain: str, timeout: int = 30) -> list[dict]:
                     'ip': ip,
                     'port': int(port) if port else 0,
                     'source': 'hunter',
+                    # 威胁情报: Hunter risk_level (1-3, 越高越危险)
+                    'risk_level': int(item.get('risk_level', 0)) if item.get('risk_level') else 0,
                 })
 
         return results

@@ -141,6 +141,7 @@ def run_rustscan(
                     'service': port_info.get('name', ''),
                     'product': port_info.get('product', ''),
                     'version': port_info.get('version', ''),
+                    'cpe': ','.join(port_info['cpe']) if port_info.get('cpe') else '',
                 })
 
         all_results[ip] = {

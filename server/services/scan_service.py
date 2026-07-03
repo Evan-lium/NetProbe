@@ -282,6 +282,8 @@ def _write_results_to_db(scan_id: str, hosts: list[dict], base_domain: str):
                 ip=h.get("ip", ""),
                 os_info=h.get("os", ""),
                 sort_order=total_hosts,
+                risk_score=h.get("risk_score", 0),
+                risk_factors_json=json.dumps(h.get("risk_factors", {}), ensure_ascii=False),
             )
             db.add(host)
             db.flush()  # get host_id
@@ -295,6 +297,7 @@ def _write_results_to_db(scan_id: str, hosts: list[dict], base_domain: str):
                     service=p.get("service", ""),
                     product=p.get("product", ""),
                     version=p.get("version", ""),
+                    cpe=p.get("cpe", ""),
                 ))
                 total_ports += 1
 
@@ -318,6 +321,7 @@ def _write_results_to_db(scan_id: str, hosts: list[dict], base_domain: str):
                     tech_json=json.dumps(w.get("tech", []), ensure_ascii=False),
                     ssl_json=json.dumps(w.get("ssl"), ensure_ascii=False) if w.get("ssl") else "null",
                     favicon_hash=w.get("favicon_hash", ""),
+                    cdn_detected=w.get("cdn", ""),
                 ))
                 total_web += 1
 

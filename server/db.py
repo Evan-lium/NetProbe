@@ -32,11 +32,24 @@ def ensure_schema():
     不会锁表或丢数据。新增列必须有默认值（SQLite 限制）。
     """
     insp = inspect(engine)
-    # web_info 表：v2.3 新增 favicon_hash 列
-    if insp.has_table("web_info"):
-        cols = {c["name"] for c in insp.get_columns("web_info")}
-        if "favicon_hash" not in cols:
+
+    def _add_column(table: str, column: str, ddl_type: str, default: str):
+        """若表存在且缺该列，则 ALTER TABLE ADD COLUMN。"""
+        if not insp.has_table(table):
+            return
+        cols = {c["name"] for c in insp.get_columns(table)}
+        if column not in cols:
             with engine.begin() as conn:
                 conn.execute(text(
-                    "ALTER TABLE web_info ADD COLUMN favicon_hash VARCHAR(32) DEFAULT ''"
+                    f"ALTER TABLE {table} ADD COLUMN {column} {ddl_type} DEFAULT {default}"
                 ))
+
+    # v2.3: web_info favicon_hash
+    _add_column("web_info", "favicon_hash", "VARCHAR(32)", "''")
+    # v2.4: web_info cdn_detected
+    _add_column("web_info", "cdn_detected", "VARCHAR(64)", "''")
+    # v2.4: hosts risk_score / risk_factors_json
+    _add_column("hosts", "risk_score", "INTEGER", "0")
+    _add_column("hosts", "risk_factors_json", "TEXT", "'{}'")
+    # v2.4: ports cpe
+    _add_column("ports", "cpe", "VARCHAR(255)", "''")
