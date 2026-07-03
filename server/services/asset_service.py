@@ -19,6 +19,7 @@ def list_assets(q: str = "", sort: str = "last_seen") -> dict:
                 Host.ip,
                 func.min(Host.scan_id).label("first_scan_id"),
                 func.max(Host.host_id).label("last_host_id"),
+                func.max(Host.risk_score).label("risk_score"),
                 func.count(Host.host_id).label("scan_count"),
             )
             .group_by(Host.hostname, Host.ip)
@@ -57,6 +58,7 @@ def list_assets(q: str = "", sort: str = "last_seen") -> dict:
                 "scan_count": row.scan_count,
                 "port_count": port_count,
                 "web_count": web_count,
+                "risk_score": row.risk_score or 0,
             })
 
         # 排序
@@ -64,6 +66,8 @@ def list_assets(q: str = "", sort: str = "last_seen") -> dict:
             items.sort(key=lambda x: x["port_count"], reverse=True)
         elif sort == "scan_count":
             items.sort(key=lambda x: x["scan_count"], reverse=True)
+        elif sort == "risk_score":
+            items.sort(key=lambda x: x["risk_score"], reverse=True)
         else:
             items.sort(key=lambda x: x["hostname"])
 
@@ -136,6 +140,7 @@ def get_asset_by_ip(ip: str) -> dict | None:
             "whois": whois,
             "port_count": len(ports),
             "web_count": len(web_info),
+            "risk_score": max((h.risk_score or 0) for h in hosts),
         }
     finally:
         db.close()

@@ -28,6 +28,7 @@ export interface Port {
   service: string
   product: string
   version: string
+  cpe?: string
 }
 
 /** Banner 信息 */
@@ -88,6 +89,8 @@ export interface Host {
   hostname: string
   ip: string
   os: string
+  risk_score?: number
+  risk_factors?: Record<string, any>
   ports: Port[]
   banners: Banner[]
   web_info: WebInfo[]
@@ -141,6 +144,7 @@ export interface AssetSummary {
   scan_count: number
   port_count: number
   web_count: number
+  risk_score?: number
 }
 
 /** 工具状态 */

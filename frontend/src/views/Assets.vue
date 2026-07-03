@@ -16,6 +16,7 @@
           <el-option :label="t('assets.sortHostname')" value="hostname" />
           <el-option :label="t('assets.sortPortCount')" value="port_count" />
           <el-option :label="t('assets.sortScanCount')" value="scan_count" />
+          <el-option :label="t('assets.sortRiskScore')" value="risk_score" />
         </el-select>
         <el-button type="primary" @click="loadData">{{ t('common.search') }}</el-button>
       </div>
@@ -36,6 +37,11 @@
           </el-table-column>
           <el-table-column prop="web_count" :label="t('assets.web')" width="80">
             <template #default="{ row }"><span class="mono">{{ row.web_count }}</span></template>
+          </el-table-column>
+          <el-table-column prop="risk_score" :label="t('assets.risk')" width="100" align="center">
+            <template #default="{ row }">
+              <span class="risk-badge" :class="riskClass(row.risk_score || 0)">{{ row.risk_score || 0 }}</span>
+            </template>
           </el-table-column>
         </el-table>
       </div>
@@ -70,6 +76,12 @@ async function loadData() {
   }
 }
 
+function riskClass(score: number): string {
+  if (score >= 70) return 'risk-high'
+  if (score >= 40) return 'risk-medium'
+  return 'risk-low'
+}
+
 onMounted(loadData)
 </script>
 
@@ -77,5 +89,26 @@ onMounted(loadData)
 .assets {
   max-width: 1400px;
   margin: 0 auto;
+}
+
+.risk-badge {
+  display: inline-block;
+  min-width: 32px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 13px;
+}
+.risk-high {
+  background: var(--el-color-danger-light-9);
+  color: var(--el-color-danger);
+}
+.risk-medium {
+  background: var(--el-color-warning-light-9);
+  color: var(--el-color-warning);
+}
+.risk-low {
+  background: var(--el-color-success-light-9);
+  color: var(--el-color-success);
 }
 </style>
