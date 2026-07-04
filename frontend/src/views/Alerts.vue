@@ -184,7 +184,7 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.alerts-page { max-width: 1200px; margin: 0 auto; }
+.alerts-page {  }
 .event-summary { font-size: 14px; margin-bottom: 4px; }
 .event-meta { display: flex; gap: 6px; }
 </style>

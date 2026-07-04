@@ -257,7 +257,7 @@ onUnmounted(disconnectSSE)
 </script>
 
 <style scoped>
-.task-detail-page { max-width: 1200px; margin: 0 auto; }
+.task-detail-page {  }
 .np-page-actions { display: flex; gap: 8px; }
 
 .config-card, .log-card, .summary-card { margin-bottom: var(--np-space-4); }

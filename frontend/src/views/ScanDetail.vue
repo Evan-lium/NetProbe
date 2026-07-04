@@ -370,8 +370,8 @@ onMounted(async () => {
 
 <style scoped>
 .scan-detail {
-  max-width: 1600px;
-  margin: 0 auto;
+  
+  
 }
 
 /* ── Layout ──────────────────────────────────────────── */

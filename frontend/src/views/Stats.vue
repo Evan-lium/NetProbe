@@ -144,7 +144,7 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.stats-page { max-width: 1400px; margin: 0 auto; }
+.stats-page {  }
 .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 14px; }
 .chart-card { min-height: 360px; }
 .chart { height: 300px; }

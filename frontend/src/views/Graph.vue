@@ -220,7 +220,7 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.graph-page { max-width: 1400px; margin: 0 auto; }
+.graph-page {  }
 .graph-controls { display: flex; gap: 8px; align-items: center; }
 .graph-chart { height: 600px; }
 </style>

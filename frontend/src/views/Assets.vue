@@ -449,8 +449,8 @@ onMounted(loadData)
 
 <style scoped>
 .assets {
-  max-width: 1400px;
-  margin: 0 auto;
+  
+  
 }
 
 /* ═══ 风险徽章 ═══ */

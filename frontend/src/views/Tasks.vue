@@ -448,8 +448,8 @@ onUnmounted(() => {
 
 <style scoped>
 .tasks-page {
-  max-width: 1400px;
-  margin: 0 auto;
+  
+  
 }
 
 .task-list-card {

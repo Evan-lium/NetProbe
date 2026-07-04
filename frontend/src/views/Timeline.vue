@@ -120,7 +120,7 @@ onMounted(loadTargets)
 </script>
 
 <style scoped>
-.timeline-page { max-width: 1400px; margin: 0 auto; }
+.timeline-page {  }
 .select-card { margin-bottom: 16px; }
 .trend-chart { height: 400px; }
 </style>

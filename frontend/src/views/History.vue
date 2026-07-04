@@ -131,8 +131,8 @@ onMounted(loadData)
 
 <style scoped>
 .history {
-  max-width: 1400px;
-  margin: 0 auto;
+  
+  
 }
 
 .link {

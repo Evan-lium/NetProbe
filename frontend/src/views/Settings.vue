@@ -124,8 +124,8 @@ onMounted(async () => {
 
 <style scoped>
 .settings {
-  max-width: 1200px;
-  margin: 0 auto;
+  
+  
 }
 
 .settings-grid {

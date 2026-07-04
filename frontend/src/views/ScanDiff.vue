@@ -241,8 +241,8 @@ onMounted(loadCandidates)
 
 <style scoped>
 .diff-page {
-  max-width: 1200px;
-  margin: 0 auto;
+  
+  
 }
 
 .diff-select-card {

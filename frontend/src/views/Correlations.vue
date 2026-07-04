@@ -111,8 +111,8 @@ onMounted(loadData)
 
 <style scoped>
 .corr-page {
-  max-width: 1400px;
-  margin: 0 auto;
+  
+  
 }
 
 .cluster-grid {

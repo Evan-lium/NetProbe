@@ -160,8 +160,8 @@ onUnmounted(() => scanStore.disconnect())
 
 <style scoped>
 .scan-result {
-  max-width: 1400px;
-  margin: 0 auto;
+  
+  
 }
 
 .log-card {

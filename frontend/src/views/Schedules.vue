@@ -338,8 +338,8 @@ onMounted(loadData)
 
 <style scoped>
 .schedules-page {
-  max-width: 1200px;
-  margin: 0 auto;
+  
+  
 }
 
 .cron-code {
