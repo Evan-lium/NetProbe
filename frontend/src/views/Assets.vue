@@ -22,38 +22,43 @@
         <el-button type="primary" @click="loadData">{{ t('common.search') }}</el-button>
       </div>
 
-      <!-- 卡片网格 -->
-      <div class="asset-grid" v-loading="loading">
+      <!-- 资产行列表（FOFA 风格全宽行卡片） -->
+      <div class="asset-list" v-loading="loading">
         <div
           v-for="row in items"
           :key="row.rowKey"
-          class="asset-card"
+          class="asset-row"
           :class="riskBorderClass(row.risk_score || 0)"
           @click="openDetail(row)"
         >
-          <!-- 头部行：IP + 主机名 / 风险徽章 -->
-          <div class="card-head">
-            <div class="card-id">
-              <span class="card-ip mono">{{ row.ip }}</span>
-              <span class="card-host" v-if="row.hostname && row.hostname !== row.ip">{{ row.hostname }}</span>
+          <!-- 头部行：IP:端口 + 标签 / 域名 / 风险徽章 -->
+          <div class="row-head">
+            <div class="row-id">
+              <span class="row-ip mono">
+                {{ row.ip }}<template v-if="row._preview?.primary">:{{ row._preview.primary.port }}</template>
+              </span>
+              <span class="row-port-chip mono" v-if="row._preview?.primary">{{ row._preview.primary.port }}</span>
+              <span class="row-proto-chip mono" v-if="row._preview?.primary">{{ row._preview.primary.proto }}</span>
             </div>
             <span class="risk-badge" :class="riskClass(row.risk_score || 0)">
               {{ riskLabel(row.risk_score || 0) }} {{ row.risk_score || 0 }}
             </span>
           </div>
+          <!-- 域名（与 IP 不同时显示） -->
+          <div class="row-host mono" v-if="row.hostname && row.hostname !== row.ip">{{ row.hostname }}</div>
 
-          <!-- Web 站点区（预取详情后有则展示） -->
-          <div class="card-web" v-if="row._preview?.firstSite">
-            <div class="web-line">
-              <el-icon class="web-ico"><Monitor /></el-icon>
-              <a :href="row._preview.firstSite.url" target="_blank" rel="noopener" class="web-url mono" @click.stop>
-                {{ row._preview.firstSite.url }}
-              </a>
+          <!-- 中间 Banner 区（有 Web 站点时） -->
+          <div class="row-banner" v-if="row._preview?.firstSite">
+            <div class="banner-line">
+              <span class="banner-title" v-if="row._preview.firstSite.title">“{{ row._preview.firstSite.title }}”</span>
               <el-tag v-if="row._preview.firstSite.status" :type="statusTagType(row._preview.firstSite.status)" size="small" effect="dark" class="status-tag">
                 {{ row._preview.firstSite.status }}
               </el-tag>
+              <span class="banner-server mono" v-if="row._preview.firstSite.server">Server: {{ row._preview.firstSite.server }}</span>
             </div>
-            <div class="web-title" v-if="row._preview.firstSite.title">“{{ row._preview.firstSite.title }}”</div>
+            <a :href="row._preview.firstSite.url" target="_blank" rel="noopener" class="banner-url mono" @click.stop>
+              {{ row._preview.firstSite.url }}
+            </a>
             <div class="tech-tags" v-if="row._preview.firstSite.tech?.length">
               <el-tag
                 v-for="(tech, ti) in row._preview.firstSite.tech.slice(0, 5)"
@@ -65,28 +70,21 @@
             </div>
           </div>
 
-          <!-- 端口区 -->
-          <div class="card-ports" v-if="row._preview?.ports?.length">
-            <el-icon class="ports-ico"><Connection /></el-icon>
-            <span class="ports-list mono">
-              <span v-for="(p, i) in row._preview.ports.slice(0, 10)" :key="i" class="port-chip">
-                {{ p.port }}/{{ p.proto }}
-              </span>
-              <span class="port-more" v-if="row._preview.ports.length > 10">
-                +{{ row._preview.ports.length - 10 }}
-              </span>
+          <!-- 底部信息条：端口列表 / 扫描次数 / 漏洞数 -->
+          <div class="row-foot">
+            <span class="foot-ports mono" v-if="row._preview?.ports?.length">
+              <span class="foot-port" v-for="(p, i) in row._preview.ports.slice(0, 10)" :key="i">{{ p.port }}/{{ p.proto }}</span>
+              <span class="foot-port-sep" v-if="row._preview.ports.length > 10">+{{ row._preview.ports.length - 10 }}</span>
             </span>
-          </div>
-
-          <!-- 底部行：扫描次数 + 最后扫描时间 -->
-          <div class="card-foot">
+            <span class="foot-sep" v-if="row._preview?.ports?.length && row.scan_count">·</span>
             <span class="foot-meta">
               <el-icon><Aim /></el-icon>
               {{ t('assets.scans') }} {{ row.scan_count }}
             </span>
-            <span class="foot-meta" v-if="row._preview?.lastScan">
-              <el-icon><Clock /></el-icon>
-              {{ row._preview.lastScan }}
+            <span class="foot-sep" v-if="(row._preview?.vulnCount || 0) > 0">·</span>
+            <span class="foot-meta foot-vuln" v-if="(row._preview?.vulnCount || 0) > 0">
+              <el-icon><Warning /></el-icon>
+              {{ row._preview?.vulnCount }} {{ t('assets.detail.vulns') }}
             </span>
           </div>
         </div>
@@ -99,15 +97,15 @@
       </div>
     </el-card>
 
-    <!-- 详情抽屉 -->
-    <el-drawer
+    <!-- 详情弹窗（居中大窗，固定高度，比右侧抽屉更宽，详情一目了然） -->
+    <el-dialog
       v-model="drawerVisible"
       :title="drawerTitle"
-      direction="rtl"
-      size="620px"
-      class="asset-drawer"
+      width="92vw"
+      class="asset-dialog"
+      destroy-on-close
     >
-      <div v-loading="detailLoading" class="drawer-body">
+      <div v-loading="detailLoading" class="dialog-body">
         <!-- 加载失败 -->
         <div v-if="detailError" class="drawer-error">
           <el-icon :size="22" color="var(--np-danger)"><WarningFilled /></el-icon>
@@ -175,6 +173,80 @@
                     </template>
                   </el-table-column>
                 </el-table>
+              </div>
+            </el-tab-pane>
+
+            <!-- 协议分层（OSI / TCP-IP 可切换） -->
+            <el-tab-pane v-if="detail.ports?.length" :name="'layers'">
+              <template #label>
+                <span class="tab-label">
+                  <el-icon><Histogram /></el-icon>
+                  协议分层
+                </span>
+              </template>
+              <div class="tab-content">
+                <!-- 模型切换 + 图例 -->
+                <div class="layer-toolbar">
+                  <el-radio-group v-model="useOSI" size="small">
+                    <el-radio-button :value="true">OSI 七层</el-radio-button>
+                    <el-radio-button :value="false">TCP/IP 五层</el-radio-button>
+                  </el-radio-group>
+                  <span class="layer-hint">按开放端口的服务归属到对应协议层，点击服务可展开端口</span>
+                </div>
+
+                <!-- 分层栈：从上(7)到下(1)，每层一行 -->
+                <div class="layer-stack">
+                  <div
+                    v-for="layer in layerModel"
+                    :key="layer.n"
+                    class="layer-row"
+                    :class="{ 'layer-active': servicesAt(layer.n).length }"
+                  >
+                    <!-- 左：层标识 -->
+                    <div class="layer-label">
+                      <span class="layer-num">L{{ layer.n }}</span>
+                      <div class="layer-meta">
+                        <div class="layer-name">{{ layer.icon }} {{ layer.name }}</div>
+                        <div class="layer-en">{{ layer.en }}</div>
+                      </div>
+                    </div>
+                    <!-- 中：该层的服务/协议 -->
+                    <div class="layer-services">
+                      <template v-if="servicesAt(layer.n).length">
+                        <el-popover
+                          v-for="g in servicesAt(layer.n)"
+                          :key="g.label"
+                          placement="bottom"
+                          :width="280"
+                          trigger="click"
+                        >
+                          <template #reference>
+                            <span class="svc-chip">
+                              {{ g.label }}
+                              <b class="mono">{{ g.count }}</b>
+                            </span>
+                          </template>
+                          <div class="svc-pop">
+                            <div class="svc-pop-title">{{ g.label }} · {{ g.count }} 个端口</div>
+                            <div v-for="(p, i) in g.ports" :key="i" class="svc-pop-port">
+                              <span class="mono">{{ p.port }}/{{ p.proto }}</span>
+                              <span class="svc-pop-prod">{{ [p.product, p.version].filter(Boolean).join(' ') || '—' }}</span>
+                            </div>
+                          </div>
+                        </el-popover>
+                      </template>
+                      <span v-else class="layer-empty">—</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 攻击面小结 -->
+                <div class="layer-summary">
+                  <span class="ls-label">攻击面分布：</span>
+                  <span v-for="layer in layerModel" :key="layer.n" class="ls-item" :class="{ zero: !servicesAt(layer.n).length }">
+                    L{{ layer.n }} <b>{{ servicesAt(layer.n).reduce((s, g) => s + g.count, 0) }}</b>
+                  </span>
+                </div>
               </div>
             </el-tab-pane>
 
@@ -276,7 +348,7 @@
           </div>
         </template>
       </div>
-    </el-drawer>
+    </el-dialog>
   </div>
 </template>
 
@@ -290,8 +362,11 @@ const { t } = useI18n()
 
 /** 卡片预览数据：从详情接口抽取用于卡片展示的轻量字段 */
 interface CardPreview {
-  firstSite?: { url: string; status: number | null; title: string; tech: string[] }
+  firstSite?: { url: string; status: number | null; title: string; tech: string[]; server?: string }
   ports?: { port: number; proto: string }[]
+  /** 头部主端口（站点端口优先，否则第一个开放端口） */
+  primary?: { port: number; proto: string }
+  vulnCount?: number
   lastScan?: string
 }
 
@@ -365,11 +440,34 @@ function extractPreview(d: any): CardPreview {
         status: d.web_info[0].status ?? null,
         title: d.web_info[0].title || '',
         tech: (d.web_info[0].tech || []).map((x: any) => (typeof x === 'string' ? x : x.name)).filter(Boolean),
+        server: pickHeader(d.web_info[0].headers, 'Server'),
       }
     : undefined)
   const ports = (d.ports || []).slice(0, 12).map((p: any) => ({ port: p.port, proto: p.proto }))
+  // 头部主端口：站点端口优先，否则第一个开放端口
+  const sitePort = firstSite ? d.web_info[0].port : null
+  const primaryPort = sitePort != null
+    ? { port: sitePort, proto: 'https' /* 站点端口，proto 后面由 url 推断 */ }
+    : (d.ports?.find?.((p: any) => p.state === 'open') || d.ports?.[0])
+  const primary = primaryPort ? { port: primaryPort.port, proto: inferProto(firstSite?.url, primaryPort.proto) } : undefined
+  const vulnCount = Array.isArray(d.vulnerabilities) ? d.vulnerabilities.length : 0
   const lastScan = d.last_scan || d.updated_at || ''
-  return { firstSite, ports, lastScan }
+  return { firstSite, ports, primary, vulnCount, lastScan }
+}
+
+/** 从 headers 中按 key 取值（不区分大小写） */
+function pickHeader(headers: any, key: string): string | undefined {
+  if (!headers) return undefined
+  const lower = String(key).toLowerCase()
+  const hit = Object.entries(headers).find(([k]) => String(k).toLowerCase() === lower)
+  return hit ? String(hit[1]) : undefined
+}
+
+/** 根据 url 协议或端口默认值推断协议 */
+function inferProto(url?: string, fallback = 'tcp'): string {
+  if (url?.startsWith('https://')) return 'https'
+  if (url?.startsWith('http://')) return 'http'
+  return fallback
 }
 
 /** 点击卡片：打开抽屉并加载完整详情 */
@@ -444,6 +542,89 @@ function vulnSeverityType(sev: string) {
   return 'info'
 }
 
+/* ═══ 协议分层（OSI / TCP-IP）═══ */
+/** 服务/产品名 → OSI 层映射。命中即归类，未命中归 L7（绝大多数应用协议）。 */
+const LAYER_BY_SERVICE: Record<string, number> = {
+  // L6 表示层：加密 / 编码
+  ssl: 6, tls: 6, 'ssl/http': 6, https: 6,
+  // L5 会话层：会话管理
+  rpc: 5, 'netbios-ssn': 5, llmnr: 5,
+  // L4 传输层：端口级协议
+  tcp: 4, udp: 4, tcpwrapped: 4,
+  // L3 网络层
+  ipv4: 3, ipv6: 3, icmp: 3, ip: 3,
+}
+/** 端口 → 典型服务（nmap 未识别 service 时的兜底，提高分层准确度） */
+const SERVICE_BY_PORT: Record<number, string> = {
+  80: 'http', 443: 'https', 8080: 'http', 8443: 'https', 8000: 'http', 8888: 'http',
+  22: 'ssh', 21: 'ftp', 20: 'ftp', 23: 'telnet', 3389: 'rdp', 5900: 'vnc',
+  25: 'smtp', 110: 'pop3', 143: 'imap', 465: 'smtps', 993: 'imaps', 995: 'pop3s',
+  53: 'dns', 161: 'snmp', 162: 'snmptrap', 123: 'ntp', 69: 'tftp',
+  3306: 'mysql', 5432: 'postgresql', 1433: 'mssql', 1521: 'oracle',
+  6379: 'redis', 27017: 'mongodb', 9200: 'elasticsearch', 11211: 'memcached',
+  389: 'ldap', 636: 'ldaps', 88: 'kerberos', 464: 'kpasswd', 135: 'msrpc',
+}
+
+/** 解析单个端口记录 → {layer, label}。label 取 service（兜底端口推断）。 */
+function classifyPort(p: any): { layer: number; label: string } {
+  const svc = (p.service || SERVICE_BY_PORT[p.port] || '').toLowerCase()
+  const key = svc.includes('http') && svc.includes('ssl')
+    ? 'https'
+    : svc.replace(/[\d.]/g, '') // 'http-proxy' → 'http-proxy' 保留，'ssh-2.0' → 'ssh'
+  const layer = LAYER_BY_SERVICE[key] ?? (svc ? 7 : 4) // 有 service 名默认 L7
+  return { layer, label: svc || `:${p.port}/${p.proto}` }
+}
+
+/** OSI 七层定义（index 对应层号） */
+const OSI_LAYERS = [
+  { n: 7, name: '应用层', en: 'Application',  desc: '应用协议：HTTP/SSH/MySQL/Redis…', icon: '🌐' },
+  { n: 6, name: '表示层', en: 'Presentation', desc: '数据格式化与加密：TLS/SSL',        icon: '🔐' },
+  { n: 5, name: '会话层', en: 'Session',      desc: '会话建立与管理：RPC',              icon: '🤝' },
+  { n: 4, name: '传输层', en: 'Transport',    desc: '端到端连接：TCP/UDP',              icon: '🚚' },
+  { n: 3, name: '网络层', en: 'Network',      desc: '寻址与路由：IPv4/ICMP',            icon: '🗺️' },
+  { n: 2, name: '数据链路层', en: 'Data Link', desc: '帧传输（本工具不扫描）',          icon: '🔗' },
+  { n: 1, name: '物理层', en: 'Physical',     desc: '比特流传输（本工具不扫描）',       icon: '⚡' },
+] as const
+/** TCP/IP 五层：合并 OSI 5/6/7→应用，其余对齐 */
+const TCPIP_LAYERS = [
+  { n: 7, name: '应用层',   en: 'Application', desc: 'HTTP/SSH/MySQL/Redis + TLS 加密', icon: '🌐' },
+  { n: 4, name: '传输层',   en: 'Transport',   desc: '端到端连接：TCP/UDP',            icon: '🚚' },
+  { n: 3, name: '网络层',   en: 'Network',     desc: '寻址与路由：IPv4/ICMP',          icon: '🗺️' },
+  { n: 2, name: '链路层',   en: 'Link',        desc: '帧传输（本工具不扫描）',         icon: '🔗' },
+  { n: 1, name: '物理层',   en: 'Physical',    desc: '比特流传输（本工具不扫描）',     icon: '⚡' },
+] as const
+
+/** 分层模型切换：true=OSI七层, false=TCP/IP五层 */
+const useOSI = ref(true)
+const layerModel = computed(() => (useOSI.value ? OSI_LAYERS : TCPIP_LAYERS))
+
+/** 把端口列表按层聚合，返回每层的服务清单与计数 */
+const layerBreakdown = computed(() => {
+  const ports = detail.value?.ports || []
+  const byLayer: Record<number, { label: string; ports: any[]; count: number }[]> = {}
+  for (const p of ports) {
+    if (p.state && p.state !== 'open') continue          // 只统计 open 端口
+    const { layer, label } = classifyPort(p)
+    const bucket = byLayer[layer] ||= []
+    let group = bucket.find(g => g.label === label)
+    if (!group) {
+      group = { label, ports: [], count: 0 }
+      bucket.push(group)
+    }
+    group.ports.push(p)
+    group.count++
+  }
+  return byLayer
+})
+
+/** 给定层号，返回该层的服务分组（兼容 OSI/TCP-IP：五层模型里 7 涵盖了原 5/6/7） */
+function servicesAt(layerN: number) {
+  if (useOSI.value) return layerBreakdown.value[layerN] || []
+  // TCP/IP 五层：应用层归并 5/6/7
+  if (layerN === 7) return [...(layerBreakdown.value[7] || []), ...(layerBreakdown.value[6] || []), ...(layerBreakdown.value[5] || [])]
+  return layerBreakdown.value[layerN] || []
+}
+
 onMounted(loadData)
 </script>
 
@@ -478,180 +659,207 @@ onMounted(loadData)
   color: var(--np-success);
 }
 
-/* ═══ 卡片网格 ═══ */
-.asset-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: 16px;
+/* ═══ 资产行列表（FOFA 风格全宽行） ═══ */
+.asset-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.asset-card {
+.asset-row {
   position: relative;
+  width: 100%;
   background: var(--np-bg-surface);
   border: 1px solid var(--np-border);
   border-radius: var(--np-radius-lg);
-  padding: 16px;
+  padding: 14px 16px 14px 19px;
   cursor: pointer;
   transition: box-shadow 0.2s, border-color 0.2s;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  overflow: hidden;
+  gap: 8px;
 }
-/* 左侧风险色条（覆盖左边框） */
-.asset-card::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: transparent;
-}
-.asset-card.border-risk-high::before { background: var(--np-danger); }
-.asset-card.border-risk-medium::before { background: var(--np-warning); }
-.asset-card.border-risk-low::before { background: var(--np-success); }
+/* 左侧风险色条（3px border-left） */
+.asset-row.border-risk-high { border-left: 3px solid var(--np-danger); }
+.asset-row.border-risk-medium { border-left: 3px solid var(--np-warning); }
+.asset-row.border-risk-low { border-left: 3px solid var(--np-success); }
 
-.asset-card:hover {
+.asset-row:hover {
   border-color: var(--np-blue-400);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* ── 头部行 ── */
-.card-head {
+/* ── 头部行：IP:端口 + 标签 / 风险徽章 ── */
+.row-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
-.card-id {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.row-id {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
   min-width: 0;
 }
-.card-ip {
-  font-family: var(--np-font-mono);
+.row-ip {
   font-weight: 700;
   font-size: 16px;
-  color: var(--np-text-primary);
+  color: var(--np-blue-500);
+  letter-spacing: 0.2px;
   word-break: break-all;
   line-height: 1.3;
 }
-.card-host {
+.row-port-chip,
+.row-proto-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: var(--np-radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.row-port-chip {
+  background: var(--np-info-bg);
+  color: var(--np-blue-500);
+}
+.row-proto-chip {
+  background: var(--np-bg-elevated);
+  color: var(--np-text-secondary);
+}
+
+/* 域名（灰） */
+.row-host {
   font-size: 12px;
   color: var(--np-text-muted);
   word-break: break-all;
+  margin-top: -2px;
 }
 
-/* ── Web 站点区 ── */
-.card-web {
+/* ── 中间 Banner 区 ── */
+.row-banner {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: 5px;
+  padding: 9px 12px;
   background: var(--np-bg-app);
   border-radius: var(--np-radius-md);
 }
-.web-line {
+.banner-line {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
 }
-.web-ico {
-  color: var(--np-blue-500);
-  flex-shrink: 0;
-}
-.web-url {
+.banner-title {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--np-text-primary);
+  word-break: break-all;
+}
+.banner-server {
+  font-size: 12px;
+  color: var(--np-text-muted);
+}
+.banner-url {
+  font-size: 12px;
   color: var(--np-blue-500);
   word-break: break-all;
 }
-.web-url:hover {
+.banner-url:hover {
   color: var(--np-blue-600);
+  text-decoration: underline;
 }
 .status-tag {
   flex-shrink: 0;
-}
-.web-title {
-  font-size: 12px;
-  color: var(--np-text-muted);
-  font-style: italic;
-  word-break: break-all;
 }
 .tech-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+  margin-top: 2px;
 }
 .tech-tag {
   font-family: var(--np-font-mono);
   font-size: 11px;
 }
 
-/* ── 端口区 ── */
-.card-ports {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.ports-ico {
-  color: var(--np-text-muted);
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-.ports-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 8px;
-  color: var(--np-text-muted);
-  font-size: 12px;
-}
-.port-chip {
-  background: var(--np-bg-elevated);
-  padding: 1px 6px;
-  border-radius: var(--np-radius-sm);
-}
-.port-more {
-  color: var(--np-text-secondary);
-  font-weight: 600;
-  padding: 1px 2px;
-}
-
-/* ── 底部行 ── */
-.card-foot {
+/* ── 底部信息条 ── */
+.row-foot {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  padding-top: 10px;
+  flex-wrap: wrap;
+  padding-top: 8px;
   border-top: 1px solid var(--np-border);
   font-size: 12px;
   color: var(--np-text-muted);
+}
+.foot-ports {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.foot-port {
+  color: var(--np-text-secondary);
+}
+/* 端口之间用 · 分隔（最后一个不加） */
+.foot-port + .foot-port::before {
+  content: '·';
+  margin-right: 6px;
+  color: var(--np-text-disabled);
+}
+.foot-port-sep {
+  color: var(--np-text-disabled);
+  font-weight: 600;
+  margin-left: 6px;
+}
+.foot-sep {
+  color: var(--np-text-disabled);
 }
 .foot-meta {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
+}
+.foot-vuln {
+  color: var(--np-danger);
+  font-weight: 600;
 }
 
-/* ═══ 详情抽屉 ═══ */
-.drawer-body {
+/* ═══ 详情弹窗（居中大窗，固定高度，内容少也不缩） ═══ */
+/* ═══ 详情弹窗（固定 88vh，内容再多也在内部滚动，绝不溢出） ═══ */
+/* 注意：asset-dialog class 直接挂在 .el-dialog 根元素上（同一元素），
+   不是后代关系。整条高度链必须贯通，任一环 min-height:0 缺失都会撑爆：
+   el-dialog(88vh flex列) → __body(flex:1 撑满) → .dialog-body(h100%) →
+   detail-overview(固定) → tabs(flex:1) → tab-content(滚动) */
+:deep(.el-dialog.asset-dialog) {
+  height: 88vh;
+  margin-top: 6vh !important;
+  margin-bottom: 0 !important;
+  display: flex;
+  flex-direction: column;
+}
+:deep(.el-dialog.asset-dialog .el-dialog__header) {
+  flex-shrink: 0;
+  margin-right: 0;
+  padding-bottom: 14px;
+}
+:deep(.el-dialog.asset-dialog .el-dialog__body) {
+  flex: 1;
+  min-height: 0;            /* 关键：允许 flex 子项收缩，否则内容会撑爆 */
+  padding: 0 20px 20px;
+  overflow: hidden;
+}
+.dialog-body {
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-}
-
-/* el-drawer body 撑满高度 */
-:deep(.el-drawer__body) {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  padding-bottom: 0;
 }
 .drawer-error {
   display: flex;
@@ -820,12 +1028,187 @@ onMounted(loadData)
 
 /* 响应式 */
 @media (max-width: 768px) {
-  .asset-grid {
-    grid-template-columns: 1fr;
-  }
   .banner-row {
     grid-template-columns: 1fr;
   }
+}
+
+/* ═══ 协议分层 ═══ */
+.layer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--np-space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--np-space-4);
+}
+.layer-hint {
+  font-size: 12px;
+  color: var(--np-text-muted);
+}
+
+/* 分层栈：每层一行，从上(7)到下(1) */
+.layer-stack {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--np-border);
+  border-radius: var(--np-radius-lg);
+  overflow: hidden;
+}
+.layer-row {
+  display: grid;
+  grid-template-columns: 168px 1fr;
+  align-items: stretch;
+  border-bottom: 1px solid var(--np-border);
+  transition: background 150ms ease;
+}
+.layer-row:last-child {
+  border-bottom: none;
+}
+/* 有暴露的层：高亮左边框 + 浅底色 */
+.layer-row.layer-active {
+  background: var(--np-info-bg);
+}
+.layer-row.layer-active .layer-label {
+  border-left: 3px solid var(--np-blue-500);
+}
+.layer-row:not(.layer-active) {
+  opacity: 0.6;
+}
+
+/* 左：层标识（垂直居中） */
+.layer-label {
+  display: flex;
+  align-items: center;
+  gap: var(--np-space-2);
+  padding: 12px 14px;
+  background: var(--np-bg-elevated);
+  border-left: 3px solid transparent;
+}
+.layer-num {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--np-blue-500);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--np-font-mono);
+}
+.layer-row:not(.layer-active) .layer-num {
+  background: var(--np-bg-overlay);
+  color: var(--np-text-disabled);
+}
+.layer-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--np-text-primary);
+}
+.layer-en {
+  font-size: 11px;
+  color: var(--np-text-muted);
+}
+
+/* 右：服务标签 */
+.layer-services {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 14px;
+  min-height: 56px;
+}
+.svc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--np-bg-layout);
+  border: 1px solid var(--np-border);
+  border-radius: 12px;
+  font-size: 12px;
+  color: var(--np-text-secondary);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+.svc-chip:hover {
+  background: var(--np-blue-500);
+  border-color: var(--np-blue-500);
+  color: #fff;
+}
+.svc-chip b {
+  font-size: 11px;
+  color: var(--np-blue-500);
+}
+.svc-chip:hover b {
+  color: #fff;
+}
+.layer-empty {
+  color: var(--np-text-disabled);
+  font-size: 13px;
+}
+
+/* 服务弹出详情 */
+.svc-pop {
+  max-height: 320px;
+  overflow-y: auto;
+}
+.svc-pop-title {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--np-border);
+}
+.svc-pop-port {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 12px;
+}
+.svc-pop-port .mono {
+  color: var(--np-blue-500);
+  font-weight: 600;
+}
+.svc-pop-prod {
+  color: var(--np-text-muted);
+  text-align: right;
+}
+
+/* 底部攻击面小结 */
+.layer-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--np-space-3);
+  margin-top: var(--np-space-4);
+  padding: var(--np-space-3) var(--np-space-4);
+  background: var(--np-bg-elevated);
+  border-radius: var(--np-radius-lg);
+  font-size: 13px;
+}
+.layer-summary .ls-label {
+  color: var(--np-text-muted);
+}
+.layer-summary .ls-item {
+  color: var(--np-text-secondary);
+}
+.layer-summary .ls-item b {
+  color: var(--np-blue-500);
+  font-family: var(--np-font-mono);
+  margin-left: 2px;
+}
+.layer-summary .ls-item.zero {
+  opacity: 0.4;
+}
+.layer-summary .ls-item.zero b {
+  color: var(--np-text-disabled);
 }
 
 /* ── Tab 样式 ── */
@@ -851,6 +1234,10 @@ onMounted(loadData)
 
 .detail-tabs :deep(.el-tab-pane) {
   height: 100%;
+  min-height: 0;            /* flex 子项允许收缩，内容超高不撑爆父级 */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .detail-tabs :deep(.el-tabs__nav-wrap::after) {
@@ -890,7 +1277,8 @@ onMounted(loadData)
 }
 
 .tab-content {
-  height: 100%;
+  flex: 1;
+  min-height: 0;            /* 真正的滚动容器：填满 tab-pane 剩余空间并在内部滚动 */
   overflow-y: auto;
   padding-right: 4px;
 }
