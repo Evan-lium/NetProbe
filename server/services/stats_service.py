@@ -146,6 +146,9 @@ def get_asset_detail(hostname: str, ip: str) -> dict | None:
             "path": s.path, "severity": s.severity, "description": s.description,
         } for s in sens_rows]
 
+        # 单资产生命周期：遍历每次扫描，端口/技术栈相邻 diff
+        timeline = _compute_asset_timeline(db, hosts)
+
         return {
             "hostname": hostname,
             "ip": ip,
@@ -157,9 +160,84 @@ def get_asset_detail(hostname: str, ip: str) -> dict | None:
             "banners": banners,
             "sensitive": sensitive,
             "tech_stack": sorted(all_tech),
+            "timeline": timeline,
             "port_count": len(ports),
             "web_count": len(web_info),
             "vuln_count": len(vulnerabilities),
         }
     finally:
         db.close()
+
+
+def _compute_asset_timeline(db, hosts: list) -> list[dict]:
+    """计算单个资产的端口/技术栈变化时间线。
+
+    遍历该资产参与的每次扫描（按时间排序），相邻扫描 diff 端口集和技术栈集。
+    返回 [{scan_id, started_at, ports_added, ports_removed, tech_added, tech_removed}, ...]
+    """
+    from ..utils import to_iso_z
+
+    # host 按 scan 关联，取每次扫描的 host 记录
+    host_by_scan = {h.scan_id: h for h in hosts}
+    scan_ids = sorted(host_by_scan.keys())
+
+    # 查这些扫描的时间，按时间排序
+    from ..models import Scan
+    scans = db.query(Scan).filter(Scan.scan_id.in_(scan_ids)).order_by(Scan.started_at.asc()).all()
+    scan_order = [s.scan_id for s in scans]
+    scan_time = {s.scan_id: s for s in scans}
+
+    points = []
+    prev_ports = None
+    prev_tech = None
+
+    for sid in scan_order:
+        h = host_by_scan.get(sid)
+        scan = scan_time.get(sid)
+        if not h or not scan:
+            continue
+
+        # 本次扫描的端口集（port/proto）
+        curr_ports = set()
+        for p in db.query(Port).filter(Port.host_id == h.host_id).all():
+            if p.state == "open":
+                curr_ports.add(f"{p.port}/{p.proto}")
+
+        # 本次扫描的技术栈集
+        curr_tech = set()
+        for w in db.query(WebInfo).filter(WebInfo.host_id == h.host_id).all():
+            try:
+                tech = json.loads(w.tech_json) if w.tech_json else []
+                for t in tech:
+                    name = t.get("name") if isinstance(t, dict) else t
+                    if name:
+                        curr_tech.add(name)
+            except json.JSONDecodeError:
+                pass
+
+        if prev_ports is None:
+            ports_added = len(curr_ports)
+            ports_removed = 0
+            tech_added = len(curr_tech)
+            tech_removed = 0
+        else:
+            ports_added = len(curr_ports - prev_ports)
+            ports_removed = len(prev_ports - curr_ports)
+            tech_added = len(curr_tech - prev_tech)
+            tech_removed = len(prev_tech - curr_tech)
+
+        points.append({
+            "scan_id": sid,
+            "scan_name": scan.name or sid,
+            "started_at": to_iso_z(scan.started_at) or "",
+            "port_count": len(curr_ports),
+            "ports_added": ports_added,
+            "ports_removed": ports_removed,
+            "tech_count": len(curr_tech),
+            "tech_added": tech_added,
+            "tech_removed": tech_removed,
+        })
+        prev_ports = curr_ports
+        prev_tech = curr_tech
+
+    return points

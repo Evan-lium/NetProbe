@@ -358,6 +358,60 @@
                 </div>
               </div>
             </el-tab-pane>
+
+            <!-- 生命周期（该资产跨扫描的端口/技术栈变化趋势） -->
+            <el-tab-pane v-if="detail.timeline?.length >= 2" :name="'timeline'">
+              <template #label>
+                <span class="tab-label">
+                  <el-icon><Timer /></el-icon>
+                  生命周期
+                  <span class="tab-count">{{ detail.timeline.length }}</span>
+                </span>
+              </template>
+              <div class="tab-content">
+                <p class="timeline-hint">该资产在 {{ detail.timeline.length }} 次扫描中的端口与技术栈变化趋势</p>
+                <v-chart class="timeline-chart" :option="timelineChartOption" autoresize />
+                <!-- 明细表格 -->
+                <el-table :data="detail.timeline" size="small" stripe class="timeline-table">
+                  <el-table-column label="扫描时间" min-width="160">
+                    <template #default="{ row }">
+                      <span class="mono">{{ formatScanTime(row.started_at) }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="scan_name" label="任务" min-width="120" show-overflow-tooltip />
+                  <el-table-column label="端口数" width="80" align="center">
+                    <template #default="{ row }"><b class="mono">{{ row.port_count }}</b></template>
+                  </el-table-column>
+                  <el-table-column label="新增" width="70" align="center">
+                    <template #default="{ row }">
+                      <span v-if="row.ports_added" class="diff-add">+{{ row.ports_added }}</span>
+                      <span v-else class="diff-zero">—</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="消失" width="70" align="center">
+                    <template #default="{ row }">
+                      <span v-if="row.ports_removed" class="diff-remove">−{{ row.ports_removed }}</span>
+                      <span v-else class="diff-zero">—</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="技术栈" width="70" align="center">
+                    <template #default="{ row }"><b class="mono">{{ row.tech_count }}</b></template>
+                  </el-table-column>
+                  <el-table-column label="新增" width="70" align="center">
+                    <template #default="{ row }">
+                      <span v-if="row.tech_added" class="diff-add">+{{ row.tech_added }}</span>
+                      <span v-else class="diff-zero">—</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="消失" width="70" align="center">
+                    <template #default="{ row }">
+                      <span v-if="row.tech_removed" class="diff-remove">−{{ row.tech_removed }}</span>
+                      <span v-else class="diff-zero">—</span>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+            </el-tab-pane>
           </el-tabs>
 
           <!-- 全空兜底 -->
@@ -381,6 +435,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getAssets, getAssetDetail } from '../api/scan'
 import type { AssetSummary } from '../types'
+import VChart from 'vue-echarts'
+import { use } from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { LineChart } from 'echarts/charts'
+import { TooltipComponent, LegendComponent, GridComponent } from 'echarts/components'
+
+use([CanvasRenderer, LineChart, TooltipComponent, LegendComponent, GridComponent])
 
 const { t } = useI18n()
 
@@ -535,6 +596,35 @@ function techTagType(tech: any): '' | 'info' | 'warning' {
   if (cat === 'cdn' || cat === 'waf') return 'warning'
   return 'info'
 }
+
+/** 格式化扫描时间（UTC → 本地可读） */
+function formatScanTime(iso: string): string {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+/** 生命周期趋势图配置：端口数/新增/消失 三条线 */
+const timelineChartOption = computed(() => {
+  const points = detail.value?.timeline || []
+  if (points.length < 2) return {}
+  const labels = points.map((p: any) => {
+    const d = new Date(p.started_at)
+    return `${d.getMonth() + 1}/${d.getDate()}`
+  })
+  return {
+    tooltip: { trigger: 'axis' },
+    legend: { bottom: 0, data: ['端口总数', '新增', '消失'] },
+    grid: { left: 40, right: 20, top: 20, bottom: 40 },
+    xAxis: { type: 'category', data: labels, boundaryGap: false },
+    yAxis: { type: 'value', minInterval: 1 },
+    series: [
+      { name: '端口总数', type: 'line', smooth: true, data: points.map((p: any) => p.port_count), itemStyle: { color: '#60a5fa' }, areaStyle: { opacity: 0.1 } },
+      { name: '新增', type: 'line', smooth: true, data: points.map((p: any) => p.ports_added), itemStyle: { color: '#22c55e' } },
+      { name: '消失', type: 'line', smooth: true, data: points.map((p: any) => p.ports_removed), itemStyle: { color: '#ef4444' } },
+    ],
+  }
+})
 
 /** 点击卡片：打开抽屉并加载完整详情 */
 async function openDetail(row: AssetRow) {
@@ -1276,6 +1366,23 @@ onMounted(loadData)
 .layer-summary .ls-item.zero b {
   color: var(--np-text-disabled);
 }
+
+/* ── 生命周期 Tab ── */
+.timeline-hint {
+  font-size: 12px;
+  color: var(--np-text-muted);
+  margin-bottom: var(--np-space-3);
+}
+.timeline-chart {
+  height: 260px;
+  margin-bottom: var(--np-space-4);
+}
+.timeline-table {
+  margin-top: var(--np-space-2);
+}
+.diff-add { color: #22c55e; font-weight: 600; }
+.diff-remove { color: #ef4444; font-weight: 600; }
+.diff-zero { color: var(--np-text-disabled); }
 
 /* ── Tab 样式 ── */
 .detail-tabs {

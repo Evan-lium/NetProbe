@@ -58,12 +58,6 @@ const router = createRouter({
       meta: { title: 'Graph', icon: 'Connection' },
     },
     {
-      path: '/timeline',
-      name: 'timeline',
-      component: () => import('../views/Timeline.vue'),
-      meta: { title: 'Timeline', icon: 'Timer' },
-    },
-    {
       path: '/alerts',
       name: 'alerts',
       component: () => import('../views/Alerts.vue'),
