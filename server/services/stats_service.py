@@ -20,11 +20,23 @@ def get_overview_stats() -> dict:
         ).filter(Host.ip != "").scalar() or 0
         ip_count = db.query(func.count(func.distinct(Host.ip))).filter(Host.ip != "").scalar() or 0
         hostname_count = db.query(func.count(func.distinct(Host.hostname))).filter(Host.hostname != "").scalar() or 0
-        port_count = db.query(func.count(Port.port_id)).scalar() or 0
-        web_count = db.query(func.count(WebInfo.web_id)).scalar() or 0
-        vuln_count = db.query(func.count(Vulnerability.vuln_id)).scalar() or 0
-        sensitive_count = db.query(func.count(SensitivePath.id)).scalar() or 0
-        banner_count = db.query(func.count(Banner.banner_id)).scalar() or 0
+        # 端口去重（按 ip+port+proto，跨扫描的唯一端口）
+        port_count = db.query(
+            func.count(func.distinct(func.concat(Host.ip, '|', Port.port, '|', Port.proto)))
+        ).select_from(Port).join(Host, Port.host_id == Host.host_id).filter(Host.ip != "").scalar() or 0
+        # Web 站点去重（按 url）
+        web_count = db.query(func.count(func.distinct(WebInfo.url))).scalar() or 0
+        # 漏洞去重（按 host_ip+template_id+cve）
+        vuln_count = db.query(
+            func.count(func.distinct(func.concat(Host.ip, '|', Vulnerability.template_id, '|', Vulnerability.cve)))
+        ).select_from(Vulnerability).join(Host, Vulnerability.host_id == Host.host_id).scalar() or 0
+        # 敏感路径去重（按 host_ip+path）
+        sensitive_count = db.query(
+            func.count(func.distinct(func.concat(Host.ip, '|', SensitivePath.path)))
+        ).select_from(SensitivePath).join(Host, SensitivePath.host_id == Host.host_id).scalar() or 0
+        banner_count = db.query(
+            func.count(func.distinct(func.concat(Host.ip, '|', Banner.port, '|', Banner.service)))
+        ).select_from(Banner).join(Host, Banner.host_id == Host.host_id).scalar() or 0
 
         # 服务/协议类型（去重 service 字段）
         services = [
