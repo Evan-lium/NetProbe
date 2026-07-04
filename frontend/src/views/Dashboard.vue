@@ -103,11 +103,39 @@
         </div>
       </el-card>
     </div>
+
+    <!-- 实时控制台输出（有运行中任务时显示） -->
+    <el-card v-if="liveTaskId" class="console-card">
+      <template #header>
+        <div class="np-card-header">
+          <el-icon :size="16" :class="{ 'spin': isStreaming }"><Monitor /></el-icon>
+          <span>{{ t('dashboard.liveConsole') }}</span>
+          <span class="console-task mono" v-if="liveTaskName">{{ liveTaskName }}</span>
+          <span class="console-status">
+            <el-tag :type="streamStatus === 'done' ? 'success' : streamStatus === 'error' ? 'danger' : 'warning'" size="small">
+              {{ streamStatus === 'done' ? t('history.statusDone') : streamStatus === 'error' ? t('history.statusError') : t('history.statusRunning') }}
+            </el-tag>
+          </span>
+          <router-link :to="`/scan/${liveTaskId}`" class="console-detail-link">
+            {{ t('dashboard.viewDetail') }} <el-icon><ArrowRight /></el-icon>
+          </router-link>
+        </div>
+      </template>
+      <div class="console-area" ref="consoleRef" role="log" aria-live="polite">
+        <div v-for="(line, i) in liveLogs" :key="i" class="console-line">
+          <span class="console-prefix">{{ String(i + 1).padStart(3, '0') }}</span>
+          <span :class="logClass(line)">{{ line }}</span>
+        </div>
+        <div v-if="liveLogs.length === 0" class="console-empty">
+          <span class="cursor-blink">▊</span> {{ t('dashboard.waitingEvents') }}
+        </div>
+      </div>
+    </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getTasks, getHistory } from '../api/scan'
 import type { TaskInfo, HistoryItem } from '../types'
@@ -119,6 +147,77 @@ const loadingRecent = ref(true)
 const runningTasks = ref<TaskInfo[]>([])
 const recentScans = ref<HistoryItem[]>([])
 let pollTimer: ReturnType<typeof setInterval> | null = null
+
+// ── 实时控制台（SSE 监听运行中任务）──
+const liveTaskId = ref('')
+const liveTaskName = ref('')
+const liveLogs = ref<string[]>([])
+const streamStatus = ref<'idle' | 'running' | 'done' | 'error'>('idle')
+const isStreaming = computed(() => streamStatus.value === 'running')
+const consoleRef = ref<HTMLElement>()
+let eventSource: EventSource | null = null
+
+function connectLiveStream(taskId: string, name: string) {
+  disconnectLiveStream()
+  liveTaskId.value = taskId
+  liveTaskName.value = name
+  liveLogs.value = []
+  streamStatus.value = 'running'
+
+  eventSource = new EventSource(`/api/stream/${taskId}`)
+  eventSource.onmessage = (e) => {
+    try {
+      const data = JSON.parse(e.data)
+      const evt = data.event
+      if (evt === 'progress' || evt === 'log') {
+        if (data.text) liveLogs.value.push(data.text)
+      } else if (evt === 'done') {
+        liveLogs.value.push('[done] 扫描完成')
+        streamStatus.value = 'done'
+        disconnectLiveStream()
+        fetchRecent()  // 刷新历史
+      } else if (evt === 'error') {
+        liveLogs.value.push(`[error] ${data.text || ''}`)
+        streamStatus.value = 'error'
+        disconnectLiveStream()
+      } else if (evt === 'cancelled') {
+        liveLogs.value.push('[cancelled] 任务已取消')
+        streamStatus.value = 'error'
+        disconnectLiveStream()
+      } else if (data.text) {
+        liveLogs.value.push(data.text)
+      }
+    } catch {
+      liveLogs.value.push(e.data)
+    }
+  }
+  eventSource.onerror = () => {
+    if (streamStatus.value === 'running') {
+      streamStatus.value = 'error'
+    }
+    disconnectLiveStream()
+  }
+}
+
+function disconnectLiveStream() {
+  if (eventSource) {
+    eventSource.close()
+    eventSource = null
+  }
+}
+
+function logClass(line: string) {
+  if (line.includes('[error]') || line.includes('[!]')) return 'log-error'
+  if (line.includes('[done]')) return 'log-done'
+  if (line.includes('[+]') || line.includes('发现') || line.includes('✓')) return 'log-found'
+  return ''
+}
+
+// 日志自动滚动到底部
+watch(liveLogs.value, async () => {
+  await nextTick()
+  if (consoleRef.value) consoleRef.value.scrollTop = consoleRef.value.scrollHeight
+})
 
 const stats = computed(() => [
   { labelKey: 'dashboard.stats.scans', value: recentScans.value.length, icon: 'DataLine', color: '#165dff', bg: 'rgba(22,93,255,0.08)' },
@@ -154,6 +253,15 @@ async function fetchRunning() {
   try {
     const res = await getTasks()
     runningTasks.value = res.items.filter(t => t.status === 'running')
+    // 有运行中任务且当前未在监听 → 自动连接 SSE 实时日志
+    if (runningTasks.value.length && !eventSource && streamStatus.value !== 'running') {
+      const task = runningTasks.value[0]
+      connectLiveStream(task.id, task.name || task.target || '')
+    }
+    // 没有运行中任务但控制台还在显示 → 清除
+    if (!runningTasks.value.length && liveTaskId.value && streamStatus.value !== 'running') {
+      setTimeout(() => { liveTaskId.value = '' }, 3000)
+    }
   } catch {}
 }
 
@@ -187,6 +295,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   stopPolling()
+  disconnectLiveStream()
 })
 </script>
 
@@ -374,5 +483,84 @@ onUnmounted(() => {
   .stats-row {
     grid-template-columns: 1fr;
   }
+}
+
+/* ═══ 实时控制台 ═════════════════════════════════════════ */
+.console-card {
+  margin-top: var(--np-space-5);
+}
+
+.console-card .np-card-header {
+  justify-content: flex-start;
+  gap: var(--np-space-2);
+}
+
+.console-task {
+  color: var(--np-text-secondary);
+  font-size: 12px;
+  margin-left: var(--np-space-2);
+}
+
+.console-status {
+  margin-left: auto;
+}
+
+.console-detail-link {
+  font-size: 12px;
+  color: var(--np-blue-500);
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.spin {
+  animation: np-spin 1.5s linear infinite;
+  color: var(--np-blue-500);
+}
+
+@keyframes np-spin {
+  to { transform: rotate(360deg); }
+}
+
+.console-area {
+  background: #0d1117;
+  color: #7ee787;
+  font-family: var(--np-font-mono);
+  font-size: 13px;
+  padding: var(--np-space-4);
+  border-radius: var(--np-radius-lg);
+  max-height: 320px;
+  overflow-y: auto;
+  line-height: 1.7;
+  border: 1px solid #1b2330;
+}
+
+.console-line {
+  display: flex;
+  gap: var(--np-space-3);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.console-prefix {
+  color: #484f58;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.log-error { color: #ff7b72; }
+.log-done { color: #79c0ff; font-weight: 600; }
+.log-found { color: #ffa657; }
+
+.console-empty {
+  color: #6e7681;
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
 }
 </style>

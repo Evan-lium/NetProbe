@@ -96,6 +96,9 @@ export default {
     noRunningTasks: '没有运行中的任务',
     viewAllTasks: '查看全部任务',
     createScan: '去创建扫描',
+    liveConsole: '实时控制台',
+    viewDetail: '查看详情',
+    waitingEvents: '等待扫描事件...',
   },
   tasks: {
     title: '任务管理',

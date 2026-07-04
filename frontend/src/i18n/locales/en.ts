@@ -96,6 +96,9 @@ export default {
     noRunningTasks: 'No running tasks',
     viewAllTasks: 'View All Tasks',
     createScan: 'Create a scan',
+    liveConsole: 'Live Console',
+    viewDetail: 'Details',
+    waitingEvents: 'Waiting for scan events...',
   },
   tasks: {
     title: 'Tasks',
