@@ -163,18 +163,32 @@ def _match_rule(alert: Alert, diff_summary: dict | None, current: dict) -> str |
             return f"发现 {count} 条高危敏感路径"
 
     elif alert.condition_type == "cert_expiry":
-        # 检查 SSL 证书过期或即将过期
+        # 检查 SSL 证书过期或即将过期（threshold 天数内）
         days = int(alert.threshold) if alert.threshold.isdigit() else 30
-        count = 0
+        expired_count = 0
+        expiring_count = 0
         for h in current.get("hosts", []):
             for w in h.get("web_info", []):
-                ssl = w.get("ssl")
-                if not ssl:
+                ssl_info = w.get("ssl")
+                if not ssl_info:
                     continue
-                if ssl.get("expired"):
-                    count += 1
-        if count > 0:
-            return f"发现 {count} 个站点的 SSL 证书已过期"
+                if ssl_info.get("expired"):
+                    expired_count += 1
+                else:
+                    # 检查即将过期（not_after 距今 < threshold 天）
+                    not_after = ssl_info.get("not_after", "")
+                    if not_after:
+                        remaining = _days_until(not_after)
+                        if remaining is not None and 0 <= remaining <= days:
+                            expiring_count += 1
+        total = expired_count + expiring_count
+        if total > 0:
+            parts = []
+            if expired_count:
+                parts.append(f"{expired_count} 个已过期")
+            if expiring_count:
+                parts.append(f"{expiring_count} 个 {days} 天内过期")
+            return f"SSL 证书问题: {'、'.join(parts)}"
 
     elif alert.condition_type == "tech_change":
         if diff_summary and diff_summary.get("tech_changed", 0) > 0:
@@ -203,6 +217,18 @@ def _trigger_alert(db, alert: Alert, scan_id: str, summary: str):
     alert.last_triggered_at = datetime.utcnow()
     db.commit()
     logger.info("alert %d triggered: %s", alert.id, summary)
+
+
+def _days_until(date_str: str) -> int | None:
+    """解析证书日期，返回距今天数。失败返回 None。"""
+    from datetime import datetime
+    for fmt in ('%b %d %H:%M:%S %Y %Z', '%Y-%m-%dT%H:%M:%S'):
+        try:
+            dt = datetime.strptime(date_str.strip(), fmt)
+            return (dt - datetime.utcnow()).days
+        except ValueError:
+            continue
+    return None
 
 
 def _serialize_alert(a: Alert) -> dict:

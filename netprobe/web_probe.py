@@ -231,17 +231,29 @@ def _get_ssl_info(hostname: str, port: int) -> dict:
 
 
 def _parse_der_cert(der_data: bytes, protocol: str | None, cipher: tuple | None) -> dict:
-    """解析 DER 格式的 SSL 证书（不依赖 cryptography 库）。"""
+    """解析 DER 格式的 SSL 证书。
+
+    Python 标准库 ssl._ssl._test_decode_cert 需要文件路径而非 bytes，
+    所以先把 DER 转 PEM 字符串，写入临时文件再解析。
+    """
+    import os
+    import tempfile
     result = {'protocol': protocol or ''}
     if cipher:
         result['cipher'] = cipher[0]
 
     try:
-        # 用 ssl 标准库的 DER 解析
         import ssl as _ssl
-        # 通过临时 socket 反向获取证书信息
-        # 直接从 DER 解析关键字段
-        cert = _ssl._ssl._test_decode_cert(der_data)
+        # DER bytes → PEM 字符串 → 临时文件 → _test_decode_cert
+        pem_str = _ssl.DER_cert_to_PEM_cert(der_data)
+        fd, tmp_path = tempfile.mkstemp(suffix='.pem')
+        try:
+            os.write(fd, pem_str.encode())
+            os.close(fd)
+            cert = _ssl._ssl._test_decode_cert(tmp_path)
+        finally:
+            os.unlink(tmp_path)
+
         if not cert:
             return result
 

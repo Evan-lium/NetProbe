@@ -30,7 +30,7 @@ def run_masscan(
     else:
         ports_str = ','.join(str(p) for p in ports)
 
-    from tools.registry import get_tool_path
+    from .registry import get_tool_path
     cmd = [
         get_tool_path('masscan'),
         *targets,

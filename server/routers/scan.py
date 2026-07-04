@@ -29,14 +29,16 @@ def stream_task(task_id: str):
         q = task["queue"]
         while True:
             try:
-                data = q.get(timeout=60)
+                data = q.get(timeout=25)
             except Exception:
                 # 队列超时，检查任务是否已结束
-                if task.get("status") in ("done", "error"):
+                if task.get("status") in ("done", "error", "cancelled"):
                     break
+                # 发心跳保活，防止长扫描被代理/Nginx 掐断
+                yield f"data: {json.dumps({'event': 'heartbeat'}, ensure_ascii=False)}\n\n"
                 continue
             yield f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
-            if data.get("event") in ("done", "error"):
+            if data.get("event") in ("done", "error", "cancelled"):
                 break
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
