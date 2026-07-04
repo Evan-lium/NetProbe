@@ -76,9 +76,9 @@ const trendOption = computed(() => {
     xAxis: { type: 'category', data: dates, boundaryGap: false },
     yAxis: { type: 'value', minInterval: 1 },
     series: [
-      { name: t('timeline.added'), type: 'line', smooth: true, data: points.map((p: any) => p.added), itemStyle: { color: '#67c23a' }, areaStyle: { opacity: 0.1 } },
-      { name: t('timeline.removed'), type: 'line', smooth: true, data: points.map((p: any) => p.removed), itemStyle: { color: '#f56c6c' }, areaStyle: { opacity: 0.1 } },
-      { name: t('timeline.changed'), type: 'line', smooth: true, data: points.map((p: any) => p.changed), itemStyle: { color: '#e6a23c' }, areaStyle: { opacity: 0.1 } },
+      { name: t('timeline.added'), type: 'line', smooth: true, data: points.map((p: any) => p.added), itemStyle: { color: '#00b42a' }, areaStyle: { opacity: 0.1 } },
+      { name: t('timeline.removed'), type: 'line', smooth: true, data: points.map((p: any) => p.removed), itemStyle: { color: '#f53f3f' }, areaStyle: { opacity: 0.1 } },
+      { name: t('timeline.changed'), type: 'line', smooth: true, data: points.map((p: any) => p.changed), itemStyle: { color: '#ff9a2e' }, areaStyle: { opacity: 0.1 } },
     ],
   }
 })

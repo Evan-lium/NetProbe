@@ -1,53 +1,53 @@
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
 
 /* ═══════════════════════════════════════════════════════════════
-   NetProbe Design System — Admin Dark Theme
+   NetProbe Design System — Light Theme (FOFA/鹰图 企业级明亮风)
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
   /* ── Elevation Layers ──────────────────────────────────────── */
-  --np-bg-app:      #0b1120;    /* deepest — app shell background */
-  --np-bg-layout:   #0f172a;    /* sidebar / header / panels */
-  --np-bg-surface:  #1e293b;    /* cards, table rows */
-  --np-bg-elevated: #283548;    /* hover states, modals, dropdowns */
-  --np-bg-overlay:  #334155;    /* tooltips, popovers */
+  --np-bg-app:      #f5f7fa;    /* app shell 背景 — 浅灰 */
+  --np-bg-layout:   #ffffff;    /* sidebar / header / panels — 纯白 */
+  --np-bg-surface:  #ffffff;    /* cards, table rows — 纯白卡片 */
+  --np-bg-elevated: #f0f2f5;    /* hover states — 浅灰 */
+  --np-bg-overlay:  #e8ebf0;    /* tooltips, popovers */
 
   /* ── Text ──────────────────────────────────────────────────── */
-  --np-text-primary:   #f1f5f9;
-  --np-text-secondary: #94a3b8;
-  --np-text-muted:     #64748b;
-  --np-text-disabled:  #475569;
+  --np-text-primary:   #1d2129;    /* 主文字 — 接近黑 */
+  --np-text-secondary: #4e5969;    /* 次要文字 — 深灰 */
+  --np-text-muted:     #86909c;    /* 辅助文字 — 中灰 */
+  --np-text-disabled:  #c9cdd4;    /* 禁用 — 浅灰 */
 
   /* ── Brand ─────────────────────────────────────────────────── */
-  --np-blue-400: #60a5fa;
-  --np-blue-500: #3b82f6;
-  --np-blue-600: #2563eb;
-  --np-blue-700: #1d4ed8;
+  --np-blue-400: #4080ff;
+  --np-blue-500: #165dff;
+  --np-blue-600: #0e42d2;
+  --np-blue-700: #072ca6;
 
   /* ── Accent / CTA ──────────────────────────────────────────── */
-  --np-amber-400: #fb923c;
-  --np-amber-500: #f97316;
+  --np-amber-400: #ff9a2e;
+  --np-amber-500: #ff7d00;
 
   /* ── Semantic ──────────────────────────────────────────────── */
-  --np-success:     #22c55e;
-  --np-success-bg:  rgba(34, 197, 94, 0.12);
-  --np-danger:      #ef4444;
-  --np-danger-bg:   rgba(239, 68, 68, 0.12);
-  --np-warning:     #eab308;
-  --np-warning-bg:  rgba(234, 179, 8, 0.12);
-  --np-info:        #06b6d4;
-  --np-info-bg:     rgba(6, 182, 212, 0.12);
+  --np-success:     #00b42a;
+  --np-success-bg:  rgba(0, 180, 42, 0.10);
+  --np-danger:      #f53f3f;
+  --np-danger-bg:   rgba(245, 63, 63, 0.10);
+  --np-warning:     #ff9a2e;
+  --np-warning-bg:  rgba(255, 154, 46, 0.12);
+  --np-info:        #165dff;
+  --np-info-bg:     rgba(22, 93, 255, 0.10);
 
   /* ── Borders ───────────────────────────────────────────────── */
-  --np-border:       #1e293b;
-  --np-border-light: #2d3f59;
+  --np-border:       #e5e6eb;
+  --np-border-light: #d4d6db;
   --np-border-focus: var(--np-blue-500);
 
   /* ── Shadows ───────────────────────────────────────────────── */
-  --np-shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.4);
-  --np-shadow-md:  0 4px 12px rgba(0, 0, 0, 0.35);
-  --np-shadow-lg:  0 8px 24px rgba(0, 0, 0, 0.3);
-  --np-shadow-glow: 0 0 16px rgba(59, 130, 246, 0.12);
+  --np-shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.06);
+  --np-shadow-md:  0 2px 8px rgba(0, 0, 0, 0.08);
+  --np-shadow-lg:  0 8px 24px rgba(0, 0, 0, 0.10);
+  --np-shadow-glow: 0 0 0 3px rgba(22, 93, 255, 0.10);
 
   /* ── Radius ────────────────────────────────────────────────── */
   --np-radius-sm: 4px;
@@ -329,7 +329,7 @@ body {
 
 /* ── Loading ────────────────────────────────────────────────── */
 .el-loading-mask {
-  background-color: rgba(11, 17, 32, 0.75) !important;
+  background-color: rgba(255, 255, 255, 0.75) !important;
   backdrop-filter: blur(2px);
 }
 
@@ -398,8 +398,9 @@ body {
 }
 
 .el-menu-item.is-active {
-  background-color: rgba(37, 99, 235, 0.1) !important;
-  color: var(--np-blue-400) !important;
+  background-color: var(--np-info-bg) !important;
+  color: var(--np-blue-500) !important;
+  font-weight: 600;
 }
 
 /* ── Message / Notification ─────────────────────────────────── */

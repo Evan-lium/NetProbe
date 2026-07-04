@@ -121,10 +121,10 @@ const recentScans = ref<HistoryItem[]>([])
 let pollTimer: ReturnType<typeof setInterval> | null = null
 
 const stats = computed(() => [
-  { labelKey: 'dashboard.stats.scans', value: recentScans.value.length, icon: 'DataLine', color: '#60a5fa', bg: 'rgba(96,165,250,0.1)' },
-  { labelKey: 'dashboard.stats.hosts', value: recentScans.value.reduce((s, i) => s + i.host_count, 0), icon: 'Monitor', color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
-  { labelKey: 'dashboard.stats.ports', value: recentScans.value.reduce((s, i) => s + i.port_count, 0), icon: 'Connection', color: '#f97316', bg: 'rgba(249,115,22,0.1)' },
-  { labelKey: 'dashboard.stats.web', value: recentScans.value.reduce((s, i) => s + i.web_count, 0), icon: 'Globe', color: '#a78bfa', bg: 'rgba(167,139,250,0.1)' },
+  { labelKey: 'dashboard.stats.scans', value: recentScans.value.length, icon: 'DataLine', color: '#165dff', bg: 'rgba(22,93,255,0.08)' },
+  { labelKey: 'dashboard.stats.hosts', value: recentScans.value.reduce((s, i) => s + i.host_count, 0), icon: 'Monitor', color: '#00b42a', bg: 'rgba(0,180,42,0.08)' },
+  { labelKey: 'dashboard.stats.ports', value: recentScans.value.reduce((s, i) => s + i.port_count, 0), icon: 'Connection', color: '#ff7d00', bg: 'rgba(255,125,0,0.08)' },
+  { labelKey: 'dashboard.stats.web', value: recentScans.value.reduce((s, i) => s + i.web_count, 0), icon: 'Globe', color: '#722ed1', bg: 'rgba(114,46,209,0.08)' },
 ])
 
 function statusType(status: string) {

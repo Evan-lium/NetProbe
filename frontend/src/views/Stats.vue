@@ -84,9 +84,9 @@ const riskChartOption = computed(() => {
     series: [{
       type: 'pie', radius: ['40%', '70%'],
       data: [
-        { value: high, name: t('stats.riskHigh'), itemStyle: { color: '#f56c6c' } },
-        { value: medium, name: t('stats.riskMedium'), itemStyle: { color: '#e6a23c' } },
-        { value: low, name: t('stats.riskLow'), itemStyle: { color: '#67c23a' } },
+        { value: high, name: t('stats.riskHigh'), itemStyle: { color: '#f53f3f' } },
+        { value: medium, name: t('stats.riskMedium'), itemStyle: { color: '#ff9a2e' } },
+        { value: low, name: t('stats.riskLow'), itemStyle: { color: '#00b42a' } },
       ],
     }],
   }
@@ -112,7 +112,7 @@ const portChartOption = computed(() => {
     tooltip: { trigger: 'axis' },
     xAxis: { type: 'category', data: order.map(k => labels[k]) },
     yAxis: { type: 'value', minInterval: 1 },
-    series: [{ type: 'bar', data: order.map(k => buckets[k] || 0), itemStyle: { color: '#409eff' } }],
+    series: [{ type: 'bar', data: order.map(k => buckets[k] || 0), itemStyle: { color: '#165dff' } }],
   }
 })
 
@@ -124,7 +124,7 @@ const topAssetsOption = computed(() => {
     grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
     xAxis: { type: 'value', minInterval: 1 },
     yAxis: { type: 'category', data: sorted.map(a => a.hostname || a.ip).reverse(), axisLabel: { width: 120, overflow: 'truncate' } },
-    series: [{ type: 'bar', data: sorted.map(a => a.port_count || 0).reverse(), itemStyle: { color: '#67c23a' } }],
+    series: [{ type: 'bar', data: sorted.map(a => a.port_count || 0).reverse(), itemStyle: { color: '#00b42a' } }],
   }
 })
 

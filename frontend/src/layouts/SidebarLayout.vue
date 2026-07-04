@@ -278,8 +278,9 @@ watch(() => route.path, () => {
 }
 
 .nav-item.active {
-  background: rgba(37, 99, 235, 0.1);
-  color: var(--np-blue-400);
+  background: var(--np-info-bg);
+  color: var(--np-blue-500);
+  font-weight: 600;
 }
 
 .nav-item.active .el-icon {
