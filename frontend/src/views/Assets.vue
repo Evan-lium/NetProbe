@@ -120,76 +120,23 @@
             <span class="ov-item"><b class="mono">{{ detail.port_count }}</b>{{ t('assets.ports') }}</span>
             <span class="ov-item"><b class="mono">{{ detail.web_count }}</b>{{ t('assets.web') }}</span>
             <span class="ov-item" v-if="detail.vuln_count">
-              <b class="mono">{{ detail.vuln_count }}</b>{{ t('assets.detail.vulns') }}
+              <b class="mono" style="color:var(--np-danger)">{{ detail.vuln_count }}</b>{{ t('assets.detail.vulns') }}
             </span>
             <span class="ov-item"><b class="mono">{{ detail.scan_count }}</b>{{ t('assets.scans') }}</span>
           </div>
 
-          <div class="detail-grid">
-            <!-- 端口服务 -->
-            <section v-if="detail.ports?.length" class="detail-section">
-              <div class="np-section-title">
-                {{ t('assets.detail.portsServices') }}
-                <span class="np-badge">{{ detail.ports.length }}</span>
-              </div>
-              <el-table :data="detail.ports" size="small" class="mini-table" border>
-                <el-table-column prop="port" :label="t('table.port')" width="80">
-                  <template #default="{ row: p }"><span class="mono">{{ p.port }}/{{ p.proto }}</span></template>
-                </el-table-column>
-                <el-table-column prop="state" :label="t('table.state')" width="80">
-                  <template #default="{ row: p }">
-                    <el-tag v-if="p.state === 'open'" type="success" size="small">{{ p.state }}</el-tag>
-                    <span v-else class="mono">{{ p.state }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="service" :label="t('table.service')" width="110">
-                  <template #default="{ row: p }">{{ p.service || '—' }}</template>
-                </el-table-column>
-                <el-table-column prop="product" :label="t('table.product')" min-width="120">
-                  <template #default="{ row: p }">
-                    <span class="mono">{{ [p.product, p.version].filter(Boolean).join(' ') || '—' }}</span>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </section>
-
-            <!-- Web 站点 -->
-            <section v-if="detail.web_info?.length" class="detail-section">
-              <div class="np-section-title">
-                {{ t('assets.detail.webSites') }}
-                <span class="np-badge">{{ detail.web_info.length }}</span>
-              </div>
-              <div class="web-list">
-                <div v-for="(site, i) in detail.web_info" :key="i" class="web-card">
-                  <div class="web-head">
-                    <a :href="site.url" target="_blank" rel="noopener" class="web-url mono">{{ site.url }}</a>
-                    <el-tag v-if="site.status" :type="statusTagType(site.status)" size="small" effect="dark">{{ site.status }}</el-tag>
-                  </div>
-                  <div class="web-title" v-if="site.title">{{ site.title }}</div>
-                  <div class="web-meta">
-                    <span class="meta-item" v-if="site.port">
-                      <el-icon :size="13"><Connection /></el-icon>{{ site.port }}
-                    </span>
-                    <span class="meta-item" v-if="site.cdn">
-                      <el-icon :size="13"><Cloudy /></el-icon>CDN
-                    </span>
-                  </div>
-                  <div class="web-tags" v-if="site.tech?.length">
-                    <el-tag v-for="(tech, ti) in site.tech" :key="ti" size="small" type="info" class="tech-tag">
-                      {{ typeof tech === 'string' ? tech : tech.name }}
-                    </el-tag>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <!-- 漏洞 -->
-            <section v-if="detail.vulnerabilities?.length" class="detail-section">
-              <div class="np-section-title">
-                {{ t('assets.detail.vulns') }}
-                <span class="np-badge np-badge--danger">{{ detail.vulnerabilities.length }}</span>
-              </div>
-              <div class="vuln-list">
+          <!-- Tab 分区 -->
+          <el-tabs v-model="detailTab" class="detail-tabs">
+            <!-- 漏洞（如果有，放第一个 Tab 最醒目） -->
+            <el-tab-pane v-if="detail.vulnerabilities?.length" :name="'vulns'">
+              <template #label>
+                <span class="tab-label">
+                  <el-icon><Warning /></el-icon>
+                  {{ t('assets.detail.vulns') }}
+                  <span class="tab-count danger">{{ detail.vulnerabilities.length }}</span>
+                </span>
+              </template>
+              <div class="tab-content">
                 <div v-for="(v, i) in detail.vulnerabilities" :key="i" class="vuln-row">
                   <el-tag :type="vulnSeverityType(v.severity)" size="small" effect="dark">{{ v.severity }}</el-tag>
                   <span class="vuln-name">{{ v.name }}</span>
@@ -197,65 +144,135 @@
                   <span class="mono cvss" v-if="v.cvss_score">CVSS {{ v.cvss_score }}</span>
                 </div>
               </div>
-            </section>
+            </el-tab-pane>
 
-            <!-- 技术栈 -->
-            <section v-if="detail.tech_stack?.length" class="detail-section">
-              <div class="np-section-title">
-                {{ t('assets.detail.techStack') }}
-                <span class="np-badge">{{ detail.tech_stack.length }}</span>
+            <!-- 端口服务 -->
+            <el-tab-pane v-if="detail.ports?.length" :name="'ports'">
+              <template #label>
+                <span class="tab-label">
+                  <el-icon><Connection /></el-icon>
+                  {{ t('assets.detail.portsServices') }}
+                  <span class="tab-count">{{ detail.ports.length }}</span>
+                </span>
+              </template>
+              <div class="tab-content">
+                <el-table :data="detail.ports" size="small" stripe>
+                  <el-table-column prop="port" :label="t('table.port')" width="90">
+                    <template #default="{ row: p }"><span class="mono">{{ p.port }}/{{ p.proto }}</span></template>
+                  </el-table-column>
+                  <el-table-column prop="state" :label="t('table.state')" width="80">
+                    <template #default="{ row: p }">
+                      <el-tag v-if="p.state === 'open'" type="success" size="small">{{ p.state }}</el-tag>
+                      <span v-else class="mono">{{ p.state }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="service" :label="t('table.service')" width="100">
+                    <template #default="{ row: p }">{{ p.service || '—' }}</template>
+                  </el-table-column>
+                  <el-table-column prop="product" :label="t('table.product')" min-width="140">
+                    <template #default="{ row: p }">
+                      <span class="mono">{{ [p.product, p.version].filter(Boolean).join(' ') || '—' }}</span>
+                    </template>
+                  </el-table-column>
+                </el-table>
               </div>
-              <div class="np-tag-group">
-                <el-tag v-for="(tech, i) in detail.tech_stack" :key="i" size="small" type="info">{{ tech }}</el-tag>
+            </el-tab-pane>
+
+            <!-- Web 站点 -->
+            <el-tab-pane v-if="detail.web_info?.length" :name="'web'">
+              <template #label>
+                <span class="tab-label">
+                  <el-icon><Monitor /></el-icon>
+                  {{ t('assets.detail.webSites') }}
+                  <span class="tab-count">{{ detail.web_info.length }}</span>
+                </span>
+              </template>
+              <div class="tab-content web-list">
+                <div v-for="(site, i) in detail.web_info" :key="i" class="web-card">
+                  <div class="web-head">
+                    <a :href="site.url" target="_blank" rel="noopener" class="web-url mono">{{ site.url }}</a>
+                    <el-tag v-if="site.status" :type="statusTagType(site.status)" size="small" effect="dark">{{ site.status }}</el-tag>
+                  </div>
+                  <div class="web-title" v-if="site.title">{{ site.title }}</div>
+                  <div class="web-tags" v-if="site.tech?.length">
+                    <el-tag v-for="(tech, ti) in site.tech" :key="ti" size="small" type="info" class="tech-tag">
+                      {{ typeof tech === 'string' ? tech : tech.name }}
+                    </el-tag>
+                  </div>
+                </div>
               </div>
-            </section>
+            </el-tab-pane>
 
             <!-- 敏感路径 -->
-            <section v-if="detail.sensitive?.length" class="detail-section">
-              <div class="np-section-title">
-                {{ t('assets.detail.sensitive') }}
-                <span class="np-badge np-badge--warn">{{ detail.sensitive.length }}</span>
+            <el-tab-pane v-if="detail.sensitive?.length" :name="'sensitive'">
+              <template #label>
+                <span class="tab-label">
+                  <el-icon><Lock /></el-icon>
+                  {{ t('assets.detail.sensitive') }}
+                  <span class="tab-count warn">{{ detail.sensitive.length }}</span>
+                </span>
+              </template>
+              <div class="tab-content">
+                <el-table :data="detail.sensitive" size="small" stripe>
+                  <el-table-column prop="path" :label="t('table.path')" min-width="200">
+                    <template #default="{ row: s }"><span class="mono">{{ s.path }}</span></template>
+                  </el-table-column>
+                  <el-table-column prop="severity" :label="t('table.severity')" width="90">
+                    <template #default="{ row: s }">
+                      <el-tag :type="severityType(s.severity)" size="small">{{ s.severity }}</el-tag>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="description" :label="t('table.description')" min-width="160">
+                    <template #default="{ row: s }">{{ s.description || '—' }}</template>
+                  </el-table-column>
+                </el-table>
               </div>
-              <el-table :data="detail.sensitive" size="small" class="mini-table" border>
-                <el-table-column prop="path" :label="t('table.path')" min-width="200">
-                  <template #default="{ row: s }"><span class="mono">{{ s.path }}</span></template>
-                </el-table-column>
-                <el-table-column prop="severity" :label="t('table.severity')" width="90">
-                  <template #default="{ row: s }">
-                    <el-tag :type="severityType(s.severity)" size="small">{{ s.severity }}</el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="description" :label="t('table.description')" min-width="160">
-                  <template #default="{ row: s }">{{ s.description || '—' }}</template>
-                </el-table-column>
-              </el-table>
-            </section>
+            </el-tab-pane>
+
+            <!-- 技术栈 -->
+            <el-tab-pane v-if="detail.tech_stack?.length" :name="'tech'">
+              <template #label>
+                <span class="tab-label">
+                  <el-icon><Cpu /></el-icon>
+                  {{ t('assets.detail.techStack') }}
+                  <span class="tab-count">{{ detail.tech_stack.length }}</span>
+                </span>
+              </template>
+              <div class="tab-content">
+                <div class="np-tag-group tech-tags-detail">
+                  <el-tag v-for="(tech, i) in detail.tech_stack" :key="i" size="default" type="info">{{ tech }}</el-tag>
+                </div>
+              </div>
+            </el-tab-pane>
 
             <!-- Banner -->
-            <section v-if="detail.banners?.length" class="detail-section">
-              <div class="np-section-title">
-                {{ t('assets.detail.banners') }}
-                <span class="np-badge">{{ detail.banners.length }}</span>
-              </div>
-              <div class="banner-list">
+            <el-tab-pane v-if="detail.banners?.length" :name="'banners'">
+              <template #label>
+                <span class="tab-label">
+                  <el-icon><Document /></el-icon>
+                  {{ t('assets.detail.banners') }}
+                  <span class="tab-count">{{ detail.banners.length }}</span>
+                </span>
+              </template>
+              <div class="tab-content">
                 <div v-for="(b, i) in detail.banners" :key="i" class="banner-row">
                   <span class="mono banner-port">{{ b.port }}</span>
                   <span class="banner-service">{{ b.service || '—' }}</span>
                   <pre class="mono banner-text">{{ b.banner }}</pre>
                 </div>
               </div>
-            </section>
+            </el-tab-pane>
+          </el-tabs>
 
-            <!-- 空详情兜底 -->
-            <div
-              v-if="!detail.ports?.length && !detail.web_info?.length
-                && !detail.vulnerabilities?.length && !detail.tech_stack?.length
-                && !detail.sensitive?.length && !detail.banners?.length"
-              class="np-empty"
-            >
-              <el-icon :size="28" color="var(--np-text-disabled)"><Grid /></el-icon>
-              <p>{{ t('common.noData') }}</p>
-            </div>
+          <!-- 全空兜底 -->
+          <div
+            v-if="!detail.ports?.length && !detail.web_info?.length
+              && !detail.vulnerabilities?.length && !detail.tech_stack?.length
+              && !detail.sensitive?.length && !detail.banners?.length"
+            class="np-empty"
+          >
+            <el-icon :size="28" color="var(--np-text-disabled)"><Grid /></el-icon>
+            <p>{{ t('common.noData') }}</p>
           </div>
         </template>
       </div>
@@ -292,6 +309,7 @@ const sortBy = ref('hostname')
 
 /** 抽屉态 */
 const drawerVisible = ref(false)
+const detailTab = ref('vulns')
 const detailLoading = ref(false)
 const detail = ref<any>(null)
 const detailError = ref<string>('')
@@ -364,7 +382,14 @@ async function openDetail(row: AssetRow) {
   try {
     const d = await getAssetDetail(row.hostname, row.ip)
     detail.value = d || {}
-    // 同步补齐预览（首次点击但预取未完成的情况）
+    // 自动选第一个有数据的 Tab
+    if (d.vulnerabilities?.length) detailTab.value = 'vulns'
+    else if (d.ports?.length) detailTab.value = 'ports'
+    else if (d.web_info?.length) detailTab.value = 'web'
+    else if (d.sensitive?.length) detailTab.value = 'sensitive'
+    else if (d.tech_stack?.length) detailTab.value = 'tech'
+    else if (d.banners?.length) detailTab.value = 'banners'
+    // 同步补齐预览
     if (!row._previewed) {
       row._preview = extractPreview(d)
       row._previewed = true
@@ -789,5 +814,63 @@ onMounted(loadData)
   .banner-row {
     grid-template-columns: 1fr;
   }
+}
+
+/* ── Tab 样式 ── */
+.detail-tabs {
+  margin-top: var(--np-space-4);
+}
+
+.detail-tabs :deep(.el-tabs__header) {
+  margin-bottom: var(--np-space-3);
+}
+
+.detail-tabs :deep(.el-tabs__nav-wrap::after) {
+  background-color: var(--np-border);
+}
+
+.tab-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--np-bg-elevated);
+  color: var(--np-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--np-font-mono);
+}
+
+.tab-count.danger {
+  background: var(--np-danger-bg);
+  color: var(--np-danger);
+}
+
+.tab-count.warn {
+  background: var(--np-warning-bg);
+  color: var(--np-warning);
+}
+
+.tab-content {
+  min-height: 100px;
+}
+
+.tech-tags-detail {
+  gap: var(--np-space-2);
+}
+
+.tech-tags-detail .el-tag {
+  font-size: 13px;
+  padding: 4px 12px;
 }
 </style>
