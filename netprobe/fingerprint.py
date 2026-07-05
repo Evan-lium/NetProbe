@@ -138,6 +138,11 @@ def detect_technologies(
     # 例: 命中 WordPress → 推断 PHP。推断出的技术 confidence 标 50，version 为空。
     _apply_implies(detected, seen)
 
+    # 结果过滤：置信度排序 + 限制数量（避免 5000+ 规则导致海量误报）
+    # 只保留置信度 >= 50 的，且最多返回 30 个
+    detected.sort(key=lambda x: -(x.get('confidence', 0) or 0))
+    detected = [d for d in detected if (d.get('confidence', 0) or 0) >= 50][:30]
+
     return detected
 
 
