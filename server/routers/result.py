@@ -106,6 +106,8 @@ def get_result(scan_id: str):
                         "severity": v.severity,
                         "cve": v.cve,
                         "cvss_score": v.cvss_score,
+                        "cwe": v.cwe,
+                        "category": v.category,
                         "url": v.url,
                         "matched_at": v.matched_at,
                     }

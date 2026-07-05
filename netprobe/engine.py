@@ -9,6 +9,7 @@ import requests as req_lib
 from .dns_utils import (
     is_subdomain_of, resolve_a_record, reverse_dns_lookup,
     resolve_dns_records, get_nameservers, try_zone_transfer,
+    detect_wildcard_resolution,
 )
 from .scanner import check_nmap_available, run_dns_brute, run_port_scan, resolve_ports
 from .tools.dnsx import run_dnsx
@@ -575,7 +576,18 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
 
     # ── 子域名枚举 ──
     subdomains = []
+    wildcard_ips: list[str] = []
     if _stage_enabled(options, 'subdomain'):
+        # 泛解析预检：开启泛解析时，子域名枚举会产出大量假阳性，先标记泛解析 IP
+        try:
+            wildcard_ips = detect_wildcard_resolution(base_domain)
+            if wildcard_ips:
+                emit('progress', text=f'  ⚠ 检测到 DNS 泛解析（兜底 IP: {", ".join(wildcard_ips[:3])}），将过滤指向该 IP 的子域名')
+            else:
+                emit('progress', text='  ✓ 未检测到 DNS 泛解析')
+        except Exception as e:
+            emit('progress', text=f'  泛解析检测失败（忽略）: {e}')
+
         emit('progress', text=ph(f'主动子域名枚举 ({base_domain}) ...'))
         t0 = time.time()
         raw = do_subdomain_enum(base_domain, options, emit)
@@ -595,6 +607,21 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
             subdomains = raw
         elapsed = time.time() - t0
         emit('progress', text=f'  ✓ 子域名枚举完成: {len(subdomains)} 个有效 ({elapsed:.1f}s)')
+
+        # 过滤指向泛解析 IP 的假子域（解析结果完全落在泛解析 IP 集合内即为假子域）
+        if wildcard_ips and subdomains:
+            wildcard_set = set(wildcard_ips)
+            filtered = []
+            for s in subdomains:
+                s_ips = set(resolve_a_record(s['hostname']))
+                # 解析结果全部是泛解析 IP → 假子域（无独立 IP）
+                if s_ips and s_ips.issubset(wildcard_set):
+                    continue
+                filtered.append(s)
+            removed = len(subdomains) - len(filtered)
+            if removed:
+                emit('progress', text=f'  ✓ 过滤 {removed} 个泛解析假子域')
+            subdomains = filtered
 
     if _is_cancelled(options):
         emit('progress', text='  扫描已取消')
@@ -664,6 +691,22 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
             emit('progress', text=f'  ✓ 敏感路径探测完成: {sensitive_total} 条发现 ({elapsed:.1f}s)')
         else:
             emit('progress', text=f'  ✓ 敏感路径探测完成: 无发现 ({elapsed:.1f}s)')
+
+        # ── robots.txt / sitemap.xml 解析（复用 sensitive 阶段，路径发现）──
+        try:
+            from .robots_sitemap import parse_robots_for_hosts
+            emit('progress', text='  · robots.txt / sitemap.xml 解析 ...')
+            t0 = time.time()
+            parse_robots_for_hosts(all_hosts)
+            robots_total = sum(len(h.get('_robots_findings', [])) for h in all_hosts)
+            extra_paths = sum(len(h.get('_extra_paths', [])) for h in all_hosts)
+            elapsed = time.time() - t0
+            if robots_total:
+                emit('progress', text=f'    ✓ robots/sitemap 解析完成: {robots_total} 个站点, 提取 {extra_paths} 条路径 ({elapsed:.1f}s)')
+            else:
+                emit('progress', text=f'    ✓ robots/sitemap 解析完成: 无发现 ({elapsed:.1f}s)')
+        except Exception as e:
+            emit('progress', text=f'  robots/sitemap 解析失败（不影响主流程）: {e}')
 
     # ── 目录爆破 ──（独立开关 dir_brute，默认关，耗时噪音项）
     if _stage_enabled(options, 'dir_brute'):
@@ -808,6 +851,36 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
                 emit('progress', text=f'  ✓ 漏洞扫描完成: 无发现 ({elapsed:.1f}s)')
         else:
             emit('progress', text='  ✓ 漏洞扫描跳过: 无 Web 站点')
+
+        # ── 安全响应头检查（同类安全检测，复用 vuln 阶段开关）──
+        try:
+            from .security_headers import check_security_headers_for_hosts
+            emit('progress', text='  · HTTP 安全响应头检查 ...')
+            t0 = time.time()
+            check_security_headers_for_hosts(all_hosts)
+            hdr_total = sum(len(h.get('_security_findings', [])) for h in all_hosts)
+            elapsed = time.time() - t0
+            if hdr_total:
+                emit('progress', text=f'    ✓ 安全头检查完成: {hdr_total} 项缺失/弱配置 ({elapsed:.1f}s)')
+            else:
+                emit('progress', text=f'    ✓ 安全头检查完成: 无发现 ({elapsed:.1f}s)')
+        except Exception as e:
+            emit('progress', text=f'  安全头检查失败（不影响主流程）: {e}')
+
+        # ── CORS 配置检测（同类安全检测，复用 vuln 阶段开关）──
+        try:
+            from .cors_check import check_cors_for_hosts
+            emit('progress', text='  · CORS 配置检测 ...')
+            t0 = time.time()
+            check_cors_for_hosts(all_hosts)
+            cors_total = sum(len(h.get('_cors_findings', [])) for h in all_hosts)
+            elapsed = time.time() - t0
+            if cors_total:
+                emit('progress', text=f'    ✓ CORS 检测完成: {cors_total} 个缺陷 ({elapsed:.1f}s)')
+            else:
+                emit('progress', text=f'    ✓ CORS 检测完成: 无发现 ({elapsed:.1f}s)')
+        except Exception as e:
+            emit('progress', text=f'  CORS 检测失败（不影响主流程）: {e}')
 
     # ── Banner 抓取 ──
     if _stage_enabled(options, 'banner'):

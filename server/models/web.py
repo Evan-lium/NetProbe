@@ -48,6 +48,8 @@ class Vulnerability(Base):
     severity = Column(String(16), default="info", index=True)
     cve = Column(String(64), default="", index=True)
     cvss_score = Column(String(8), default="")
+    cwe = Column(String(32), default="")
+    category = Column(String(32), default="", index=True)
     url = Column(Text, default="")
     matched_at = Column(Text, default="")
     extracted_data_json = Column(Text, default="{}")

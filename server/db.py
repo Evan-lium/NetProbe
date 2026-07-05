@@ -57,3 +57,6 @@ def ensure_schema():
     _add_column("ports", "cpe", "VARCHAR(255)", "''")
     # v3.0: scans progress_log（扫描日志持久化）
     _add_column("scans", "progress_log", "TEXT", "''")
+    # v3.0: vulnerabilities cwe/category（nuclei 结果结构化）
+    _add_column("vulnerabilities", "cwe", "VARCHAR(32)", "''")
+    _add_column("vulnerabilities", "category", "VARCHAR(32)", "''")

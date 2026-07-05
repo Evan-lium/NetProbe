@@ -1,4 +1,6 @@
+import random
 import socket
+import string
 
 import dns.resolver
 import dns.reversename
@@ -44,6 +46,41 @@ def is_subdomain_of(hostname: str, base_domain: str) -> bool:
     h = hostname.rstrip('.').lower()
     b = base_domain.rstrip('.').lower()
     return h == b or h.endswith('.' + b)
+
+
+def detect_wildcard_resolution(domain: str) -> list[str]:
+    """检测域名是否开启了 DNS 泛解析。
+
+    泛解析会把任意不存在的子域名都解析到固定 IP，导致子域名枚举产生
+    大量假阳性。本函数生成 3 组随机长串子域名（极大概率不存在），
+    若它们都能解析且指向相同的 IP，则判定为泛解析。
+
+    参数:
+        domain: 根域名（如 example.com）
+
+    返回: 泛解析 IP 列表（说明开启了泛解析）；空列表表示未开启。
+    """
+    wildcard_ips: list[str] = []
+    domain = domain.rstrip('.')
+
+    for _ in range(3):
+        # 生成 15 位随机字母数字串，碰撞概率极低
+        rand_label = ''.join(random.choices(string.ascii_lowercase + string.digits, k=15))
+        probe = f'{rand_label}.{domain}'
+        ips = resolve_a_record(probe)
+        if not ips:
+            # 任意一组解析失败 → 未开启泛解析
+            return []
+        if not wildcard_ips:
+            wildcard_ips = ips
+        else:
+            # 要求多组解析到相同 IP（取交集），否则可能非泛解析
+            common = [ip for ip in ips if ip in wildcard_ips]
+            if not common:
+                return []
+            wildcard_ips = common
+
+    return wildcard_ips
 
 
 def filter_results(

@@ -416,6 +416,8 @@ def _write_results_to_db(scan_id: str, hosts: list[dict], base_domain: str):
                     severity=v.get("severity", "info"),
                     cve=v.get("cve", ""),
                     cvss_score=v.get("cvss_score", ""),
+                    cwe=v.get("cwe", ""),
+                    category=v.get("category", ""),
                     url=v.get("url", ""),
                     matched_at=v.get("matched_at", ""),
                     extracted_data_json=json.dumps(v.get("extracted_data", {}), ensure_ascii=False),

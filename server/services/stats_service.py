@@ -133,7 +133,8 @@ def get_asset_detail(hostname: str, ip: str) -> dict | None:
         vuln_rows = db.query(Vulnerability).filter(Vulnerability.host_id.in_(host_ids)).all()
         vulnerabilities = [{
             "name": v.name, "severity": v.severity, "cve": v.cve,
-            "cvss_score": v.cvss_score, "template_id": v.template_id,
+            "cvss_score": v.cvss_score, "cwe": v.cwe, "category": v.category,
+            "template_id": v.template_id,
         } for v in vuln_rows]
 
         # Banner

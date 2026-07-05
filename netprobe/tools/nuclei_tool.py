@@ -172,7 +172,7 @@ def run_nuclei(
 
 
 def _parse_nuclei_result(data: dict) -> dict | None:
-    """解析 nuclei JSONL 单行结果，提取标准化漏洞字段。"""
+    """解析 nuclei JSONL 单行结果，提取标准化漏洞字段（含分类标签和 CWE）。"""
     info = data.get('info') or {}
 
     # CVE（取第一个）
@@ -190,13 +190,60 @@ def _parse_nuclei_result(data: dict) -> dict | None:
     if cvss is not None:
         cvss_score = str(cvss)
 
+    # CWE（取第一个）
+    cwe = ''
+    cwe_ids = classification.get('cwe-id') or []
+    if isinstance(cwe_ids, list) and cwe_ids:
+        cwe = cwe_ids[0]
+    elif isinstance(cwe_ids, str):
+        cwe = cwe_ids
+
+    # 分类标签：从 template-path 推导（nuclei 模板目录结构）
+    template_path = data.get('template-path', '') or data.get('matcher-name', '')
+    category = _classify_template(template_path, data.get('tags', []))
+
     return {
         'template_id': data.get('template-id', '') or data.get('templateID', ''),
         'name': info.get('name', ''),
         'severity': (info.get('severity', 'info') or 'info').lower(),
         'cve': cve,
         'cvss_score': cvss_score,
+        'cwe': cwe,
+        'category': category,
+        'tags': data.get('tags', []) if isinstance(data.get('tags'), list) else [],
         'url': data.get('url', '') or data.get('matched-at', ''),
         'matched_at': data.get('matched-at', '') or data.get('matched', ''),
         'extracted_data': data,
     }
+
+
+def _classify_template(template_path: str, tags: list) -> str:
+    """从 nuclei 模板路径/标签推导分类。
+
+    nuclei 模板目录结构：
+      cves/           → CVE 漏洞
+      vulnerabilities/ → 通用漏洞
+      misconfiguration/ → 配置错误
+      exposures/      → 信息暴露（.git/.env/备份）
+      default-logins/ → 默认凭证
+      takeovers/      → 子域接管
+      detections/     → 技术检测
+    """
+    path_lower = (template_path or '').lower()
+    tags_lower = [str(t).lower() for t in (tags or [])]
+
+    if 'cve' in path_lower or 'cve' in tags_lower:
+        return 'cve'
+    if 'exposure' in path_lower or 'exposure' in tags_lower or 'exposed' in tags_lower:
+        return 'exposure'
+    if 'misconfig' in path_lower or 'misconfig' in tags_lower:
+        return 'misconfig'
+    if 'default-login' in path_lower or 'default-login' in tags_lower:
+        return 'default-login'
+    if 'takeover' in path_lower or 'takeover' in tags_lower:
+        return 'takeover'
+    if 'detect' in path_lower or 'tech' in tags_lower:
+        return 'detection'
+    if 'vulnerabilit' in path_lower:
+        return 'vulnerability'
+    return 'other'
