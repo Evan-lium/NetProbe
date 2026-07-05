@@ -4,6 +4,8 @@ import json
 
 from fastapi import APIRouter, HTTPException
 
+from ..db import SessionLocal
+from ..models import Scan, Host, Port, WebInfo, Vulnerability, SensitivePath
 from ..services.scan_service import (
     get_task,
     get_tasks,
@@ -98,11 +100,40 @@ def get_task_detail(task_id: str):
         s = db.query(Scan).filter(Scan.scan_id == task_id).first()
         if not s:
             raise HTTPException(404, "task not found")
+
+        # 解析下发的目标（换行/逗号/空格分隔的原始输入拆分）
+        targets = [t.strip() for t in (s.target_raw or "").replace(',', '\n').replace(' ', '\n').split('\n') if t.strip()]
+
+        # 发现的主机概要（hostname + ip + 端口数 + 风险分）
+        hosts = db.query(Host).filter(Host.scan_id == task_id).all()
+        discovered_hosts = []
+        from sqlalchemy import func as _f
+        for h in hosts:
+            port_n = db.query(_f.count(Port.port_id)).filter(Port.host_id == h.host_id).scalar() or 0
+            web_n = db.query(_f.count(WebInfo.web_id)).filter(WebInfo.host_id == h.host_id).scalar() or 0
+            vuln_n = db.query(_f.count(Vulnerability.vuln_id)).filter(Vulnerability.host_id == h.host_id).scalar() or 0
+            discovered_hosts.append({
+                "hostname": h.hostname or h.ip,
+                "ip": h.ip,
+                "port_count": port_n,
+                "web_count": web_n,
+                "vuln_count": vuln_n,
+                "risk_score": h.risk_score or 0,
+            })
+
+        # 分项统计
+        total_ports = sum(d["port_count"] for d in discovered_hosts)
+        total_web = sum(d["web_count"] for d in discovered_hosts)
+        total_vulns = sum(d["vuln_count"] for d in discovered_hosts)
+        total_sensitive = db.query(_f.count(SensitivePath.id)).join(Host, SensitivePath.host_id == Host.host_id).filter(Host.scan_id == task_id).scalar() or 0
+
         return {
             "id": s.scan_id,
             "scan_id": s.scan_id,
             "name": s.name or "",
             "target": s.target_raw,
+            "targets": targets,
+            "base_domain": s.base_domain or "",
             "status": s.status,
             "host_count": s.host_count,
             "port_count": s.port_count,
@@ -113,6 +144,15 @@ def get_task_detail(task_id: str):
             "progress": "",
             "options": json.loads(s.options_json) if s.options_json else None,
             "error_msg": s.error_msg or "",
+            # 扫描结果概要
+            "discovered_hosts": discovered_hosts,
+            "result_summary": {
+                "host_count": len(discovered_hosts),
+                "port_count": total_ports,
+                "web_count": total_web,
+                "vuln_count": total_vulns,
+                "sensitive_count": total_sensitive,
+            },
         }
     finally:
         db.close()

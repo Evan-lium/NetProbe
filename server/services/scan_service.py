@@ -272,14 +272,15 @@ def _run_scan_task(task_id: str, raw_targets: str, options: dict):
                 label += f"+{len(labels) - 3}more"
             task["hosts"] = hosts
             task["base_domain"] = label
-            emit("done", hosts=hosts, base_domain=label)
         else:
             label = raw_targets.strip().split("\n")[0][:50]
             task["base_domain"] = label
-            emit("done", hosts=[], base_domain=label)
 
-        # 双写 DB
+        # 先写 DB（更新 scan 表的 host_count/port_count/web_count），再 emit done
+        # 这样前端收到 done 事件刷新列表时，数字已写入
         _write_results_to_db(task_id, hosts, label)
+
+        emit("done", hosts=hosts, base_domain=label)
 
         # 扫描完成后检查告警规则（延迟 import 避免循环依赖）
         try:
@@ -405,6 +406,16 @@ def _write_results_to_db(scan_id: str, hosts: list[dict], base_domain: str):
                     type=w.get("type", ""),
                     target=w.get("target", ""),
                     data_json=json.dumps(w.get("data", {}), ensure_ascii=False),
+                ))
+
+            # DNS 全类型记录（存 whois_records 表，type='dns'）
+            dns_data = h.get("_dns_records")
+            if dns_data:
+                db.add(WhoisRecord(
+                    host_id=host.host_id,
+                    type="dns",
+                    target=dns_data.get("domain", ""),
+                    data_json=json.dumps(dns_data, ensure_ascii=False),
                 ))
 
             # 漏洞扫描结果（nuclei）

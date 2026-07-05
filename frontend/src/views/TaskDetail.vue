@@ -28,9 +28,13 @@
           </div>
         </template>
         <div class="config-grid">
-          <div class="config-item">
-            <span class="config-label">{{ t('taskDetail.target') }}</span>
-            <span class="config-value mono">{{ task.target }}</span>
+          <!-- 扫描目标（解析后的列表） -->
+          <div class="config-item config-full">
+            <span class="config-label">扫描目标</span>
+            <div class="target-list">
+              <el-tag v-for="t in (task.targets || [task.target])" :key="t" size="small" class="target-chip mono">{{ t }}</el-tag>
+              <span v-if="!task.target" class="config-dash">—</span>
+            </div>
           </div>
           <div class="config-item">
             <span class="config-label">{{ t('tasks.mode') }}</span>
@@ -75,6 +79,79 @@
           <div class="config-item" v-if="task.error_msg">
             <span class="config-label">{{ t('taskDetail.error') }}</span>
             <span class="config-value error-msg">{{ task.error_msg }}</span>
+          </div>
+        </div>
+      </el-card>
+
+      <!-- 扫描结果概要（与下发目标呼应：扫到了什么） -->
+      <el-card class="result-card" v-if="task.result_summary || task.discovered_hosts?.length">
+        <template #header>
+          <div class="np-card-header">
+            <el-icon :size="16"><DataLine /></el-icon>
+            扫描结果概要
+          </div>
+        </template>
+        <!-- 分项统计 -->
+        <div class="result-stats" v-if="task.result_summary">
+          <div class="rs-item">
+            <span class="rs-num">{{ task.result_summary.host_count || 0 }}</span>
+            <span class="rs-label">主机</span>
+          </div>
+          <div class="rs-item">
+            <span class="rs-num">{{ task.result_summary.port_count || 0 }}</span>
+            <span class="rs-label">端口</span>
+          </div>
+          <div class="rs-item">
+            <span class="rs-num">{{ task.result_summary.web_count || 0 }}</span>
+            <span class="rs-label">Web站点</span>
+          </div>
+          <div class="rs-item" v-if="task.result_summary.sensitive_count">
+            <span class="rs-num warn">{{ task.result_summary.sensitive_count }}</span>
+            <span class="rs-label">敏感路径</span>
+          </div>
+          <div class="rs-item" v-if="task.result_summary.vuln_count">
+            <span class="rs-num danger">{{ task.result_summary.vuln_count }}</span>
+            <span class="rs-label">漏洞</span>
+          </div>
+        </div>
+        <!-- 发现的主机列表 -->
+        <el-table v-if="task.discovered_hosts?.length" :data="task.discovered_hosts" size="small" class="host-mini-table" max-height="240">
+          <el-table-column label="主机" min-width="180">
+            <template #default="{ row }">
+              <span class="mono" style="font-weight:600">{{ row.hostname || row.ip }}</span>
+              <span v-if="row.hostname && row.ip" class="mono host-ip-mini"> {{ row.ip }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="port_count" label="端口" width="70" align="center" sortable />
+          <el-table-column prop="web_count" label="Web" width="70" align="center" sortable />
+          <el-table-column label="漏洞" width="70" align="center" sortable :sort-method="(a:any,b:any) => (a.vuln_count||0)-(b.vuln_count||0)">
+            <template #default="{ row }">
+              <span v-if="row.vuln_count" class="vuln-num">{{ row.vuln_count }}</span>
+              <span v-else class="config-dash">—</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="risk_score" label="风险" width="70" align="center" sortable>
+            <template #default="{ row }">
+              <span class="risk-num" :class="riskLevel(row.risk_score)">{{ row.risk_score }}</span>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div v-else-if="task.status !== 'done'" class="result-pending">
+          <el-icon class="spin"><Loading /></el-icon>
+          扫描进行中，结果待出...
+        </div>
+
+        <!-- 主域名 + 子域名（从 hosts 区分） -->
+        <div v-if="domainInfo.subdomains.length" class="domain-section">
+          <div class="domain-row">
+            <span class="domain-label">主域名</span>
+            <el-tag type="primary" size="small" class="mono">{{ domainInfo.base }}</el-tag>
+          </div>
+          <div class="domain-row">
+            <span class="domain-label">子域名 ({{ domainInfo.subdomains.length }})</span>
+            <div class="subdomain-chips">
+              <el-tag v-for="s in domainInfo.subdomains" :key="s" size="small" class="mono subdomain-chip">{{ s }}</el-tag>
+            </div>
           </div>
         </div>
       </el-card>
@@ -164,7 +241,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getTaskDetail, getHistoryDetail } from '../api/scan'
@@ -183,6 +260,22 @@ const isStreaming = ref(false)
 const logRef = ref<HTMLElement>()
 const detailTab = ref('logs')  // logs | results
 let eventSource: EventSource | null = null
+
+/** 从 hosts 区分主域名和子域名 */
+const domainInfo = computed(() => {
+  const base = task.value?.base_domain || task.value?.targets?.[0] || ''
+  const hosts = task.value?.discovered_hosts || []
+  const seen = new Set<string>()
+  const subdomains: string[] = []
+  for (const h of hosts) {
+    const hn = h.hostname || ''
+    if (hn && hn !== base && !seen.has(hn) && hn.endsWith(base)) {
+      seen.add(hn)
+      subdomains.push(hn)
+    }
+  }
+  return { base, subdomains }
+})
 
 function statusType(status?: string) {
   if (status === 'done') return 'success'
@@ -203,6 +296,13 @@ function modeTagType(mode?: string) {
   if (mode === 'quick') return 'info'
   if (mode === 'deep') return 'danger'
   return 'success'
+}
+
+/** 风险分等级（用于着色） */
+function riskLevel(score: number): string {
+  if (score >= 70) return 'risk-high'
+  if (score >= 40) return 'risk-medium'
+  return 'risk-low'
 }
 
 function modeLabel(mode?: string) {
@@ -345,7 +445,75 @@ onUnmounted(() => {
 .task-detail-page {  }
 .np-page-actions { display: flex; gap: 8px; }
 
-.config-card, .log-card, .summary-card { margin-bottom: var(--np-space-4); }
+.config-card, .log-card, .summary-card, .result-card { margin-bottom: var(--np-space-4); }
+
+/* 扫描目标列表（跨整行） */
+.config-full { grid-column: 1 / -1; }
+.target-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.target-chip { font-size: 12px; }
+.config-dash { color: var(--np-text-disabled); }
+
+/* 扫描结果概要 */
+.result-stats {
+  display: flex;
+  gap: var(--np-space-6);
+  flex-wrap: wrap;
+  padding-bottom: var(--np-space-3);
+  margin-bottom: var(--np-space-3);
+  border-bottom: 1px solid var(--np-border);
+}
+.rs-item { display: flex; flex-direction: column; align-items: center; }
+.rs-num { font-size: 28px; font-weight: 800; font-family: var(--np-font-mono); color: var(--np-blue-600); line-height: 1.2; }
+.rs-num.warn { color: var(--np-warning); }
+.rs-num.danger { color: var(--np-danger); }
+.rs-label { font-size: 12px; color: var(--np-text-muted); margin-top: 2px; }
+
+/* 发现的主机迷你表 */
+.host-mini-table { margin-top: 4px; }
+.host-ip-mini { color: var(--np-text-muted); font-size: 12px; }
+
+/* 主域名/子域名区 */
+.domain-section {
+  margin-top: var(--np-space-3);
+  padding-top: var(--np-space-3);
+  border-top: 1px solid var(--np-border);
+}
+.domain-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.domain-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--np-text-muted);
+  min-width: 90px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+.subdomain-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 1;
+}
+.subdomain-chip {
+  font-size: 11px;
+}
+.vuln-num { color: var(--np-danger); font-weight: 700; }
+.risk-num { font-weight: 700; font-family: var(--np-font-mono); }
+.risk-num.risk-high { color: var(--np-danger); }
+.risk-num.risk-medium { color: var(--np-warning); }
+.risk-num.risk-low { color: var(--np-success); }
+.result-pending {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--np-text-muted);
+  font-size: 13px;
+  padding: var(--np-space-3) 0;
+}
 
 /* Tab 区 */
 .detail-tabs { margin-top: var(--np-space-3); }

@@ -391,6 +391,104 @@
               </div>
             </el-tab-pane>
 
+            <!-- WHOIS / RDAP 注册信息 -->
+            <el-tab-pane v-if="detail.whois?.length" :name="'whois'">
+              <template #label>
+                <span class="tab-label">
+                  <el-icon><Document /></el-icon>
+                  WHOIS
+                  <span class="tab-count">{{ detail.whois.length }}</span>
+                </span>
+              </template>
+              <div class="tab-content">
+                <div v-for="(w, i) in detail.whois" :key="i" class="whois-block">
+                  <div class="whois-head">
+                    <el-tag :type="w.type === 'domain' ? 'primary' : 'warning'" size="small">{{ w.type === 'domain' ? '域名' : 'IP' }}</el-tag>
+                    <span class="mono whois-target">{{ w.target }}</span>
+                    <span class="whois-time" v-if="w.queried_at">{{ formatScanTime(w.queried_at) }}</span>
+                  </div>
+                  <el-descriptions :column="2" size="small" border class="whois-desc">
+                    <el-descriptions-item v-for="(val, key) in flattenWhois(w.data)" :key="key" :label="key">
+                      <span class="mono">{{ val }}</span>
+                    </el-descriptions-item>
+                  </el-descriptions>
+                </div>
+              </div>
+            </el-tab-pane>
+
+            <!-- DNS 记录（A/MX/TXT/NS/CAA + SPF/DMARC） -->
+            <el-tab-pane v-if="detail.dns_records?.length" :name="'dns'">
+              <template #label>
+                <span class="tab-label">
+                  <el-icon><Connection /></el-icon>
+                  DNS 记录
+                  <span class="tab-count">{{ detail.dns_records.length }}</span>
+                </span>
+              </template>
+              <div class="tab-content">
+                <div v-for="(d, i) in detail.dns_records" :key="i" class="dns-block">
+                  <div class="dns-head">
+                    <span class="mono dns-target">{{ d.target }}</span>
+                  </div>
+                  <!-- SPF/DMARC 告警 -->
+                  <div v-if="d.data?.warnings?.length" class="dns-warnings">
+                    <div v-for="(w, wi) in d.data.warnings" :key="wi" class="dns-warn">⚠ {{ w }}</div>
+                  </div>
+                  <!-- 各类型记录 -->
+                  <el-descriptions :column="1" size="small" border class="dns-desc">
+                    <el-descriptions-item v-for="(vals, rtype) in d.data?.records" :key="rtype" :label="rtype">
+                      <div v-for="(v, vi) in vals" :key="vi" class="mono dns-val">{{ v }}</div>
+                    </el-descriptions-item>
+                  </el-descriptions>
+                  <!-- 邮件安全配置 -->
+                  <div v-if="d.data?.mail_security" class="dns-mailsec">
+                    <el-tag :type="d.data.mail_security.spf ? 'success' : 'danger'" size="small">
+                      SPF {{ d.data.mail_security.spf ? '✓' : '✗ 缺失' }}
+                    </el-tag>
+                    <el-tag :type="d.data.mail_security.dmarc ? 'success' : 'danger'" size="small">
+                      DMARC {{ d.data.mail_security.dmarc ? '✓' : '✗ 缺失' }}
+                    </el-tag>
+                  </div>
+                </div>
+              </div>
+            </el-tab-pane>
+
+            <!-- JS 分析（API 端点 + 密钥泄露） -->
+            <el-tab-pane v-if="detail.js_findings?.length" :name="'js'">
+              <template #label>
+                <span class="tab-label">
+                  <el-icon><Coin /></el-icon>
+                  JS 分析
+                  <span class="tab-count">{{ detail.js_findings.length }}</span>
+                </span>
+              </template>
+              <div class="tab-content">
+                <div v-for="(j, i) in detail.js_findings" :key="i" class="js-block">
+                  <div class="js-head">
+                    <a :href="j.js_url" target="_blank" rel="noopener" class="mono js-url">{{ j.js_url }}</a>
+                    <el-tag v-if="j.secrets?.length" type="danger" size="small">{{ j.secrets.length }} 密钥泄露</el-tag>
+                    <el-tag v-if="j.api_endpoints?.length" type="info" size="small">{{ j.api_endpoints.length }} API</el-tag>
+                  </div>
+                  <!-- 密钥泄露 -->
+                  <div v-if="j.secrets?.length" class="js-section">
+                    <div class="js-section-title danger">⚠ 密钥泄露</div>
+                    <div v-for="(s, si) in j.secrets" :key="si" class="secret-row">
+                      <el-tag :type="s.severity === 'high' ? 'danger' : 'warning'" size="small">{{ s.type }}</el-tag>
+                      <span class="mono secret-match">{{ s.match }}</span>
+                    </div>
+                  </div>
+                  <!-- API 端点 -->
+                  <div v-if="j.api_endpoints?.length" class="js-section">
+                    <div class="js-section-title">API 端点 ({{ j.api_endpoints.length }})</div>
+                    <div class="api-list">
+                      <span v-for="(api, ai) in j.api_endpoints.slice(0, 30)" :key="ai" class="mono api-chip">{{ api }}</span>
+                      <span v-if="j.api_endpoints.length > 30" class="api-more">+{{ j.api_endpoints.length - 30 }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </el-tab-pane>
+
             <!-- 生命周期（该资产跨扫描的端口/技术栈变化趋势） -->
             <el-tab-pane v-if="detail.timeline?.length >= 2" :name="'timeline'">
               <template #label>
@@ -643,6 +741,47 @@ function formatScanTime(iso: string): string {
   if (!iso) return '—'
   const d = new Date(iso)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+/** 拍平 WHOIS/RDAP 嵌套数据为 key→value 展示（取重要字段） */
+function flattenWhois(data: any): Record<string, string> {
+  if (!data || typeof data !== 'object') return {}
+  const result: Record<string, string> = {}
+  // 常见 RDAP/WHOIS 字段映射（中文名）
+  const fieldMap: Record<string, string> = {
+    'registrarName': '注册商', 'registrar': '注册商', 'sponsoring_registrar': '注册商',
+    'registrationDate': '注册时间', 'created': '注册时间', 'registered': '注册时间',
+    'creation_date': '注册时间',
+    'expirationDate': '到期时间', 'expires': '到期时间', 'expiryDate': '到期时间',
+    'expiration_date': '到期时间', 'expiration_time': '到期时间',
+    'updated': '更新时间', 'updatedDate': '更新时间', 'updated_date': '更新时间',
+    'status': '状态', 'statuses': '状态',
+    'nameServers': 'NS 服务器', 'nameservers': 'NS 服务器',
+    'asn': 'ASN', 'asnCidr': '网段', 'asn_cidr': '网段', 'cidr': '网段',
+    'asn_description': 'ASN 描述', 'asn_country_code': '国家',
+    'handle': 'HANDLE', 'entityType': '类型',
+    'country': '国家', 'orgName': '组织', 'organization': '组织',
+    'registrant': '注册人', 'email': '邮箱',
+    'domain_name': '域名',
+  }
+  for (const [key, label] of Object.entries(fieldMap)) {
+    let val = data[key]
+    if (val === undefined) continue
+    // 数组取前 3 个
+    if (Array.isArray(val)) val = val.slice(0, 3).join(', ')
+    if (typeof val === 'object') val = JSON.stringify(val)
+    if (val && !result[label]) {
+      result[label] = String(val).slice(0, 100)
+    }
+  }
+  // 如果没匹配到标准字段，展示所有顶层字段（兜底）
+  if (Object.keys(result).length === 0) {
+    for (const [k, v] of Object.entries(data)) {
+      if (v && typeof v !== 'object') result[k] = String(v).slice(0, 100)
+      if (Object.keys(result).length >= 8) break
+    }
+  }
+  return result
 }
 
 /** 生命周期趋势图配置：端口数/新增/消失 三条线 */
@@ -1257,6 +1396,40 @@ onMounted(loadData)
 }
 
 /* ── 生命周期 Tab ── */
+/* ── WHOIS Tab ── */
+.whois-block { margin-bottom: var(--np-space-4); }
+.whois-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.whois-target { font-weight: 600; color: var(--np-text-primary); }
+.whois-time { font-size: 12px; color: var(--np-text-muted); margin-left: auto; }
+.whois-desc { width: 100%; }
+
+/* ── DNS 记录 Tab ── */
+.dns-block { margin-bottom: var(--np-space-4); }
+.dns-head { margin-bottom: 8px; }
+.dns-target { font-weight: 600; color: var(--np-text-primary); }
+.dns-warnings { margin-bottom: 8px; }
+.dns-warn { font-size: 12px; color: var(--np-warning); padding: 2px 0; }
+.dns-desc { width: 100%; }
+.dns-val { font-size: 12px; color: var(--np-text-secondary); word-break: break-all; }
+.dns-mailsec { display: flex; gap: 8px; margin-top: 8px; }
+
+/* ── JS 分析 Tab ── */
+.js-block { margin-bottom: var(--np-space-4); padding-bottom: var(--np-space-3); border-bottom: 1px solid var(--np-border); }
+.js-block:last-child { border-bottom: none; }
+.js-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.js-url { font-size: 12px; color: var(--np-blue-500); word-break: break-all; flex: 1; min-width: 200px; }
+.js-section { margin-top: var(--np-space-2); }
+.js-section-title { font-size: 13px; font-weight: 600; color: var(--np-text-secondary); margin-bottom: 6px; }
+.js-section-title.danger { color: var(--np-danger); }
+.secret-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+.secret-match { font-size: 12px; color: var(--np-text-secondary); word-break: break-all; }
+.api-list { display: flex; flex-wrap: wrap; gap: 4px; }
+.api-chip {
+  font-size: 11px; padding: 2px 6px; background: var(--np-bg-elevated);
+  border-radius: 4px; color: var(--np-text-secondary);
+}
+.api-more { font-size: 11px; color: var(--np-text-muted); padding: 2px 0; }
+
 .timeline-hint {
   font-size: 12px;
   color: var(--np-text-muted);

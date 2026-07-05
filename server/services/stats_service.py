@@ -5,7 +5,7 @@ import json
 from sqlalchemy import func
 
 from ..db import SessionLocal
-from ..models import Scan, Host, Port, WebInfo, Banner, SensitivePath, Vulnerability
+from ..models import Scan, Host, Port, WebInfo, Banner, SensitivePath, Vulnerability, WhoisRecord, JSFinding
 
 
 def get_overview_stats() -> dict:
@@ -147,6 +147,44 @@ def get_asset_detail(hostname: str, ip: str) -> dict | None:
             "path": s.path, "severity": s.severity, "description": s.description,
         } for s in sens_rows]
 
+        # WHOIS/RDAP 注册信息 + IP ASN + DNS 记录（同表不同 type）
+        whois_rows = db.query(WhoisRecord).filter(WhoisRecord.host_id.in_(host_ids)).all()
+        whois = []
+        dns_records = []
+        for w in whois_rows:
+            try:
+                data = json.loads(w.data_json) if w.data_json else {}
+            except json.JSONDecodeError:
+                data = {}
+            entry = {
+                "type": w.type,
+                "target": w.target,
+                "queried_at": w.queried_at.isoformat() + "Z" if w.queried_at else "",
+                "data": data,
+            }
+            if w.type == "dns":
+                dns_records.append(entry)
+            else:
+                whois.append(entry)
+
+        # JS 分析（API 端点 + 密钥泄露）
+        js_rows = db.query(JSFinding).filter(JSFinding.host_id.in_(host_ids)).all()
+        js_findings = []
+        for j in js_rows:
+            try:
+                apis = json.loads(j.api_endpoints_json) if j.api_endpoints_json else []
+            except json.JSONDecodeError:
+                apis = []
+            try:
+                secrets = json.loads(j.secrets_json) if j.secrets_json else []
+            except json.JSONDecodeError:
+                secrets = []
+            js_findings.append({
+                "js_url": j.js_url,
+                "api_endpoints": apis,
+                "secrets": secrets,
+            })
+
         # 单资产生命周期：遍历每次扫描，端口/技术栈相邻 diff
         timeline = _compute_asset_timeline(db, hosts)
 
@@ -160,6 +198,9 @@ def get_asset_detail(hostname: str, ip: str) -> dict | None:
             "vulnerabilities": vulnerabilities,
             "banners": banners,
             "sensitive": sensitive,
+            "whois": whois,
+            "dns_records": dns_records,
+            "js_findings": js_findings,
             "tech_stack": sorted(all_tech, key=lambda x: x.get("name", "")),
             "timeline": timeline,
             "port_count": len(ports),

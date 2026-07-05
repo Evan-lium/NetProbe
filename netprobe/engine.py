@@ -9,7 +9,7 @@ import requests as req_lib
 from .dns_utils import (
     is_subdomain_of, resolve_a_record, reverse_dns_lookup,
     resolve_dns_records, get_nameservers, try_zone_transfer,
-    detect_wildcard_resolution,
+    detect_wildcard_resolution, get_all_dns_records,
 )
 from .scanner import check_nmap_available, run_dns_brute, run_port_scan, resolve_ports
 from .tools.dnsx import run_dnsx
@@ -607,6 +607,12 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
             subdomains = raw
         elapsed = time.time() - t0
         emit('progress', text=f'  ✓ 子域名枚举完成: {len(subdomains)} 个有效 ({elapsed:.1f}s)')
+        # 结果明细：列出发现的前 10 个子域
+        for s in subdomains[:10]:
+            ip = s.get('ip', '')
+            emit('progress', text=f'    · {s["hostname"]}' + (f' ({ip})' if ip else ''))
+        if len(subdomains) > 10:
+            emit('progress', text=f'    ...还有 {len(subdomains) - 10} 个')
 
         # 过滤指向泛解析 IP 的假子域（解析结果完全落在泛解析 IP 集合内即为假子域）
         if wildcard_ips and subdomains:
@@ -656,6 +662,22 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
         total_open = sum(len(h.get('ports', [])) for h in all_hosts)
         elapsed = time.time() - t0
         emit('progress', text=f'  ✓ 端口扫描完成: {total_open} 个开放端口 ({elapsed:.1f}s)')
+        # 结果明细：列出每台主机的开放端口（前 5 台，每台前 8 个端口）
+        shown_hosts = 0
+        for h in all_hosts:
+            ports = h.get('ports', [])
+            if not ports:
+                continue
+            port_str = ', '.join(f"{p['port']}/{p.get('service','')}" for p in ports[:8])
+            if len(ports) > 8:
+                port_str += f' +{len(ports) - 8}'
+            emit('progress', text=f'    {h["hostname"] or h["ip"]}: {port_str}')
+            shown_hosts += 1
+            if shown_hosts >= 5:
+                remaining = sum(1 for x in all_hosts if x.get('ports'))
+                if remaining > 5:
+                    emit('progress', text=f'    ...还有 {remaining - 5} 台主机')
+                break
     else:
         for host in all_hosts:
             host['ports'] = []
@@ -672,6 +694,20 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
         total_web = sum(len(h.get('web_info', [])) for h in all_hosts)
         elapsed = time.time() - t0
         emit('progress', text=f'  ✓ Web 探测完成: {total_web} 个站点 ({elapsed:.1f}s)')
+        # 结果明细：列出发现的 Web 站点（前 10 个）
+        shown = 0
+        for h in all_hosts:
+            for w in h.get('web_info', []):
+                status = w.get('status', '')
+                title = (w.get('title', '') or '')[:30]
+                emit('progress', text=f'    · [{status}] {w.get("url", "")}' + (f' — {title}' if title else ''))
+                shown += 1
+                if shown >= 10:
+                    break
+            if shown >= 10:
+                if total_web > 10:
+                    emit('progress', text=f'    ...还有 {total_web - 10} 个站点')
+                break
     else:
         for host in all_hosts:
             host['web_info'] = []
@@ -689,6 +725,18 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
         elapsed = time.time() - t0
         if sensitive_total:
             emit('progress', text=f'  ✓ 敏感路径探测完成: {sensitive_total} 条发现 ({elapsed:.1f}s)')
+            # 结果明细：列出高危/中危路径（前 10 条）
+            shown = 0
+            for h in all_hosts:
+                for s in h.get('sensitive', []):
+                    sev = s.get('severity', '')
+                    if sev in ('high', 'critical', 'medium'):
+                        emit('progress', text=f'    ⚠ [{sev}] {s.get("path", "")} — {s.get("description", "")[:40]}')
+                        shown += 1
+                        if shown >= 10:
+                            break
+                if shown >= 10:
+                    break
         else:
             emit('progress', text=f'  ✓ 敏感路径探测完成: 无发现 ({elapsed:.1f}s)')
 
@@ -833,17 +881,25 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
                 host_urls[id(host)].append((host, url))
 
             total_vulns = 0
+            host_idx = 0
+            total_host_groups = len(host_urls)
             for hid, url_list in host_urls.items():
                 if _is_cancelled(options):
                     break
+                host_idx += 1
                 urls_only = [u for _, u in url_list]
                 host_obj = url_list[0][0]
+                # 进度：正在扫哪台主机（第 N/M 台）
+                emit('progress', text=f'    [{host_idx}/{total_host_groups}] nuclei 扫描 {host_obj.get("hostname") or host_obj.get("ip", "")} ({len(urls_only)} 站点)...')
                 try:
+                    # 每站点按数量给时间：普通模式 60s/站点，深度 120s/站点，最少 180s 兜底
+                    per_host = 120 if is_deep else 60
+                    host_max_time = max(180, len(urls_only) * per_host)
                     vulns = run_nuclei(
                         urls_only,
                         severity=severity,
                         templates=templates,
-                        max_time=120 if not is_deep else 300,
+                        max_time=host_max_time,
                         on_progress=lambda msg: emit('progress', text=msg),
                         process_callback=options.get('_process_callback'),
                     )
@@ -863,6 +919,22 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
                         sev_counts[s] = sev_counts.get(s, 0) + 1
                 dist = ' '.join(f'{k}:{v}' for k, v in sorted(sev_counts.items(), key=lambda x: ['critical','high','medium','low','info'].index(x[0]) if x[0] in ['critical','high','medium','low','info'] else 9))
                 emit('progress', text=f'  ✓ 漏洞扫描完成: {total_vulns} 个漏洞 ({dist}) ({elapsed:.1f}s)')
+                # 结果明细：列出 critical/high 漏洞（前 10 条）
+                shown = 0
+                for h in all_hosts:
+                    for v in h.get('vulnerabilities', []):
+                        sev = v.get('severity', 'info')
+                        if sev in ('critical', 'high'):
+                            cve = v.get('cve', '')
+                            name = v.get('name', '')[:50]
+                            emit('progress', text=f'    🔴 [{sev}] {name}' + (f' ({cve})' if cve else ''))
+                            shown += 1
+                            if shown >= 10:
+                                break
+                    if shown >= 10:
+                        break
+                if shown < total_vulns and shown >= 10:
+                    emit('progress', text=f'    ...还有 {total_vulns - shown} 个漏洞')
             else:
                 emit('progress', text=f'  ✓ 漏洞扫描完成: 无发现 ({elapsed:.1f}s)')
         else:
@@ -919,6 +991,19 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
         elapsed = time.time() - t0
         if banner_total:
             emit('progress', text=f'  ✓ Banner 抓取完成: {banner_total} 条 ({elapsed:.1f}s)')
+            # 结果明细：列出带版本的 Banner（前 8 条）
+            shown = 0
+            for h in all_hosts:
+                for b in h.get('banners', []):
+                    port = b.get('port', '')
+                    svc = b.get('service', '')
+                    banner_text = (b.get('banner', '') or '')[:50]
+                    emit('progress', text=f'    · {port}/{svc}: {banner_text}')
+                    shown += 1
+                    if shown >= 8:
+                        break
+                if shown >= 8:
+                    break
         else:
             emit('progress', text=f'  ✓ Banner 抓取完成: 无结果 ({elapsed:.1f}s)')
     else:
@@ -955,6 +1040,44 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
         emit('progress', text=f'  ✓ WHOIS 查询完成: {whois_count} 条 ({elapsed:.1f}s)')
     else:
         emit('progress', text=f'  ✓ WHOIS 查询完成: 无结果 ({elapsed:.1f}s)')
+
+    # ── DNS 全类型记录（A/MX/TXT/NS/SOA/CAA + SPF/DMARC 检查）──
+    emit('progress', text=ph('DNS 记录收集 ...'))
+    t0 = time.time()
+    queried_dns_domains = set()
+    dns_count = 0
+    for host in all_hosts:
+        root = extract_root_domain(host.get('hostname', '')) if host.get('hostname') else ''
+        if root and root not in queried_dns_domains:
+            queried_dns_domains.add(root)
+            try:
+                dns_data = get_all_dns_records(root)
+                records = dns_data.get('records', {})
+                mail_sec = dns_data.get('mail_security', {})
+                warnings = dns_data.get('warnings', [])
+                if records:
+                    host['_dns_records'] = {
+                        'domain': root,
+                        'records': records,
+                        'mail_security': mail_sec,
+                        'warnings': warnings,
+                    }
+                    dns_count += 1
+                    # 进度明细
+                    for rtype in ['A', 'AAAA', 'MX', 'NS', 'TXT', 'CAA']:
+                        if rtype in records:
+                            vals = records[rtype][:3]
+                            emit('progress', text=f'    {rtype}: {", ".join(vals)}')
+                    if warnings:
+                        for w in warnings[:2]:
+                            emit('progress', text=f'    ⚠ {w}')
+            except Exception as e:
+                emit('progress', text=f'    [DNS] {root} 查询失败: {e}')
+    elapsed = time.time() - t0
+    if dns_count:
+        emit('progress', text=f'  ✓ DNS 记录收集完成: {dns_count} 个域名 ({elapsed:.1f}s)')
+    else:
+        emit('progress', text=f'  ✓ DNS 记录收集完成: 无结果 ({elapsed:.1f}s)')
 
     # ── 风险评分（综合敏感路径/高危端口/CVE/SSL/威胁情报）──
     emit('progress', text=ph('风险评分 ...'))
