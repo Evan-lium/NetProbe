@@ -219,18 +219,68 @@ def send_email(smtp_host: str, smtp_port: int, username: str, password: str,
 
 # ── 统一入口 ──────────────────────────────────────────────
 
+def _render_message(title: str, message: str, details: dict | None) -> str:
+    """根据 details.type 选择差异化文案模板，未匹配则回退原始 message。
+
+    支持 4 种事件类型:
+    - new_subdomain: 列出新增的子域名（最多 5 个）
+    - new_port:      列出新开放端口
+    - new_vuln:      列出 critical/high 漏洞（最多 5 个）
+    - scan_done:     扫描完成汇总统计
+    """
+    if not details or not details.get("type"):
+        return message
+
+    dtype = details["type"]
+
+    if dtype == "new_subdomain":
+        items = details.get("items") or []
+        if items:
+            lines = [f"• {x}" for x in items[:5]]
+            more = f"\n（共 {details.get('count', len(items))} 个，仅展示前 5 个）" if details.get("count", 0) > 5 else ""
+            body = "\n".join(lines) + more
+            return f"发现 {details.get('count', len(items))} 个新增子域名:\n{body}"
+        return message
+
+    if dtype == "new_port":
+        items = details.get("items") or []
+        if items:
+            return f"发现 {details.get('count', len(items))} 个新增开放端口:\n• " + "\n• ".join(items[:20])
+        return message
+
+    if dtype == "new_vuln":
+        items = details.get("items") or []
+        if items:
+            lines = [f"• [{v.get('severity', '?').upper()}] {v.get('name', '')}" for v in items[:5]]
+            more = f"\n（共 {details.get('count', len(items))} 条，仅展示前 5 条）" if details.get("count", 0) > 5 else ""
+            body = "\n".join(lines) + more
+            return f"发现 {details.get('count', len(items))} 条高危漏洞:\n{body}"
+        return message
+
+    if dtype == "scan_done":
+        stats = details.get("stats") or {}
+        lines = [f"• {k}: {v}" for k, v in stats.items()]
+        return f"扫描完成统计:\n" + "\n".join(lines) if lines else message
+
+    return message
+
+
 def send_notification(title: str, message: str, details: dict | None = None) -> dict:
     """统一通知入口：遍历所有已配置的渠道发送告警。
 
-    返回 {success, channel, error}（任一渠道成功即 success=True）。
+    details.type 不为空时，用 _render_message 生成 4 类事件差异化文案；
+    否则直接用 message。返回 {success, channel, error}（任一渠道成功即 success=True）。
     """
     config = _load_notifications_config()
     results = []
 
+    # 差异化文案渲染（按事件类型选择模板，未匹配回退原始 message）
+    rendered = _render_message(title, message, details)
+
     # 构造通用 payload（供 webhook 使用）
     base_payload = {
         "title": title,
-        "message": message,
+        "message": rendered,
         "source": "NetProbe",
         "details": details or {},
     }
@@ -246,28 +296,28 @@ def send_notification(title: str, message: str, details: dict | None = None) -> 
     # 2. 钉钉
     dt = config.get("dingtalk") or {}
     if (dt.get("access_token") or "").strip():
-        r = send_dingtalk(dt["access_token"].strip(), dt.get("secret", ""), title, message)
+        r = send_dingtalk(dt["access_token"].strip(), dt.get("secret", ""), title, rendered)
         r["channel"] = "dingtalk"
         results.append(r)
 
     # 3. 企业微信
     wc = config.get("wecom") or {}
     if (wc.get("key") or "").strip():
-        r = send_wecom(wc["key"].strip(), title, message)
+        r = send_wecom(wc["key"].strip(), title, rendered)
         r["channel"] = "wecom"
         results.append(r)
 
     # 4. 飞书
     fs = config.get("feishu") or {}
     if (fs.get("webhook") or "").strip():
-        r = send_feishu(fs["webhook"].strip(), fs.get("secret", ""), title, message)
+        r = send_feishu(fs["webhook"].strip(), fs.get("secret", ""), title, rendered)
         r["channel"] = "feishu"
         results.append(r)
 
     # 5. Telegram
     tg = config.get("telegram") or {}
     if (tg.get("bot_token") or "").strip() and (tg.get("chat_id") or "").strip():
-        r = send_telegram(tg["bot_token"].strip(), tg["chat_id"].strip(), message)
+        r = send_telegram(tg["bot_token"].strip(), tg["chat_id"].strip(), rendered)
         r["channel"] = "telegram"
         results.append(r)
 
@@ -282,7 +332,7 @@ def send_notification(title: str, message: str, details: dict | None = None) -> 
             em.get("from_addr", ""),
             em["to_addrs"] if isinstance(em["to_addrs"], list) else [em["to_addrs"]],
             title,
-            message,
+            rendered,
             use_ssl=em.get("use_ssl", True),
         )
         r["channel"] = "email"

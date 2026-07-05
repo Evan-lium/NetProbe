@@ -708,6 +708,22 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
         except Exception as e:
             emit('progress', text=f'  robots/sitemap 解析失败（不影响主流程）: {e}')
 
+        # ── 管理后台专项识别（复用 sensitive 阶段开关，title/URL 三重判定）──
+        try:
+            from .admin_detect import detect_admin_panels
+            emit('progress', text='  · 管理后台专项识别 ...')
+            t0 = time.time()
+            admin_total = detect_admin_panels(all_hosts)
+            elapsed = time.time() - t0
+            if admin_total:
+                emit('progress', text=f'    ✓ 管理后台识别完成: 发现 {admin_total} 个疑似后台 ({elapsed:.1f}s)')
+            else:
+                emit('progress', text=f'    ✓ 管理后台识别完成: 无发现 ({elapsed:.1f}s)')
+        except Exception as e:
+            emit('progress', text=f'  管理后台识别失败（不影响主流程）: {e}')
+            for host in all_hosts:
+                host.setdefault('_admin_panels', [])
+
     # ── 目录爆破 ──（独立开关 dir_brute，默认关，耗时噪音项）
     if _stage_enabled(options, 'dir_brute'):
         from .dir_brute import brute_for_hosts

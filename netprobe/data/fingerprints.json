@@ -25,6 +25,9 @@
         "type": "html",
         "pattern": "/wp-json/"
       }
+    ],
+    "implies": [
+      "PHP"
     ]
   },
   {
@@ -53,6 +56,9 @@
         "type": "html",
         "pattern": "sites/default/files"
       }
+    ],
+    "implies": [
+      "PHP"
     ]
   },
   {
@@ -68,6 +74,9 @@
         "pattern": "X-Content-Powered-By",
         "version": "re:Joomla!?\\s*([\\d.]+)"
       }
+    ],
+    "implies": [
+      "PHP"
     ]
   },
   {
@@ -105,6 +114,9 @@
         "type": "html",
         "pattern": "think\\"
       }
+    ],
+    "implies": [
+      "PHP"
     ]
   },
   {
@@ -291,6 +303,9 @@
         "type": "header",
         "pattern": "laravel"
       }
+    ],
+    "implies": [
+      "PHP"
     ]
   },
   {
@@ -313,6 +328,9 @@
         "type": "html",
         "pattern": "csrfmiddlewaretoken"
       }
+    ],
+    "implies": [
+      "Python"
     ]
   },
   {
@@ -327,6 +345,9 @@
         "type": "header",
         "pattern": "Server: Werkzeug"
       }
+    ],
+    "implies": [
+      "Python"
     ]
   },
   {
@@ -341,6 +362,9 @@
         "type": "cookie",
         "pattern": "connect.sid"
       }
+    ],
+    "implies": [
+      "Node.js"
     ]
   },
   {
@@ -355,6 +379,9 @@
         "type": "header",
         "pattern": "X-Application-Context"
       }
+    ],
+    "implies": [
+      "Java"
     ]
   },
   {
@@ -377,6 +404,9 @@
         "type": "html",
         "pattern": "__VIEWSTATE"
       }
+    ],
+    "implies": [
+      ".NET"
     ]
   },
   {
@@ -711,6 +741,9 @@
         "pattern": "Ghost",
         "version": "re:Ghost\\s+([\\d.]+)"
       }
+    ],
+    "implies": [
+      "Node.js"
     ]
   },
   {
@@ -1049,6 +1082,9 @@
         "type": "cookie",
         "pattern": "gin_session"
       }
+    ],
+    "implies": [
+      "Go"
     ]
   },
   {
@@ -1067,6 +1103,9 @@
         "type": "header",
         "pattern": "re:Server.*uvicorn"
       }
+    ],
+    "implies": [
+      "Python"
     ]
   },
   {
@@ -1093,6 +1132,9 @@
         "type": "html",
         "pattern": "csrf-token"
       }
+    ],
+    "implies": [
+      "Ruby"
     ]
   },
   {
@@ -1111,6 +1153,9 @@
         "type": "html",
         "pattern": "asp.net mvc"
       }
+    ],
+    "implies": [
+      ".NET"
     ]
   },
   {
@@ -2673,6 +2718,9 @@
         "type": "header",
         "pattern": "CodeIgniter"
       }
+    ],
+    "implies": [
+      "PHP"
     ]
   },
   {
@@ -2687,6 +2735,9 @@
         "type": "header",
         "pattern": "symfony"
       }
+    ],
+    "implies": [
+      "PHP"
     ]
   },
   {
@@ -2701,6 +2752,9 @@
         "type": "header",
         "pattern": "CakePHP"
       }
+    ],
+    "implies": [
+      "PHP"
     ]
   },
   {
@@ -2715,6 +2769,9 @@
         "type": "header",
         "pattern": "Yii"
       }
+    ],
+    "implies": [
+      "PHP"
     ]
   },
   {
@@ -2729,6 +2786,9 @@
         "type": "header",
         "pattern": "X-Rack-Cache"
       }
+    ],
+    "implies": [
+      "Ruby"
     ]
   },
   {
@@ -2785,6 +2845,9 @@
         "type": "header",
         "pattern": "koa"
       }
+    ],
+    "implies": [
+      "Node.js"
     ]
   },
   {
@@ -2799,6 +2862,9 @@
         "type": "html",
         "pattern": "nestjs"
       }
+    ],
+    "implies": [
+      "Node.js"
     ]
   },
   {
@@ -2813,6 +2879,9 @@
         "type": "cookie",
         "pattern": "_xsrf"
       }
+    ],
+    "implies": [
+      "Python"
     ]
   },
   {
@@ -2861,6 +2930,9 @@
         "type": "cookie",
         "pattern": "beego"
       }
+    ],
+    "implies": [
+      "Go"
     ]
   },
   {
@@ -4781,6 +4853,10 @@
         "type": "html",
         "pattern": "/wp-admin/network/"
       }
+    ],
+    "implies": [
+      "WordPress",
+      "PHP"
     ]
   },
   {

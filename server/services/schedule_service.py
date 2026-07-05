@@ -7,10 +7,15 @@
 每个 schedule 表行对应一个 APScheduler job（job id = schedule id）。create/update/delete
 同步操作两处，保持表与内存一致。定时回调 _run_scheduled_scan 检查并发数后调用
 scan_service.start_scan。
+
+内置任务（不进 schedules 表）:
+  nuclei 模板自动更新 — 每周一凌晨 3 点跑 `nuclei -update-templates -silent`，
+  job id 为常量 _NUCLEI_UPDATE_JOB_ID，nuclei 未安装则静默跳过。
 """
 
 import json
 import logging
+import subprocess
 from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -28,6 +33,9 @@ _scheduler: BackgroundScheduler | None = None
 
 # 最多允许同时运行的扫描任务数（含手动与定时触发）
 _MAX_CONCURRENT = 2
+
+# 内置定时任务 job id（与 schedules 表的数字 id 区分开，避免冲突）
+_NUCLEI_UPDATE_JOB_ID = "__nuclei_update_templates__"
 
 
 # ── cron 表达式校验 ──────────────────────────────────────────────
@@ -58,6 +66,10 @@ def init_scheduler():
             _add_job(sch)
     finally:
         db.close()
+
+    # 内置定时任务：每周一凌晨 3 点自动更新 nuclei 模板
+    # （与 schedules 表无关，常驻调度器；nuclei 未安装则静默跳过）
+    _add_nuclei_update_job()
     logger.info("scheduler started, restored jobs from schedules table")
 
 
@@ -115,6 +127,54 @@ def _sync_next_run(schedule_id: int):
             db.commit()
     finally:
         db.close()
+
+
+# ── 内置任务：nuclei 模板自动更新 ────────────────────────────
+
+def _add_nuclei_update_job():
+    """注册每周一凌晨 3 点更新 nuclei 模板的内置 cron job。
+
+    与 schedules 表无关，常驻调度器。nuclei 二进制不存在时回调内部静默跳过。
+    """
+    if _scheduler is None:
+        return
+    try:
+        _scheduler.add_job(
+            _update_nuclei_templates,
+            trigger=CronTrigger(day_of_week="mon", hour=3, minute=0,
+                                timezone="Asia/Shanghai"),
+            id=_NUCLEI_UPDATE_JOB_ID,
+            replace_existing=True,
+        )
+    except Exception as e:
+        logger.warning("failed to add nuclei update job: %s", e)
+
+
+def _update_nuclei_templates():
+    """执行 `nuclei -update-templates -silent`，保持模板库最新。
+
+    容错策略：nuclei 未安装 / 超时 / 任意异常均不抛出（仅记日志），
+    避免影响调度器主循环与正常扫描任务。
+    """
+    try:
+        result = subprocess.run(
+            ["nuclei", "-update-templates", "-silent"],
+            capture_output=True,
+            text=True,
+            timeout=600,  # 模板更新可能较慢，给 10 分钟
+        )
+        if result.returncode == 0:
+            logger.info("nuclei templates updated successfully")
+        else:
+            logger.warning("nuclei -update-templates returned %d: %s",
+                           result.returncode, (result.stderr or "").strip()[:200])
+    except FileNotFoundError:
+        # nuclei 未安装，静默跳过
+        logger.debug("nuclei not installed, skip template update")
+    except subprocess.TimeoutExpired:
+        logger.warning("nuclei -update-templates timed out after 600s")
+    except Exception as e:
+        logger.warning("nuclei template update failed: %s", e)
 
 
 # ── 定时回调 ────────────────────────────────────────────────────

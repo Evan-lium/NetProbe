@@ -134,6 +134,53 @@ def get_nameservers(domain: str) -> list[str]:
     return resolve_dns_records(domain, 'NS')
 
 
+def get_all_dns_records(domain: str) -> dict:
+    """查询域名的全类型 DNS 记录 + 邮件安全配置检查。
+
+    返回 {
+        records: {A:[], AAAA:[], CNAME:[], MX:[], NS:[], TXT:[], SOA:[], CAA:[]},
+        mail_security: {spf: bool, spf_record: str, dmarc: bool, dmarc_record: str},
+        warnings: [str]  # SPF/DMARC 缺失等告警
+    }
+    """
+    record_types = ['A', 'AAAA', 'CNAME', 'MX', 'NS', 'TXT', 'SOA', 'CAA']
+    records = {}
+    for rtype in record_types:
+        vals = resolve_dns_records(domain, rtype)
+        if vals:
+            records[rtype] = vals
+
+    # 邮件安全检查：SPF（在 TXT 里）和 DMARC（_dmarc 子域 TXT）
+    warnings = []
+    all_txt = records.get('TXT', [])
+    spf_record = next((t for t in all_txt if t.startswith('"v=spf1') or 'v=spf1' in t), '')
+    if not spf_record:
+        # TXT 记录可能带引号
+        spf_record = next((t for t in all_txt if 'spf1' in t.lower()), '')
+    has_spf = bool(spf_record)
+
+    dmarc_records = resolve_dns_records(f'_dmarc.{domain}', 'TXT')
+    dmarc_record = next((d for d in dmarc_records if 'v=dmarc1' in d.lower() or 'dmarc1' in d.lower()), '')
+    has_dmarc = bool(dmarc_record)
+
+    # 缺失告警
+    if not has_spf:
+        warnings.append('SPF 记录缺失：邮件可被伪造发件人')
+    if not has_dmarc:
+        warnings.append('DMARC 记录缺失：无邮件认证策略')
+
+    return {
+        'records': records,
+        'mail_security': {
+            'spf': has_spf,
+            'spf_record': spf_record,
+            'dmarc': has_dmarc,
+            'dmarc_record': dmarc_record,
+        },
+        'warnings': warnings,
+    }
+
+
 def try_zone_transfer(domain: str, timeout: int = 10) -> dict | None:
     """尝试 DNS 区域传送（AXFR）获取完整 zone 记录。
 

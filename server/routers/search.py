@@ -3,6 +3,7 @@
 from fastapi import APIRouter, HTTPException
 
 from ..services.asset_service import get_asset_by_ip
+from ..services.correlation_service import search_by_favicon_external
 
 router = APIRouter(tags=["search"])
 
@@ -19,3 +20,21 @@ def reverse_search(ip: str):
     if result is None:
         raise HTTPException(404, "no assets found for this IP")
     return result
+
+
+@router.get("/search/favicon")
+def search_favicon(hash: str, source: str = "fofa"):
+    """用 favicon hash 对接外部空间搜索引擎（FOFA/Shodan）反查同源资产。
+
+    参数:
+      hash:   mmh3 favicon hash（FOFA icon_hash 同款）
+      source: 'fofa'（默认）或 'shodan'
+
+    返回: {source, query, count, results}。无 API key 时 count=0。
+    """
+    if not hash or not hash.strip():
+        raise HTTPException(400, "query param 'hash' is required")
+    src = (source or "fofa").strip().lower()
+    if src not in ("fofa", "shodan"):
+        raise HTTPException(400, "source must be 'fofa' or 'shodan'")
+    return search_by_favicon_external(hash.strip(), src)

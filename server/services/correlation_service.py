@@ -10,6 +10,10 @@
 
 纯查询，无需新扫描。JSON 列（ssl_json/tech_json）在应用层解析。
 仅返回成员数 ≥ 2 的簇（单元素不构成关联）。
+
+外部扩展:
+  search_by_favicon_external(hash, source) 用 favicon hash 对接 FOFA/Shodan 反查，
+  发现本地库之外的同源资产（无 API key 时返回空）。
 """
 
 import json
@@ -187,7 +191,14 @@ def by_service() -> list[dict]:
 
 
 def by_favicon() -> list[dict]:
-    """同 Favicon 哈希簇：按 web_info.favicon_hash 聚合（FOFA icon_hash 同款算法）。"""
+    """同 Favicon 哈希簇：按 web_info.favicon_hash 聚合（FOFA icon_hash 同款算法）。
+
+    本函数仅做本地同 hash 聚类。要扩展到全网反查（发现本库之外的资产），
+    可调用 search_by_favicon_external(hash, source) 对接外部空间搜索引擎:
+      - FOFA:   query='icon_hash="<hash>"'，复用 netprobe.tools.fofa 的 base64+API 逻辑
+      - Shodan: query='http.favicon.hash:<hash>'，需 SHODAN_API_KEY
+    外部反查独立于本地数据，用于发现未纳入扫描范围的同源资产。
+    """
     db = SessionLocal()
     try:
         rows = (
@@ -338,3 +349,130 @@ def build_graph() -> dict:
         "links": links,
         "categories": categories,
     }
+
+
+# ── 外部 favicon hash 反查（FOFA / Shodan）──────────────────────
+
+def search_by_favicon_external(favicon_hash: str, source: str = "fofa") -> dict:
+    """用 favicon hash 对接外部空间搜索引擎反查同源资产。
+
+    参数:
+        favicon_hash: mmh3 favicon hash（FOFA icon_hash 同款，由 netprobe.favicon 计算）
+        source: 'fofa' 或 'shodan'
+
+    返回: {source, query, count, results: [{hostname, ip, port, ...}]}
+    无 API key / 查询失败 / source 非法时返回 count=0 的空结果（容错，不抛异常）。
+
+    FOFA 复用 netprobe.tools.fofa 的 base64 查询逻辑（query='icon_hash="<hash>"'），
+    Shodan 走 https://api.shodan.io/shodan/host/search（需 SHODAN_API_KEY）。
+    """
+    favicon_hash = (favicon_hash or "").strip()
+    source = (source or "fofa").strip().lower()
+    empty = {"source": source, "query": "", "count": 0, "results": []}
+    if not favicon_hash:
+        return empty
+
+    if source == "fofa":
+        return _search_favicon_fofa(favicon_hash)
+    if source == "shodan":
+        return _search_favicon_shodan(favicon_hash)
+    # 未知 source → 返回空
+    return empty
+
+
+def _search_favicon_fofa(favicon_hash: str) -> dict:
+    """FOFA 反查: query='icon_hash="<hash>"'。复用 fofa.py 的 email/key 配置。"""
+    import base64
+    import os
+
+    import requests
+
+    email = os.environ.get("FOFA_EMAIL", "")
+    key = os.environ.get("FOFA_KEY", "")
+    query = f'icon_hash="{favicon_hash}"'
+    base = {"source": "fofa", "query": query, "count": 0, "results": []}
+    if not email or not key:
+        # 无 API key，静默返回空
+        return base
+    try:
+        qbase64 = base64.b64encode(query.encode()).decode()
+        params = {
+            "email": email,
+            "key": key,
+            "qbase64": qbase64,
+            "size": 100,
+            "fields": "host,ip,port,protocol",
+        }
+        resp = requests.get(
+            "https://fofa.info/api/v1/search/all",
+            params=params, timeout=30,
+        )
+        data = resp.json()
+        if data.get("error") and data.get("errmsg"):
+            return base
+        results = []
+        seen = set()
+        for row in data.get("results", []) or []:
+            host, ip, port, protocol = row[0], row[1], row[2], row[3]
+            hostname = host.split("://")[-1].split(":")[0].lower().rstrip(".")
+            if hostname not in seen:
+                seen.add(hostname)
+                results.append({
+                    "hostname": hostname,
+                    "ip": ip,
+                    "port": int(port) if port else 0,
+                    "protocol": protocol,
+                    "source": "fofa",
+                })
+        base["results"] = results
+        base["count"] = len(results)
+        return base
+    except (requests.RequestException, ValueError, IndexError):
+        return base
+
+
+def _search_favicon_shodan(favicon_hash: str) -> dict:
+    """Shodan 反查: query='http.favicon.hash:<hash>'。需 SHODAN_API_KEY。"""
+    import os
+
+    import requests
+
+    api_key = os.environ.get("SHODAN_API_KEY", "")
+    query = f"http.favicon.hash:{favicon_hash}"
+    base = {"source": "shodan", "query": query, "count": 0, "results": []}
+    if not api_key:
+        return base
+    try:
+        resp = requests.get(
+            "https://api.shodan.io/shodan/host/search",
+            params={"key": api_key, "query": query, "page": 1},
+            timeout=30,
+        )
+        data = resp.json()
+        if "error" in data:
+            return base
+        results = []
+        seen = set()
+        for match in data.get("matches", []) or []:
+            ip = match.get("ip_str", "")
+            port = match.get("port", 0)
+            # Shodan 的 hostnames 是列表
+            hostnames = match.get("hostnames") or []
+            hostname = hostnames[0] if hostnames else ip
+            hostname = (hostname or "").lower().rstrip(".")
+            key = (hostname, ip, port)
+            if key in seen:
+                continue
+            seen.add(key)
+            results.append({
+                "hostname": hostname,
+                "ip": ip,
+                "port": int(port) if port else 0,
+                "protocol": match.get("transport", ""),
+                "source": "shodan",
+            })
+        base["results"] = results
+        base["count"] = len(results)
+        return base
+    except (requests.RequestException, ValueError):
+        return base

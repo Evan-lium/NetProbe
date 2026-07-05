@@ -5,6 +5,7 @@
 - 正则匹配 (pattern 以 re: 开头)
 - 版本号提取 (pattern 可选 version 字段，正则提取)
 - 置信度评分 (按 pattern 来源类型加权)
+- implies 关联推断 (Wappalyzer 风格: 命中 WordPress → 推断 PHP)
 """
 
 import json
@@ -21,6 +22,17 @@ _DATA_DIR = Path(__file__).parent / 'data'
 
 with open(_DATA_DIR / 'fingerprints.json', encoding='utf-8') as f:
     FINGERPRINTS = json.load(f)
+
+# ── implies 索引：name → (implies_list, category) ──
+# Wappalyzer 风格的关联推断：识别到某技术后，按其 implies 字段补全关联技术。
+# 例: WordPress implies ["PHP"] —— 命中 WordPress 后额外推断出 PHP。
+_IMPLIES_INDEX: dict[str, tuple[list[str], str]] = {
+    fp['name']: (fp.get('implies', []) or [], fp['category'])
+    for fp in FINGERPRINTS
+}
+
+# implies 推断出的技术置信度（低于直接命中的 60-90，体现「非直接证据」）
+IMPLY_CONFIDENCE = 50
 
 # ── pattern 类型 → 置信度（命中来源越接近服务端真实标识，置信度越高）──
 # header:  服务端显式声明 (Server/X-Powered-By)，最可靠
@@ -122,7 +134,43 @@ def detect_technologies(
                     'confidence': best['confidence'],
                 })
 
+    # implies 传递闭包扩展：根据已命中技术的 implies 字段推断关联技术。
+    # 例: 命中 WordPress → 推断 PHP。推断出的技术 confidence 标 50，version 为空。
+    _apply_implies(detected, seen)
+
     return detected
+
+
+def _apply_implies(detected: list[dict], seen: set[str]) -> None:
+    """对已检测到的技术做 implies 传递闭包扩展（原地追加）。
+
+    遍历已命中技术的 implies 列表，将未直接命中的关联技术补全到结果里。
+    传递闭包：A implies B, B implies C → 也会补出 C（直到无新增）。
+    已直接命中的技术不覆盖（保留其原始置信度与版本）。
+    """
+    if not detected:
+        return
+    # 工作队列：从当前已命中技术出发，逐层扩展
+    queue = list(detected)
+    i = 0
+    while i < len(queue):
+        name = queue[i]['name']
+        i += 1
+        implies_list, _category = _IMPLIES_INDEX.get(name, ([], ''))
+        for implied_name in implies_list:
+            if not implied_name or implied_name in seen:
+                continue
+            seen.add(implied_name)
+            # 推断出的技术：category 取其自身规则定义的 category（若有），否则标 'Implied'
+            implied_category = _IMPLIES_INDEX.get(implied_name, ([], 'Implied'))[1] or 'Implied'
+            entry = {
+                'name': implied_name,
+                'category': implied_category,
+                'version': '',
+                'confidence': IMPLY_CONFIDENCE,
+            }
+            detected.append(entry)
+            queue.append(entry)  # 继续传递（B implies C）
 
 
 def _better(a: dict, b: dict) -> bool:

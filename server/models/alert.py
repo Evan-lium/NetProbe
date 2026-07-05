@@ -12,7 +12,8 @@ class Alert(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False)
-    # 条件类型: new_port / new_subdomain / high_risk_path / cert_expiry / tech_change
+    # 条件类型: new_port / new_subdomain / new_vuln / high_risk_path /
+    #           cert_expiry / domain_expiry / tech_change
     condition_type = Column(String(32), nullable=False)
     target = Column(String(255), default="")  # 匹配的扫描目标(base_domain)，空=全部
     threshold = Column(String(64), default="")  # 条件阈值，如 cert_expiry 的天数

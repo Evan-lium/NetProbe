@@ -202,6 +202,10 @@ def _parse_nuclei_result(data: dict) -> dict | None:
     template_path = data.get('template-path', '') or data.get('matcher-name', '')
     category = _classify_template(template_path, data.get('tags', []))
 
+    # OOB 带外检测确认（interactsh 回连）
+    interactsh_data = data.get('interactsh')
+    oob_confirmed = bool(interactsh_data) if isinstance(interactsh_data, (list, str, dict)) else False
+
     return {
         'template_id': data.get('template-id', '') or data.get('templateID', ''),
         'name': info.get('name', ''),
@@ -210,6 +214,7 @@ def _parse_nuclei_result(data: dict) -> dict | None:
         'cvss_score': cvss_score,
         'cwe': cwe,
         'category': category,
+        'oob_confirmed': oob_confirmed,
         'tags': data.get('tags', []) if isinstance(data.get('tags'), list) else [],
         'url': data.get('url', '') or data.get('matched-at', ''),
         'matched_at': data.get('matched-at', '') or data.get('matched', ''),
