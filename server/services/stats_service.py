@@ -44,6 +44,16 @@ def get_overview_stats() -> dict:
             .filter(Port.service != "").all()
         ]
 
+        # 端口分布 Top 20（按 port+proto 去重后统计出现的主机数）
+        port_dist_rows = db.query(
+            Port.port, Port.proto, func.count(func.distinct(Host.ip))
+        ).join(Host, Port.host_id == Host.host_id).filter(
+            Port.state == "open", Host.ip != ""
+        ).group_by(Port.port, Port.proto).order_by(
+            func.count(func.distinct(Host.ip)).desc()
+        ).limit(20).all()
+        port_dist = [{"port": r[0], "proto": r[1], "count": r[2]} for r in port_dist_rows]
+
         # 漏洞严重度分布
         vuln_by_severity = {}
         sev_rows = db.query(
@@ -67,6 +77,7 @@ def get_overview_stats() -> dict:
             "banner_count": banner_count,
             "protocol_count": len(services),
             "services": services,
+            "port_dist": port_dist,
             "vuln_by_severity": vuln_by_severity,
             "running_count": running_count,
         }
