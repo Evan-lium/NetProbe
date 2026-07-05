@@ -43,7 +43,7 @@
       <div class="np-table-wrapper" v-else-if="items.length">
         <el-table :data="items" style="width: 100%" row-class-name="task-row" @selection-change="onSelectionChange">
           <el-table-column type="selection" width="42" :selectable="canSelectRow" />
-          <el-table-column :label="t('tasks.name')" min-width="140">
+          <el-table-column :label="t('tasks.name')" min-width="140" show-overflow-tooltip>
             <template #default="{ row }">
               <span class="task-name">{{ row.name || row.base_domain || row.target_raw }}</span>
             </template>
@@ -55,7 +55,7 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column :label="t('tasks.target')" min-width="180">
+          <el-table-column :label="t('tasks.target')" min-width="180" show-overflow-tooltip>
             <template #default="{ row }">
               <router-link :to="`/tasks/${row.scan_id}`" class="link">
                 {{ row.base_domain || row.target_raw }}

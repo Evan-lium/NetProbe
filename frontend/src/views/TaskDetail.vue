@@ -116,7 +116,7 @@
         </div>
         <!-- 发现的主机列表 -->
         <el-table v-if="task.discovered_hosts?.length" :data="task.discovered_hosts" size="small" class="host-mini-table" max-height="240">
-          <el-table-column label="主机" min-width="180">
+          <el-table-column label="主机" min-width="180" show-overflow-tooltip>
             <template #default="{ row }">
               <span class="mono" style="font-weight:600">{{ row.hostname || row.ip }}</span>
               <span v-if="row.hostname && row.ip" class="mono host-ip-mini"> {{ row.ip }}</span>

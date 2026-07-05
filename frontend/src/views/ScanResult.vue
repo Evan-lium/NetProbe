@@ -66,7 +66,7 @@
             <el-table-column prop="url" :label="t('table.url')" min-width="180" show-overflow-tooltip />
             <el-table-column prop="status" :label="t('table.status')" width="75"><template #default="{ row }"><span class="mono">{{ row.status }}</span></template></el-table-column>
             <el-table-column prop="title" :label="t('table.title')" show-overflow-tooltip />
-            <el-table-column :label="t('table.tech')" min-width="120">
+            <el-table-column :label="t('table.tech')" min-width="120" show-overflow-tooltip>
               <template #default="{ row }">
                 <template v-if="row.tech?.length">
                   <el-tag v-for="t_item in row.tech.slice(0, 3)" :key="t_item.name" size="small" type="info" style="margin-right:4px">{{ t_item.name }}{{ t_item.version ? ' ' + t_item.version : '' }}</el-tag>

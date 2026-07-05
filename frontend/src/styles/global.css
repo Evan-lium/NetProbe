@@ -330,6 +330,30 @@ body {
   border-bottom: 2px solid var(--np-border-light) !important;
 }
 
+/* 表格统一规范 */
+/* 1. 行高统一，舒适间距 */
+.el-table .el-table__cell {
+  padding: 10px 0 !important;
+}
+
+/* 2. 所有单元格不换行 */
+.el-table .el-table__cell .cell {
+  white-space: nowrap !important;
+  line-height: 1.8 !important;
+}
+
+/* 3. 操作列（含按钮/链接）：完整展示，不截断 */
+.el-table .el-table__cell .cell:has(.el-button),
+.el-table .el-table__cell .cell:has(.el-link) {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 4. 内容列：截断省略（hover tooltip 由 show-overflow-tooltip 提供） */
+
 /* ── Tag（胶囊化，状态色更鲜明）────────────────────────── */
 .el-tag {
   border-radius: 20px !important;

@@ -22,7 +22,7 @@
 
       <div class="np-table-wrapper">
         <el-table :data="items" v-loading="loading" style="width: 100%">
-          <el-table-column :label="t('history.target')" min-width="200">
+          <el-table-column :label="t('history.target')" min-width="200" show-overflow-tooltip>
             <template #default="{ row }">
               <router-link :to="`/history/${row.scan_id}`" class="link">
                 {{ row.base_domain || row.target_raw }}

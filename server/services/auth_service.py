@@ -111,6 +111,58 @@ def create_user(username: str, password: str, is_admin: bool = False) -> User:
         db.close()
 
 
+def list_users() -> list[dict]:
+    """列出所有用户。"""
+    db = SessionLocal()
+    try:
+        users = db.query(User).order_by(User.id).all()
+        return [{
+            "id": u.id, "username": u.username, "is_admin": u.is_admin,
+            "created_at": u.created_at.isoformat() + "Z" if u.created_at else None,
+            "last_login": u.last_login.isoformat() + "Z" if u.last_login else None,
+        } for u in users]
+    finally:
+        db.close()
+
+
+def update_user(user_id: int, password: str | None = None, is_admin: bool | None = None) -> bool:
+    """更新用户（改密码/角色）。用户不存在返回 False。"""
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return False
+        if password:
+            user.password_hash = hash_password(password)
+        if is_admin is not None:
+            user.is_admin = is_admin
+        db.commit()
+        return True
+    finally:
+        db.close()
+
+
+def delete_user(user_id: int, current_user_id: int) -> bool:
+    """删除用户。不能删自己，不能删最后一个管理员。"""
+    if user_id == current_user_id:
+        raise HTTPException(status_code=400, detail="不能删除自己")
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return False
+        # 如果要删的是管理员，检查是否最后一个
+        if user.is_admin:
+            admin_count = db.query(User).filter(User.is_admin == True).count()  # noqa: E712
+            if admin_count <= 1:
+                raise HTTPException(status_code=400, detail="不能删除最后一个管理员")
+        db.delete(user)
+        db.commit()
+        return True
+    finally:
+        db.close()
+
+
 def init_admin():
     """首次启动时自动创建默认管理员（admin/admin）。
 

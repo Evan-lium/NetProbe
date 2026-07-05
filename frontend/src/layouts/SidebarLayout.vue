@@ -28,7 +28,7 @@
 
       <nav class="sidebar-nav">
         <router-link
-          v-for="item in navItems"
+          v-for="item in visibleNavItems"
           :key="item.path"
           :to="item.path"
           class="nav-item"
@@ -134,8 +134,14 @@ const navItems = [
   { path: '/stats', icon: 'DataLine', labelKey: 'nav.stats' },
   { path: '/graph', icon: 'Connection', labelKey: 'nav.graph' },
   { path: '/alerts', icon: 'Bell', labelKey: 'nav.alerts' },
+  { path: '/users', icon: 'UserFilled', labelKey: 'nav.users', adminOnly: true },
   { path: '/settings', icon: 'Setting', labelKey: 'nav.settings' },
 ]
+
+/** 菜单过滤：非管理员不显示 adminOnly 项 */
+const visibleNavItems = computed(() =>
+  navItems.filter(item => !item.adminOnly || authStore.user?.is_admin)
+)
 
 const sidebarWidth = computed(() => collapsed.value ? 'var(--np-sidebar-collapsed)' : 'var(--np-sidebar-width)')
 

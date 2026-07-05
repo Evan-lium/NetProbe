@@ -16,7 +16,7 @@
       <el-tab-pane :label="t('alerts.rules') + ` (${rules.length})`" name="rules">
         <el-card>
           <el-table :data="pagedRules" v-loading="loading" style="width: 100%">
-            <el-table-column prop="name" :label="t('alerts.name')" min-width="160" />
+            <el-table-column prop="name" :label="t('alerts.name')" min-width="160" show-overflow-tooltip />
             <el-table-column :label="t('alerts.condition')" width="180">
               <template #default="{ row }">
                 <el-tag size="small">{{ conditionLabel(row.condition_type) }}</el-tag>

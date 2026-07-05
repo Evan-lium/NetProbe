@@ -13,6 +13,7 @@ export default {
     history: 'Scan History',
     assets: 'Asset Inventory',
     settings: 'Settings',
+    users: 'User Management',
   },
   breadcrumb: {
     dashboard: 'Dashboard',

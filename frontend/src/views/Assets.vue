@@ -68,7 +68,7 @@
           </template>
         </el-table-column>
         <!-- 技术栈 -->
-        <el-table-column label="技术栈" min-width="200">
+        <el-table-column label="技术栈" min-width="200" show-overflow-tooltip>
           <template #default="{ row }">
             <div class="cell-tech" v-if="row._preview?.firstSite?.tech?.length">
               <el-tooltip
@@ -213,7 +213,7 @@
                   <el-table-column prop="service" :label="t('table.service')" width="100">
                     <template #default="{ row: p }">{{ p.service || '—' }}</template>
                   </el-table-column>
-                  <el-table-column prop="product" :label="t('table.product')" min-width="140">
+                  <el-table-column prop="product" :label="t('table.product')" min-width="140" show-overflow-tooltip>
                     <template #default="{ row: p }">
                       <span class="mono">{{ [p.product, p.version].filter(Boolean).join(' ') || '—' }}</span>
                     </template>
@@ -340,7 +340,7 @@
               </template>
               <div class="tab-content">
                 <el-table :data="detail.sensitive" size="small" stripe>
-                  <el-table-column prop="path" :label="t('table.path')" min-width="200">
+                  <el-table-column prop="path" :label="t('table.path')" min-width="200" show-overflow-tooltip>
                     <template #default="{ row: s }"><span class="mono">{{ s.path }}</span></template>
                   </el-table-column>
                   <el-table-column prop="severity" :label="t('table.severity')" width="90">
@@ -348,7 +348,7 @@
                       <el-tag :type="severityType(s.severity)" size="small">{{ s.severity }}</el-tag>
                     </template>
                   </el-table-column>
-                  <el-table-column prop="description" :label="t('table.description')" min-width="160">
+                  <el-table-column prop="description" :label="t('table.description')" min-width="160" show-overflow-tooltip>
                     <template #default="{ row: s }">{{ s.description || '—' }}</template>
                   </el-table-column>
                 </el-table>
@@ -366,7 +366,7 @@
               </template>
               <div class="tab-content">
                 <el-table :data="detail.tech_stack" size="small" stripe class="tech-table">
-                  <el-table-column label="名称" min-width="140">
+                  <el-table-column label="名称" min-width="140" show-overflow-tooltip>
                     <template #default="{ row }">
                       <span class="mono tech-name">{{ row.name }}</span>
                     </template>
@@ -546,7 +546,7 @@
                 <v-chart class="timeline-chart" :option="timelineChartOption" autoresize />
                 <!-- 明细表格 -->
                 <el-table :data="detail.timeline" size="small" stripe class="timeline-table">
-                  <el-table-column label="扫描时间" min-width="160">
+                  <el-table-column label="扫描时间" min-width="160" show-overflow-tooltip>
                     <template #default="{ row }">
                       <span class="mono">{{ formatScanTime(row.started_at) }}</span>
                     </template>

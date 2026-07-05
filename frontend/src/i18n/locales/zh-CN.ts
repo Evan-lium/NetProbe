@@ -13,6 +13,7 @@ export default {
     history: '扫描历史',
     assets: '资产清单',
     settings: '系统设置',
+    users: '用户管理',
   },
   breadcrumb: {
     dashboard: '仪表盘',

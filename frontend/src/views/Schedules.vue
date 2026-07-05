@@ -21,13 +21,13 @@
       </div>
       <div class="np-table-wrapper" v-else-if="items.length">
         <el-table :data="pagedItems" style="width: 100%">
-          <el-table-column :label="t('schedules.name')" min-width="140">
+          <el-table-column :label="t('schedules.name')" min-width="140" show-overflow-tooltip>
             <template #default="{ row }">
               <strong>{{ row.name || '—' }}</strong>
             </template>
           </el-table-column>
           <el-table-column prop="target_raw" :label="t('schedules.target')" min-width="160" show-overflow-tooltip />
-          <el-table-column :label="t('schedules.cronExpr')" min-width="130">
+          <el-table-column :label="t('schedules.cronExpr')" min-width="130" show-overflow-tooltip>
             <template #default="{ row }">
               <code class="cron-code">{{ row.cron_expr }}</code>
             </template>

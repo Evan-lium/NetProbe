@@ -82,18 +82,31 @@ const router = createRouter({
       meta: { title: 'Settings', icon: 'Setting' },
     },
     // Redirects from old /history routes
+    {
+      path: '/users',
+      name: 'users',
+      component: () => import('../views/Users.vue'),
+      meta: { title: 'Users', icon: 'UserFilled', requiresAdmin: true },
+    },
     { path: '/history', redirect: '/tasks' },
     { path: '/history/:id', redirect: to => `/tasks/${to.params.id}` },
   ],
 })
 
-// 全局路由守卫 — 未登录跳 /login
+// 全局路由守卫 — 未登录跳 /login，非管理员访问管理页跳首页
 router.beforeEach((to, _from, next) => {
   const token = localStorage.getItem('netprobe_token')
   if (to.meta.public || token) {
-    // 已登录访问 /login → 跳首页
     if (to.path === '/login' && token) {
       next('/')
+    } else if (to.meta.requiresAdmin) {
+      // 检查是否管理员
+      const user = JSON.parse(localStorage.getItem('netprobe_user') || '{}')
+      if (user.is_admin) {
+        next()
+      } else {
+        next('/')
+      }
     } else {
       next()
     }
