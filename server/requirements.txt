@@ -9,3 +9,5 @@ playwright>=1.40
 apscheduler>=3.10
 ipwhois>=1.2.0
 mmh3>=3.0
+pyjwt>=2.8
+passlib[bcrypt]>=1.7

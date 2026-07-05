@@ -4,6 +4,12 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/Login.vue'),
+      meta: { public: true },
+    },
+    {
       path: '/',
       name: 'dashboard',
       component: () => import('../views/Dashboard.vue'),
@@ -79,6 +85,21 @@ const router = createRouter({
     { path: '/history', redirect: '/tasks' },
     { path: '/history/:id', redirect: to => `/tasks/${to.params.id}` },
   ],
+})
+
+// 全局路由守卫 — 未登录跳 /login
+router.beforeEach((to, _from, next) => {
+  const token = localStorage.getItem('netprobe_token')
+  if (to.meta.public || token) {
+    // 已登录访问 /login → 跳首页
+    if (to.path === '/login' && token) {
+      next('/')
+    } else {
+      next()
+    }
+  } else {
+    next('/login')
+  }
 })
 
 export default router

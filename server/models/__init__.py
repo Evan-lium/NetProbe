@@ -5,6 +5,7 @@ from .web import WebInfo, SensitivePath, JSFinding, WhoisRecord, Vulnerability
 from .schedule import Schedule
 from .alert import Alert, AlertEvent
 from .scan_engine import ScanEngine
+from .user import User
 
 __all__ = [
     "Base",
@@ -22,4 +23,5 @@ __all__ = [
     "Alert",
     "AlertEvent",
     "ScanEngine",
+    "User",
 ]

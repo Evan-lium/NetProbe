@@ -87,6 +87,19 @@
             <span class="status-dot" />
             <span class="status-text">v3.0</span>
           </div>
+          <el-dropdown @command="onUserCommand" trigger="click">
+            <span class="user-info">
+              <el-icon><UserFilled /></el-icon>
+              {{ authStore.user?.username || 'admin' }}
+              <el-icon :size="12"><ArrowDown /></el-icon>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="changePwd">修改密码</el-dropdown-item>
+                <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </div>
       </header>
 
@@ -100,11 +113,15 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { ElMessageBox, ElMessage } from 'element-plus'
+import { useAuthStore } from '../stores/auth'
 
 const { t, locale } = useI18n()
 const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
 const collapsed = ref(false)
 const drawerOpen = ref(false)
 
@@ -163,6 +180,44 @@ const breadcrumbs = computed(() => {
   }
   return crumbs
 })
+
+async function onUserCommand(cmd: string) {
+  if (cmd === 'logout') {
+    authStore.logout()
+    router.push('/login')
+  } else if (cmd === 'changePwd') {
+    let newPwd: string
+    let oldPwd: string
+    try {
+      const res1 = await ElMessageBox.prompt('请输入新密码', '修改密码', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputType: 'password',
+        inputPlaceholder: '新密码（至少 6 位）',
+      })
+      newPwd = res1.value
+      if (!newPwd || newPwd.length < 6) {
+        ElMessage.warning('密码至少 6 位')
+        return
+      }
+      const res2 = await ElMessageBox.prompt('请输入当前密码', '验证身份', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputType: 'password',
+      })
+      oldPwd = res2.value
+    } catch {
+      // 用户点了取消/关闭，不做任何提示
+      return
+    }
+    try {
+      await authStore.changePassword(oldPwd!, newPwd!)
+      ElMessage.success('密码修改成功')
+    } catch (e: any) {
+      ElMessage.error(e.message || '修改失败')
+    }
+  }
+}
 
 function toggleCollapse() {
   collapsed.value = !collapsed.value
@@ -437,6 +492,21 @@ watch(() => route.path, () => {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--np-text-secondary);
+  padding: 4px 8px;
+  border-radius: var(--np-radius-md);
+  transition: all var(--np-transition);
+}
+.user-info:hover {
+  background: var(--np-bg-elevated);
+  color: var(--np-text-primary);
 }
 
 .header-badge {

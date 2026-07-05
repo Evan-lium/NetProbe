@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import DATA_DIR
@@ -20,12 +21,41 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # JWT 认证中间件 — 保护 /api 路由（login/注册/文档豁免）
+    @app.middleware("http")
+    async def jwt_auth_middleware(request: Request, call_next):
+        path = request.url.path
+
+        # 豁免路径：登录/静态文件/文档
+        if (path == "/api/auth/login"
+            or path.startswith("/api/auth/me")
+            or not path.startswith("/api")
+            or path in ("/docs", "/openapi.json", "/redoc")):
+            return await call_next(request)
+
+        # 检查 Authorization 头
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:]
+            try:
+                from .services.auth_service import get_current_user
+                # 验证 token（失败会抛 401）
+                get_current_user(token)
+                return await call_next(request)
+            except Exception:
+                return JSONResponse(status_code=401, content={"detail": "token 无效或已过期"})
+
+        # 无 token
+        return JSONResponse(status_code=401, content={"detail": "未登录，请先登录"})
+
     # Init DB + 调度器 on startup
     @app.on_event("startup")
     def on_startup():
         init_db()
-        _cleanup_zombie_scans()  # 把上次进程中断留下的 running 记录标记为 error
-        init_scheduler()  # 启动 APScheduler 并重建定时任务
+        from .services.auth_service import init_admin
+        init_admin()  # 首次启动创建默认管理员 admin/admin
+        _cleanup_zombie_scans()
+        init_scheduler()
 
     @app.on_event("shutdown")
     def on_shutdown():
