@@ -114,7 +114,7 @@ const { t } = useI18n()
 const activeTab = ref('rules')
 const rules = ref<any[]>([])
 const rulePage = ref(1)
-const rulePerPage = usePageSize()
+const rulePerPage = usePageSize('alerts')
 const pagedRules = computed(() => {
   const s = (rulePage.value - 1) * rulePerPage.value
   return rules.value.slice(s, s + rulePerPage.value)

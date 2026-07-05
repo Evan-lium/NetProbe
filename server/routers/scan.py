@@ -33,12 +33,12 @@ def stream_task(task_id: str):
         # 1. 先推送历史日志（刷新/重连时补齐已发生的进度）
         if historical_log:
             for line in historical_log.split("\n"):
-                if line.strip():
+                line = line.strip()
+                if line:
                     yield f"data: {json.dumps({'event': 'progress', 'text': line}, ensure_ascii=False)}\n\n"
 
-        # 2. 任务不在内存（已结束/重启）：推完历史就结束
+        # 2. 任务不在内存（已结束/重启）：推完历史直接静默结束（不加假 done 行）
         if not task:
-            yield f"data: {json.dumps({'event': 'done', 'text': '历史日志回放完成'}, ensure_ascii=False)}\n\n"
             return
 
         # 3. 任务在内存：继续实时推送

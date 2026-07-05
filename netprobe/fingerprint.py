@@ -104,6 +104,9 @@ def detect_technologies(
 
     for fp in FINGERPRINTS:
         best = None  # 该规则命中的最优结果（最高置信度 + 版本）
+        match_count = 0  # 该规则命中了几个 pattern
+        has_precise = False  # 是否有精确匹配（header/cookie/script_src/meta）
+
         for pat in fp['patterns']:
             matched, match_type = _match_pattern(
                 pat, headers_lower, html_lower, cookies_lower,
@@ -111,6 +114,9 @@ def detect_technologies(
             )
             if not matched:
                 continue
+            match_count += 1
+            if match_type in ('header', 'cookie', 'script_src', 'meta'):
+                has_precise = True
             confidence = PATTERN_CONFIDENCE.get(match_type, 50)
             # 提取版本（如有 version 正则）
             version = ''
@@ -118,10 +124,13 @@ def detect_technologies(
             if version_re:
                 version = _extract_version(version_re, raw_texts.get(match_type, ''))
             cand = {'confidence': confidence, 'version': version, 'type': match_type}
-            # 遍历所有 pattern 取最优命中（有版本 > 无版本，高置信度 > 低）
-            # 不再首个命中就 break —— 否则 wp-content(html) 会抢在 WordPress 6.4(meta) 之前
             if best is None or _better(cand, best):
                 best = cand
+
+        # 精度过滤：只有 html 匹配（无 header/cookie/script_src/meta 精确匹配）的规则
+        # → 降置信度到 50（被后面的 ≥50 过滤 + Top30 排序淘汰大部分）
+        if best is not None and not has_precise:
+            best['confidence'] = min(best['confidence'], 50)
 
         if best is not None:
             key = fp['name']
@@ -138,10 +147,16 @@ def detect_technologies(
     # 例: 命中 WordPress → 推断 PHP。推断出的技术 confidence 标 50，version 为空。
     _apply_implies(detected, seen)
 
-    # 结果过滤：置信度排序 + 限制数量（避免 5000+ 规则导致海量误报）
-    # 只保留置信度 >= 50 的，且最多返回 30 个
-    detected.sort(key=lambda x: -(x.get('confidence', 0) or 0))
-    detected = [d for d in detected if (d.get('confidence', 0) or 0) >= 50][:30]
+    # 结果过滤：宁少不误报
+    # 排序：有版本号优先 > 置信度高
+    detected.sort(key=lambda x: (
+        1 if x.get('version') else 0,
+        -(x.get('confidence', 0) or 0),
+    ), reverse=True)
+    # 必须有版本号（精确提取到了，不会误报）或 置信度 >= 90（header 强匹配）
+    # 80% 的 meta/script_src 和 60% 的 html 匹配都过滤掉（误报率高）
+    detected = [d for d in detected
+                if d.get('version') or (d.get('confidence', 0) or 0) >= 90][:15]
 
     return detected
 

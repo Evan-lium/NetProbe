@@ -158,20 +158,13 @@
 
       <!-- Tab：执行日志 + 扫描结果（合并展示） -->
       <el-tabs v-model="detailTab" class="detail-tabs">
-        <!-- 概要统计（done 时放最上面，紧凑） -->
-        <div v-if="task.status === 'done'" class="summary-bar">
-          <div class="summary-item"><span class="summary-num">{{ task.host_count }}</span><span class="summary-label">{{ t('common.hosts') }}</span></div>
-          <div class="summary-item"><span class="summary-num">{{ task.port_count }}</span><span class="summary-label">{{ t('common.ports') }}</span></div>
-          <div class="summary-item"><span class="summary-num">{{ task.web_count }}</span><span class="summary-label">{{ t('common.web') }}</span></div>
-        </div>
 
-        <!-- Tab 1: 执行日志 -->
+        <!-- Tab 1: 执行日志（纯展示，不要统计数字） -->
         <el-tab-pane name="logs">
           <template #label>
             <span class="tab-label">
               <el-icon :class="{ 'spin': isStreaming }"><Monitor /></el-icon>
               执行日志
-              <span class="tab-count" v-if="liveLogs.length">{{ liveLogs.length }}</span>
             </span>
           </template>
           <div class="console-area" ref="logRef">

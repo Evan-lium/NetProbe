@@ -163,7 +163,7 @@
 
           <!-- Tab 分区 -->
           <el-tabs v-model="detailTab" class="detail-tabs">
-            <!-- 漏洞（如果有，放第一个 Tab 最醒目） -->
+            <!-- 漏洞（按分类分组展示） -->
             <el-tab-pane v-if="detail.vulnerabilities?.length" :name="'vulns'">
               <template #label>
                 <span class="tab-label">
@@ -173,11 +173,19 @@
                 </span>
               </template>
               <div class="tab-content">
-                <div v-for="(v, i) in detail.vulnerabilities" :key="i" class="vuln-row">
-                  <el-tag :type="vulnSeverityType(v.severity)" size="small" effect="dark">{{ v.severity }}</el-tag>
-                  <span class="vuln-name">{{ v.name }}</span>
-                  <a v-if="v.cve" :href="`https://nvd.nist.gov/vuln/detail/${v.cve}`" target="_blank" rel="noopener" class="mono vuln-cve">{{ v.cve }}</a>
-                  <span class="mono cvss" v-if="v.cvss_score">CVSS {{ v.cvss_score }}</span>
+                <!-- 按分类分组 -->
+                <div v-for="group in vulnGroups" :key="group.key" class="vuln-group">
+                  <div class="vuln-group-title">
+                    <span>{{ group.icon }} {{ group.label }}</span>
+                    <el-tag size="small" type="info">{{ group.items.length }}</el-tag>
+                  </div>
+                  <div v-for="(v, i) in group.items" :key="i" class="vuln-row">
+                    <el-tag :type="vulnSeverityType(v.severity)" size="small" effect="dark">{{ v.severity }}</el-tag>
+                    <span class="vuln-name">{{ v.name }}</span>
+                    <a v-if="v.cve" :href="`https://nvd.nist.gov/vuln/detail/${v.cve}`" target="_blank" rel="noopener" class="mono vuln-cve">{{ v.cve }}</a>
+                    <span class="mono cvss" v-if="v.cvss_score">CVSS {{ v.cvss_score }}</span>
+                    <el-tag v-if="v.category && group.key === 'other'" size="small" effect="plain">{{ v.category }}</el-tag>
+                  </div>
                 </div>
               </div>
             </el-tab-pane>
@@ -357,19 +365,32 @@
                 </span>
               </template>
               <div class="tab-content">
-                <div class="np-tag-group tech-tags-detail">
-                  <el-tooltip
-                    v-for="(tech, i) in detail.tech_stack"
-                    :key="i"
-                    :content="techTooltip(tech)"
-                    :disabled="!techTooltip(tech)"
-                    placement="top"
-                  >
-                    <el-tag size="default" :type="techTagType(tech)">
-                      {{ techLabel(tech) }}
-                    </el-tag>
-                  </el-tooltip>
-                </div>
+                <el-table :data="detail.tech_stack" size="small" stripe class="tech-table">
+                  <el-table-column label="名称" min-width="140">
+                    <template #default="{ row }">
+                      <span class="mono tech-name">{{ row.name }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="版本" width="120">
+                    <template #default="{ row }">
+                      <span v-if="row.version" class="mono tech-version">{{ row.version }}</span>
+                      <span v-else class="cell-dash">—</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="类别" width="120">
+                    <template #default="{ row }">
+                      <el-tag v-if="row.category" :type="techTagType(row)" size="small">{{ row.category }}</el-tag>
+                      <span v-else class="cell-dash">—</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="置信度" width="110" align="center">
+                    <template #default="{ row }">
+                      <span v-if="row.confidence" class="mono" :class="(row.confidence || 0) >= 70 ? 'tech-conf-high' : 'tech-conf-low'">{{ row.confidence }}%</span>
+                      <el-tag v-if="row.confidence && (row.confidence || 0) < 70" size="small" type="warning" effect="plain" style="margin-left:4px">推测</el-tag>
+                      <span v-if="!row.confidence" class="cell-dash">—</span>
+                    </template>
+                  </el-table-column>
+                </el-table>
               </div>
             </el-tab-pane>
 
@@ -453,7 +474,7 @@
               </div>
             </el-tab-pane>
 
-            <!-- JS 分析（API 端点 + 密钥泄露） -->
+            <!-- JS 分析（可折叠手风琴，避免数据多时乱） -->
             <el-tab-pane v-if="detail.js_findings?.length" :name="'js'">
               <template #label>
                 <span class="tab-label">
@@ -463,29 +484,51 @@
                 </span>
               </template>
               <div class="tab-content">
-                <div v-for="(j, i) in detail.js_findings" :key="i" class="js-block">
-                  <div class="js-head">
-                    <a :href="j.js_url" target="_blank" rel="noopener" class="mono js-url">{{ j.js_url }}</a>
-                    <el-tag v-if="j.secrets?.length" type="danger" size="small">{{ j.secrets.length }} 密钥泄露</el-tag>
-                    <el-tag v-if="j.api_endpoints?.length" type="info" size="small">{{ j.api_endpoints.length }} API</el-tag>
-                  </div>
-                  <!-- 密钥泄露 -->
-                  <div v-if="j.secrets?.length" class="js-section">
-                    <div class="js-section-title danger">⚠ 密钥泄露</div>
-                    <div v-for="(s, si) in j.secrets" :key="si" class="secret-row">
-                      <el-tag :type="s.severity === 'high' ? 'danger' : 'warning'" size="small">{{ s.type }}</el-tag>
-                      <span class="mono secret-match">{{ s.match }}</span>
+                <el-collapse class="js-collapse">
+                  <el-collapse-item v-for="(j, i) in detail.js_findings" :key="i" :name="i">
+                    <!-- 折叠标题：文件名 + 统计标签 -->
+                    <template #title>
+                      <div class="js-collapse-title">
+                        <span class="mono js-file-name">{{ j.js_url?.split('/').pop() || j.js_url }}</span>
+                        <el-tag v-if="j.secrets?.length" type="danger" size="small">{{ j.secrets.length }} 密钥</el-tag>
+                        <el-tag v-if="j.api_endpoints?.length" type="info" size="small">{{ j.api_endpoints.length }} API</el-tag>
+                      </div>
+                    </template>
+                    <!-- 展开内容 -->
+                    <div class="js-detail">
+                      <!-- 文件 URL -->
+                      <div class="js-detail-row">
+                        <span class="js-detail-label">URL</span>
+                        <a :href="j.js_url" target="_blank" rel="noopener" class="mono js-detail-url">{{ j.js_url }}</a>
+                      </div>
+                      <!-- 密钥泄露（表格，避免平铺乱） -->
+                      <div v-if="j.secrets?.length" class="js-detail-section">
+                        <div class="js-section-title danger">⚠ 密钥泄露 ({{ j.secrets.length }})</div>
+                        <el-table :data="j.secrets" size="small" max-height="200" class="js-table">
+                          <el-table-column prop="type" label="类型" width="140">
+                            <template #default="{ row }">
+                              <el-tag :type="row.severity === 'high' ? 'danger' : 'warning'" size="small">{{ row.type }}</el-tag>
+                            </template>
+                          </el-table-column>
+                          <el-table-column prop="match" label="匹配内容" show-overflow-tooltip>
+                            <template #default="{ row }"><span class="mono">{{ row.match }}</span></template>
+                          </el-table-column>
+                          <el-table-column prop="severity" label="级别" width="70" align="center" />
+                        </el-table>
+                      </div>
+                      <!-- API 端点（表格 + 分页，避免 chip 平铺乱） -->
+                      <div v-if="j.api_endpoints?.length" class="js-detail-section">
+                        <div class="js-section-title">API 端点 ({{ j.api_endpoints.length }})</div>
+                        <el-table :data="j.api_endpoints.map((url: string, idx: number) => ({ idx, url }))" size="small" max-height="300" class="js-table">
+                          <el-table-column type="index" width="50" />
+                          <el-table-column prop="url" label="端点路径" show-overflow-tooltip>
+                            <template #default="{ row }"><span class="mono">{{ row.url }}</span></template>
+                          </el-table-column>
+                        </el-table>
+                      </div>
                     </div>
-                  </div>
-                  <!-- API 端点 -->
-                  <div v-if="j.api_endpoints?.length" class="js-section">
-                    <div class="js-section-title">API 端点 ({{ j.api_endpoints.length }})</div>
-                    <div class="api-list">
-                      <span v-for="(api, ai) in j.api_endpoints.slice(0, 30)" :key="ai" class="mono api-chip">{{ api }}</span>
-                      <span v-if="j.api_endpoints.length > 30" class="api-more">+{{ j.api_endpoints.length - 30 }}</span>
-                    </div>
-                  </div>
-                </div>
+                  </el-collapse-item>
+                </el-collapse>
               </div>
             </el-tab-pane>
 
@@ -607,7 +650,7 @@ const query = ref('')
 const sortBy = ref('hostname')
 /** 分页 */
 const page = ref(1)
-const perPage = usePageSize()
+const perPage = usePageSize('assets')
 const pagedItems = computed(() => {
   const start = (page.value - 1) * perPage.value
   return items.value.slice(start, start + perPage.value)
@@ -857,6 +900,31 @@ function severityType(sev: string) {
 }
 
 /** 漏洞等级 → el-tag 类型 */
+/** 漏洞按分类分组（nuclei 漏洞/安全头/CORS/弱口令/管理后台/真实IP） */
+const vulnGroups = computed(() => {
+  const vulns = detail.value?.vulnerabilities || []
+  const groups: Record<string, { key: string; label: string; icon: string; items: any[] }> = {
+    vuln:        { key: 'vuln', label: '已知漏洞', icon: '🔴', items: [] },
+    security_header: { key: 'security_header', label: '安全响应头', icon: '🛡', items: [] },
+    cors:        { key: 'cors', label: 'CORS 配置', icon: '🌐', items: [] },
+    weak_password: { key: 'weak_password', label: '弱口令', icon: '🔑', items: [] },
+    admin_panel: { key: 'admin_panel', label: '管理后台', icon: '⚙', items: [] },
+    origin_ip:   { key: 'origin_ip', label: 'CDN真实IP', icon: '📍', items: [] },
+    other:       { key: 'other', label: '其他', icon: '📋', items: [] },
+  }
+  for (const v of vulns) {
+    const cat = v.category || ''
+    if (cat in groups) groups[cat].items.push(v)
+    else if (['cve', 'exposure', 'misconfig', 'default-login', 'takeover', 'vulnerability', 'detection'].includes(cat)) {
+      groups.vuln.items.push(v)
+    } else {
+      groups.other.items.push(v)
+    }
+  }
+  // 只返回有数据的组
+  return Object.values(groups).filter(g => g.items.length > 0)
+})
+
 function vulnSeverityType(sev: string) {
   const s = (sev || '').toLowerCase()
   if (s === 'critical') return 'danger'
@@ -1148,6 +1216,18 @@ onMounted(loadData)
   flex-direction: column;
   gap: var(--np-space-2);
 }
+.vuln-group { margin-bottom: var(--np-space-4); }
+.vuln-group-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--np-text-secondary);
+  margin-bottom: var(--np-space-2);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--np-border);
+}
 .vuln-row {
   display: flex;
   align-items: center;
@@ -1413,22 +1493,46 @@ onMounted(loadData)
 .dns-val { font-size: 12px; color: var(--np-text-secondary); word-break: break-all; }
 .dns-mailsec { display: flex; gap: 8px; margin-top: 8px; }
 
-/* ── JS 分析 Tab ── */
-.js-block { margin-bottom: var(--np-space-4); padding-bottom: var(--np-space-3); border-bottom: 1px solid var(--np-border); }
-.js-block:last-child { border-bottom: none; }
-.js-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
-.js-url { font-size: 12px; color: var(--np-blue-500); word-break: break-all; flex: 1; min-width: 200px; }
-.js-section { margin-top: var(--np-space-2); }
-.js-section-title { font-size: 13px; font-weight: 600; color: var(--np-text-secondary); margin-bottom: 6px; }
-.js-section-title.danger { color: var(--np-danger); }
-.secret-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
-.secret-match { font-size: 12px; color: var(--np-text-secondary); word-break: break-all; }
-.api-list { display: flex; flex-wrap: wrap; gap: 4px; }
-.api-chip {
-  font-size: 11px; padding: 2px 6px; background: var(--np-bg-elevated);
-  border-radius: 4px; color: var(--np-text-secondary);
+/* ── JS 分析 Tab（可折叠式）── */
+.js-collapse { border-top: none; }
+.js-collapse :deep(.el-collapse-item__header) {
+  height: 44px;
+  padding: 0 12px;
+  border-radius: var(--np-radius-md);
+  border: 1px solid var(--np-border);
+  margin-bottom: 6px;
+  background: var(--np-bg-elevated);
 }
-.api-more { font-size: 11px; color: var(--np-text-muted); padding: 2px 0; }
+.js-collapse :deep(.el-collapse-item__wrap) {
+  border: none;
+}
+.js-collapse :deep(.el-collapse-item__content) {
+  padding: 12px 0 0;
+}
+.js-collapse-title {
+  display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;
+}
+.js-file-name {
+  font-size: 13px; font-weight: 500; color: var(--np-text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  flex: 1; min-width: 0;
+}
+.js-detail { padding: 0 4px; }
+.js-detail-row {
+  display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;
+}
+.js-detail-label { font-size: 12px; color: var(--np-text-muted); flex-shrink: 0; }
+.js-detail-url {
+  font-size: 12px; color: var(--np-blue-500);
+  word-break: break-all;
+}
+.js-detail-section { margin-bottom: var(--np-space-3); }
+.js-section-title {
+  font-size: 13px; font-weight: 600; color: var(--np-text-secondary);
+  margin-bottom: 6px;
+}
+.js-section-title.danger { color: var(--np-danger); }
+.js-table { width: 100%; }
 
 .timeline-hint {
   font-size: 12px;
@@ -1526,4 +1630,11 @@ onMounted(loadData)
   font-size: 13px;
   padding: 4px 12px;
 }
+
+/* 技术栈表格 */
+.tech-table .tech-name { font-weight: 600; color: var(--np-text-primary); }
+.tech-table .tech-version { color: var(--np-blue-500); font-weight: 500; }
+.tech-table .tech-confidence { color: var(--np-text-muted); }
+.tech-conf-high { color: var(--np-success); font-weight: 600; }
+.tech-conf-low { color: var(--np-text-muted); }
 </style>

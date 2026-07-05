@@ -73,19 +73,28 @@ def get_task_detail(task_id: str):
     # 先查内存
     task = get_task(task_id)
     if task:
+        from datetime import datetime
         elapsed = None
         if task["status"] == "running":
-            from datetime import datetime
             elapsed = int((datetime.utcnow() - task["created_at"]).total_seconds())
+        # 从内存里的 hosts 计算实际端口/网站数
+        hosts = task.get("hosts", [])
+        host_count = len(hosts)
+        port_count = sum(len(h.get("ports", [])) for h in hosts)
+        web_count = sum(len(h.get("web_info", [])) for h in hosts)
+        # 解析目标
+        targets = [t.strip() for t in (task.get("target", "") or "").replace(',', '\n').replace(' ', '\n').split('\n') if t.strip()]
         return {
             "id": task_id,
             "scan_id": task_id,
             "name": task.get("name", ""),
             "target": task.get("target", ""),
+            "targets": targets,
+            "base_domain": task.get("base_domain", ""),
             "status": task["status"],
-            "host_count": len(task.get("hosts", [])),
-            "port_count": 0,
-            "web_count": 0,
+            "host_count": host_count,
+            "port_count": port_count,
+            "web_count": web_count,
             "started_at": to_iso_z(task.get("created_at")) or "",
             "finished_at": None,
             "duration_secs": elapsed,

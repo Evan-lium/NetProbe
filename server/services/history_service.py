@@ -3,7 +3,7 @@
 import json
 
 from ..db import SessionLocal
-from ..models import Scan
+from ..models import Scan, Host, Port, WebInfo
 from ..utils import to_iso_z
 
 
@@ -82,12 +82,30 @@ def list_scans(page: int = 1, per_page: int = 20, q: str = "", status: str = "")
 
 
 def get_scan_detail(scan_id: str) -> dict | None:
-    """获取单次扫描概要。"""
+    """获取单次扫描详情（含主机/端口/Web站点完整数据）。"""
+    import json as _json
     db = SessionLocal()
     try:
         s = db.query(Scan).filter(Scan.scan_id == scan_id).first()
         if not s:
             return None
+
+        # 查完整主机/端口/Web 数据
+        hosts_data = []
+        for h in db.query(Host).filter(Host.scan_id == scan_id).all():
+            ports = [{"port": p.port, "proto": p.proto, "state": p.state,
+                      "service": p.service, "product": p.product, "version": p.version}
+                     for p in db.query(Port).filter(Port.host_id == h.host_id).all()]
+            web_info = [{"url": w.url, "status": w.status_code, "title": w.title}
+                        for w in db.query(WebInfo).filter(WebInfo.host_id == h.host_id).all()]
+            hosts_data.append({
+                "hostname": h.hostname,
+                "ip": h.ip,
+                "os": h.os_info or "",
+                "ports": ports,
+                "web_info": web_info,
+            })
+
         return {
             "scan_id": s.scan_id,
             "name": s.name or "",
@@ -102,6 +120,7 @@ def get_scan_detail(scan_id: str) -> dict | None:
             "started_at": to_iso_z(s.started_at),
             "finished_at": to_iso_z(s.finished_at),
             "duration_secs": s.duration_secs,
+            "hosts": hosts_data,
         }
     finally:
         db.close()

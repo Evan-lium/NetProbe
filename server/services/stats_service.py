@@ -104,22 +104,32 @@ def get_asset_detail(hostname: str, ip: str) -> dict | None:
                 })
 
         # Web 站点 + 技术栈
-        web_rows = db.query(WebInfo).filter(WebInfo.host_id.in_(host_ids)).all()
+        # 按 web_id 降序（最新扫描在前），同 URL 去重保留最新记录
+        # 技术栈跨所有扫描合并，按 name 去重取置信度最高的版本
+        web_rows = db.query(WebInfo).filter(WebInfo.host_id.in_(host_ids)).order_by(WebInfo.web_id.desc()).all()
         web_info = []
-        all_tech = []  # 保留完整 tech 对象（含 version/confidence），按 name 去重
-        seen_tech = set()
+        seen_urls = set()
+        all_tech = {}  # name → tech 对象（保留置信度最高的）
         for w in web_rows:
+            # 同 URL 只保留一条（最新的，指纹最全）
+            if w.url in seen_urls:
+                continue
+            seen_urls.add(w.url)
             tech = json.loads(w.tech_json) if w.tech_json else []
             for t in tech:
                 name = t.get("name")
-                if name and name not in seen_tech:
-                    seen_tech.add(name)
-                    all_tech.append({
+                if not name:
+                    continue
+                conf = t.get("confidence") or 0
+                existing = all_tech.get(name)
+                # 保留置信度更高的（或第一个）
+                if existing is None or conf > (existing.get("confidence") or 0):
+                    all_tech[name] = {
                         "name": name,
                         "version": t.get("version", ""),
-                        "confidence": t.get("confidence"),
+                        "confidence": conf,
                         "category": t.get("category", ""),
-                    })
+                    }
             web_info.append({
                 "url": w.url, "port": w.port, "status": w.status_code,
                 "title": w.title,
@@ -128,30 +138,56 @@ def get_asset_detail(hostname: str, ip: str) -> dict | None:
                 "cdn": w.cdn_detected or "",
                 "favicon_hash": w.favicon_hash or "",
             })
+        # 技术栈列表（按置信度降序）
+        all_tech_list = sorted(all_tech.values(), key=lambda x: -(x.get("confidence") or 0))
 
-        # 漏洞
+        # 漏洞（按 name + cve 去重，跨多次扫描只保留唯一漏洞）
         vuln_rows = db.query(Vulnerability).filter(Vulnerability.host_id.in_(host_ids)).all()
-        vulnerabilities = [{
-            "name": v.name, "severity": v.severity, "cve": v.cve,
-            "cvss_score": v.cvss_score, "cwe": v.cwe, "category": v.category,
-            "template_id": v.template_id,
-        } for v in vuln_rows]
+        vulnerabilities = []
+        seen_vulns = set()
+        for v in vuln_rows:
+            key = (v.name or '', v.cve or '', v.category or '')
+            if key in seen_vulns:
+                continue
+            seen_vulns.add(key)
+            vulnerabilities.append({
+                "name": v.name, "severity": v.severity, "cve": v.cve,
+                "cvss_score": v.cvss_score, "cwe": v.cwe, "category": v.category,
+                "template_id": v.template_id,
+            })
 
-        # Banner
+        # Banner（按 port+service 去重）
         banner_rows = db.query(Banner).filter(Banner.host_id.in_(host_ids)).all()
-        banners = [{"port": b.port, "service": b.service, "banner": b.banner} for b in banner_rows]
+        banners = []
+        seen_banners = set()
+        for b in banner_rows:
+            key = (b.port, b.service)
+            if key in seen_banners:
+                continue
+            seen_banners.add(key)
+            banners.append({"port": b.port, "service": b.service, "banner": b.banner})
 
-        # 敏感路径
+        # 敏感路径（按 path 去重）
         sens_rows = db.query(SensitivePath).filter(SensitivePath.host_id.in_(host_ids)).all()
-        sensitive = [{
-            "path": s.path, "severity": s.severity, "description": s.description,
-        } for s in sens_rows]
+        sensitive = []
+        seen_paths = set()
+        for s in sens_rows:
+            if s.path in seen_paths:
+                continue
+            seen_paths.add(s.path)
+            sensitive.append({"path": s.path, "severity": s.severity, "description": s.description})
 
-        # WHOIS/RDAP 注册信息 + IP ASN + DNS 记录（同表不同 type）
+        # WHOIS/RDAP 注册信息 + IP ASN + DNS 记录（按 target 去重，只保留最新一条）
         whois_rows = db.query(WhoisRecord).filter(WhoisRecord.host_id.in_(host_ids)).all()
         whois = []
         dns_records = []
+        seen_whois_targets = set()
         for w in whois_rows:
+            # 同 target 只保留最新一条（whois_rows 按默认顺序，后面覆盖前面）
+            entry_key = (w.type, w.target)
+            if entry_key in seen_whois_targets:
+                continue
+            seen_whois_targets.add(entry_key)
             try:
                 data = json.loads(w.data_json) if w.data_json else {}
             except json.JSONDecodeError:
@@ -201,7 +237,7 @@ def get_asset_detail(hostname: str, ip: str) -> dict | None:
             "whois": whois,
             "dns_records": dns_records,
             "js_findings": js_findings,
-            "tech_stack": sorted(all_tech, key=lambda x: x.get("name", "")),
+            "tech_stack": all_tech_list,
             "timeline": timeline,
             "port_count": len(ports),
             "web_count": len(web_info),

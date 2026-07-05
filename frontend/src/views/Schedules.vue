@@ -96,14 +96,36 @@
           <el-input v-model="form.target" type="textarea" :rows="2" :placeholder="t('dashboard.targetPlaceholder')" />
         </div>
 
-        <!-- Scan mode -->
+        <!-- 扫描引擎（和新建任务一致） -->
         <div class="np-form-row">
-          <label class="np-form-label">{{ t('dashboard.scanMode') }}</label>
-          <div class="mode-cards">
-            <div v-for="m in scanModes" :key="m.value" class="mode-card" :class="{ active: form.scanMode === m.value }" @click="form.scanMode = m.value">
-              <div class="mode-card-title">{{ t(m.labelKey) }}</div>
-              <div class="mode-card-desc">{{ t(m.descKey) }}</div>
-            </div>
+          <label class="np-form-label">扫描引擎</label>
+          <div class="engine-group">
+            <label v-for="e in engines" :key="e.id" class="engine-option" :class="{ active: form.engineId === e.id }">
+              <input type="radio" v-model="form.engineId" :value="e.id" class="sr-only" @change="onEngineChange" />
+              <span class="engine-name">{{ e.name }}<el-tag v-if="e.is_preset" size="small" type="info" effect="plain">预设</el-tag></span>
+              <span class="engine-desc">{{ e.description }}</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 检测项勾选（和新建任务一致） -->
+        <div class="np-form-row">
+          <label class="np-form-label">
+            检测项
+            <span class="np-form-hint">勾选要执行的检测</span>
+          </label>
+          <div class="stages-group">
+            <div class="stage-item base"><el-checkbox v-model="stages.subdomain" disabled>子域名枚举</el-checkbox></div>
+            <div class="stage-item base"><el-checkbox v-model="stages.port" disabled>端口扫描</el-checkbox></div>
+            <div class="stage-item base"><el-checkbox v-model="stages.web" disabled>Web 探测</el-checkbox></div>
+            <div class="stage-item"><el-checkbox v-model="stages.fingerprint">指纹识别</el-checkbox></div>
+            <div class="stage-item"><el-checkbox v-model="stages.sensitive">敏感路径</el-checkbox></div>
+            <div class="stage-item warn"><el-checkbox v-model="stages.dirBrute">目录爆破</el-checkbox></div>
+            <div class="stage-item warn"><el-checkbox v-model="stages.takeover">接管检测</el-checkbox></div>
+            <div class="stage-item"><el-checkbox v-model="stages.js">JS 分析</el-checkbox></div>
+            <div class="stage-item warn"><el-checkbox v-model="stages.vuln">漏洞扫描</el-checkbox></div>
+            <div class="stage-item"><el-checkbox v-model="stages.banner">Banner 抓取</el-checkbox></div>
+            <div class="stage-item"><el-checkbox v-model="stages.screenshot">截图</el-checkbox></div>
           </div>
         </div>
 
@@ -142,6 +164,7 @@ import {
   getSchedules, createSchedule, updateSchedule,
   deleteSchedule, toggleSchedule, runScheduleNow,
 } from '../api/scan'
+import api from '../api/index'
 import type { ScheduleTask } from '../types'
 import { usePageSize } from '../composables/usePageSetting'
 
@@ -149,7 +172,7 @@ const { t } = useI18n()
 
 const items = ref<ScheduleTask[]>([])
 const page = ref(1)
-const perPage = usePageSize()
+const perPage = usePageSize('schedules')
 const pagedItems = computed(() => {
   const s = (page.value - 1) * perPage.value
   return items.value.slice(s, s + perPage.value)
@@ -159,12 +182,6 @@ const showForm = ref(false)
 const submitting = ref(false)
 const editing = ref<ScheduleTask | null>(null)
 const cronPreset = ref('')
-
-const scanModes = [
-  { value: 'quick', labelKey: 'dashboard.modeQuick', descKey: 'dashboard.modeQuickDesc' },
-  { value: 'normal', labelKey: 'dashboard.modeNormal', descKey: 'dashboard.modeNormalDesc' },
-  { value: 'deep', labelKey: 'dashboard.modeDeep', descKey: 'dashboard.modeDeepDesc' },
-]
 
 const portPresets = [
   { value: 'common', labelKey: 'dashboard.portCommon', descKey: 'dashboard.portCommonDesc' },
@@ -177,6 +194,7 @@ const form = reactive({
   cron_expr: '0 2 * * *',
   name: '',
   target: '',
+  engineId: null as number | null,
   scanMode: 'normal',
   portPreset: 'common',
   customPorts: '',
@@ -186,6 +204,40 @@ const form = reactive({
   timeout: 300,
   enabled: true,
 })
+
+/** 引擎列表 + 检测项勾选（和新建任务一致） */
+const engines = ref<any[]>([])
+const stages = reactive({
+  subdomain: true, port: true, web: true, fingerprint: true,
+  sensitive: true, dirBrute: false, takeover: true, js: true,
+  vuln: false, banner: true, screenshot: false,
+})
+
+function onEngineChange() {
+  const engine = engines.value.find(e => e.id === form.engineId)
+  if (!engine?.config?.stages) return
+  const s = engine.config.stages
+  stages.fingerprint = s.fingerprint !== false
+  stages.sensitive = s.sensitive !== false
+  stages.dirBrute = s.dirBrute === true
+  stages.takeover = s.takeover !== false
+  stages.js = s.js !== false
+  stages.vuln = s.vuln === true
+  stages.banner = s.banner !== false
+  stages.screenshot = s.screenshot === true
+}
+
+async function loadEngines() {
+  try {
+    const res: any = await api.get('/scan-engines')
+    engines.value = res.items || []
+    if (!form.engineId && engines.value.length) {
+      const std = engines.value.find(e => e.name === '标准')
+      form.engineId = std ? std.id : engines.value[0].id
+      onEngineChange()
+    }
+  } catch { /* 不阻塞 */ }
+}
 
 function defaultForm() {
   return {
@@ -207,20 +259,30 @@ function applyPreset(val: string) {
   if (val) form.cron_expr = val
 }
 
-/** 把 form 组装成后端 options（复用 Tasks.vue handleScan 的映射逻辑）。 */
+/** 把 form 组装成后端 options（和新建任务一致：传 engine_id + stages）。 */
 function buildOptions() {
   const opts: Record<string, any> = {
     port_preset: form.portPreset,
     timeout: form.timeout,
   }
-  if (form.scanMode === 'quick') {
-    opts.portscan_tool = 'masscan'
-    opts.no_dns_brute = true
-    opts.no_web = true
-    opts.timeout = 120
-  } else if (form.scanMode === 'deep') {
-    opts.portscan_tool = 'nmap'
-    opts.timeout = 900
+  if (form.engineId) {
+    opts.engine_id = form.engineId
+    opts.stages = {
+      subdomain: stages.subdomain, port: stages.port, web: stages.web,
+      fingerprint: stages.fingerprint, sensitive: stages.sensitive,
+      takeover: stages.takeover, js: stages.js, vuln: stages.vuln,
+      banner: stages.banner, screenshot: stages.screenshot,
+    }
+  } else {
+    if (form.scanMode === 'quick') {
+      opts.portscan_tool = 'masscan'
+      opts.no_dns_brute = true
+      opts.no_web = true
+      opts.timeout = 120
+    } else if (form.scanMode === 'deep') {
+      opts.portscan_tool = 'nmap'
+      opts.timeout = 900
+    }
   }
   if (form.portscanTool !== 'auto') opts.portscan_tool = form.portscanTool
   if (form.subdomainTool !== 'auto') opts.subdomain_tool = form.subdomainTool
@@ -345,7 +407,9 @@ function formatTime(s: string | null): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-onMounted(loadData)
+onMounted(async () => {
+  await Promise.all([loadData(), loadEngines()])
+})
 </script>
 
 <style scoped>
@@ -394,5 +458,44 @@ onMounted(loadData)
 .mode-card-desc {
   font-size: 12px;
   color: var(--np-text-secondary);
+}
+
+/* 引擎选择器（和 Tasks.vue 一致） */
+.engine-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.engine-option {
+  display: flex; flex-direction: column;
+  padding: 10px 12px; border: 1px solid var(--np-border);
+  border-radius: var(--np-radius-md); cursor: pointer;
+  transition: all var(--np-transition);
+}
+.engine-option:hover { border-color: var(--np-blue-400); }
+.engine-option.active {
+  border-color: var(--np-blue-500);
+  background: rgba(59, 130, 246, 0.08);
+}
+.engine-name {
+  font-size: 13px; font-weight: 600; color: var(--np-text-primary);
+  display: flex; align-items: center; gap: 6px;
+}
+.engine-desc { font-size: 11px; color: var(--np-text-muted); margin-top: 2px; }
+
+/* 检测项勾选 */
+.stages-group {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 8px 12px; padding: 12px;
+  background: var(--np-bg-elevated); border: 1px solid var(--np-border);
+  border-radius: var(--np-radius-md);
+}
+.stage-item { display: flex; align-items: center; }
+.stage-item.base :deep(.el-checkbox__label) { color: var(--np-text-disabled); }
+.stage-item.warn :deep(.el-checkbox__label) { color: var(--np-text-secondary); }
+
+@media (max-width: 768px) {
+  .engine-group { grid-template-columns: 1fr; }
+  .stages-group { grid-template-columns: repeat(2, 1fr); }
 }
 </style>

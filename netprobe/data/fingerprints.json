@@ -1086,7 +1086,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "Gin"
+        "pattern": "Server: Gin"
       },
       {
         "type": "cookie",
@@ -3645,10 +3645,6 @@
     "name": "Unicorn",
     "category": "Runtime",
     "patterns": [
-      {
-        "type": "header",
-        "pattern": "Server: nginx"
-      },
       {
         "type": "header",
         "pattern": "Server: Unicorn"
@@ -10101,11 +10097,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:set-cookie: bitrix_"
+        "pattern": "set-cookie: bitrix_"
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-cms: bitrix site manager"
+        "pattern": "x-powered-cms: bitrix site manager"
       },
       {
         "type": "script_src",
@@ -10217,7 +10213,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:powered-by: ^42stores$"
+        "pattern": "powered-by: ^42stores$"
       }
     ]
   },
@@ -10247,7 +10243,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-cdn: ^5centscdn$"
+        "pattern": "x-cdn: ^5centscdn$"
       },
       {
         "type": "script_src",
@@ -10271,7 +10267,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.6sc\\.co/"
+        "pattern": "content-security-policy: \\.6sc\\.co/"
       },
       {
         "type": "script_src",
@@ -10491,7 +10487,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-amzn-waf-action: ^captcha$"
+        "pattern": "x-amzn-waf-action: ^captcha$"
       },
       {
         "type": "script_src",
@@ -10663,7 +10659,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-headers: ^accredible-authorization"
+        "pattern": "access-control-allow-headers: ^accredible-authorization"
       }
     ]
   },
@@ -10747,7 +10743,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: content-hub\\.acquia\\.com"
+        "pattern": "content-security-policy: content-hub\\.acquia\\.com"
       },
       {
         "type": "script_src",
@@ -10895,7 +10891,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.acuityplatform\\.com"
+        "pattern": "content-security-policy: \\.acuityplatform\\.com"
       }
     ]
   },
@@ -10915,7 +10911,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.adcalls\\.nl"
+        "pattern": "content-security-policy: \\.adcalls\\.nl"
       }
     ]
   },
@@ -11283,7 +11279,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-advertising-by: adnegah\\.net"
+        "pattern": "x-advertising-by: adnegah\\.net"
       },
       {
         "type": "script_src",
@@ -11321,7 +11317,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:cookie: cftoken="
+        "pattern": "cookie: cftoken="
       },
       {
         "type": "html",
@@ -11339,7 +11335,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.scene7\\.com"
+        "pattern": "content-security-policy: \\.scene7\\.com"
       }
     ]
   },
@@ -11605,7 +11601,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: afosto saas bv\\;version:2.0"
+        "pattern": "x-powered-by: afosto saas bv\\;version:2.0"
       }
     ]
   },
@@ -11669,7 +11665,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.agora\\.io"
+        "pattern": "content-security-policy: \\.agora\\.io"
       }
     ]
   },
@@ -11797,7 +11793,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^airee"
+        "pattern": "server: ^airee"
       }
     ]
   },
@@ -11847,7 +11843,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^volt-adc$"
+        "pattern": "server: ^volt-adc$"
       }
     ]
   },
@@ -11885,7 +11881,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-akaunting: ^free accounting software$"
+        "pattern": "x-akaunting: ^free accounting software$"
       },
       {
         "type": "html",
@@ -11953,7 +11949,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.aklamio\\.com"
+        "pattern": "content-security-policy: \\.aklamio\\.com"
       },
       {
         "type": "script_src",
@@ -12047,7 +12043,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.algolia"
+        "pattern": "content-security-policy: \\.algolia"
       },
       {
         "type": "cookie",
@@ -12231,7 +12227,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: almalinux"
+        "pattern": "server: almalinux"
       }
     ]
   },
@@ -12261,7 +12257,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: alpine"
+        "pattern": "x-powered-by: alpine"
       }
     ]
   },
@@ -12331,11 +12327,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: amasty\\.com"
+        "pattern": "content-security-policy: amasty\\.com"
       },
       {
         "type": "header",
-        "pattern": "re:content-security-policy-report-only: amasty\\.com"
+        "pattern": "content-security-policy-report-only: amasty\\.com"
       }
     ]
   },
@@ -12419,7 +12415,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^ecs"
+        "pattern": "server: ^ecs"
       }
     ]
   },
@@ -12429,7 +12425,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: awselb"
+        "pattern": "server: awselb"
       },
       {
         "type": "cookie",
@@ -12469,7 +12465,7 @@
       },
       {
         "type": "header",
-        "pattern": "re:server: ^amazons3$"
+        "pattern": "server: ^amazons3$"
       },
       {
         "type": "script_src",
@@ -12493,7 +12489,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^amber$"
+        "pattern": "x-powered-by: ^amber$"
       }
     ]
   },
@@ -12979,7 +12975,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^apache-coyote"
+        "pattern": "server: ^apache-coyote"
       },
       {
         "type": "header",
@@ -13013,7 +13009,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: salesforce\\.com apexpages"
+        "pattern": "x-powered-by: salesforce\\.com apexpages"
       }
     ]
   },
@@ -13167,7 +13163,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.apple-mapkit\\.com"
+        "pattern": "content-security-policy: \\.apple-mapkit\\.com"
       },
       {
         "type": "script_src",
@@ -13215,7 +13211,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.csr24\\.com"
+        "pattern": "content-security-policy: \\.csr24\\.com"
       }
     ]
   },
@@ -13385,7 +13381,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy-report-only: \\.arlocdn\\.net"
+        "pattern": "content-security-policy-report-only: \\.arlocdn\\.net"
       }
     ]
   },
@@ -13489,7 +13485,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-servername: \\.aruba\\.it"
+        "pattern": "x-servername: \\.aruba\\.it"
       }
     ]
   },
@@ -13499,7 +13495,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: arvancloud"
+        "pattern": "server: arvancloud"
       }
     ]
   },
@@ -14001,11 +13997,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:host: app\\.avasam\\.com"
+        "pattern": "host: app\\.avasam\\.com"
       },
       {
         "type": "header",
-        "pattern": "re:x-forwarded-host: app\\.avasam\\.com"
+        "pattern": "x-forwarded-host: app\\.avasam\\.com"
       }
     ]
   },
@@ -14093,7 +14089,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^azion "
+        "pattern": "server: ^azion "
       }
     ]
   },
@@ -14113,7 +14109,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^windows-azure"
+        "pattern": "server: ^windows-azure"
       },
       {
         "type": "cookie",
@@ -14131,7 +14127,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.azureedge\\.net"
+        "pattern": "content-security-policy: \\.azureedge\\.net"
       },
       {
         "type": "script_src",
@@ -14159,7 +14155,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: js\\.monitor\\.azure\\.com"
+        "pattern": "content-security-policy: js\\.monitor\\.azure\\.com"
       },
       {
         "type": "script_src",
@@ -14257,7 +14253,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-supplied-by: mana"
+        "pattern": "x-supplied-by: mana"
       },
       {
         "type": "meta",
@@ -14399,7 +14395,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.bamboohr\\.com"
+        "pattern": "content-security-policy: \\.bamboohr\\.com"
       },
       {
         "type": "script_src",
@@ -14535,7 +14531,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:www-authenticate: ^basic"
+        "pattern": "www-authenticate: ^basic"
       }
     ]
   },
@@ -14699,7 +14695,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-headers: ^x-beamery"
+        "pattern": "access-control-allow-headers: ^x-beamery"
       }
     ]
   },
@@ -14829,7 +14825,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:bc-powered-by: bernet\\.cloud"
+        "pattern": "bc-powered-by: bernet\\.cloud"
       }
     ]
   },
@@ -15281,7 +15277,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-servedby: ^blippa1$"
+        "pattern": "x-servedby: ^blippa1$"
       }
     ]
   },
@@ -15291,7 +15287,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^blitz$"
+        "pattern": "x-powered-by: ^blitz$"
       },
       {
         "type": "html",
@@ -15503,7 +15499,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: https\\://bobonus\\.com"
+        "pattern": "x-powered-by: https\\://bobonus\\.com"
       }
     ]
   },
@@ -15533,7 +15529,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: boidcms"
+        "pattern": "x-powered-by: boidcms"
       }
     ]
   },
@@ -15937,7 +15933,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^bool typescript$"
+        "pattern": "x-powered-by: ^bool typescript$"
       }
     ]
   },
@@ -16281,7 +16277,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.bridgerpay\\.com"
+        "pattern": "content-security-policy: \\.bridgerpay\\.com"
       }
     ]
   },
@@ -16331,7 +16327,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^brightspot$"
+        "pattern": "x-powered-by: ^brightspot$"
       }
     ]
   },
@@ -16351,7 +16347,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^brimble$"
+        "pattern": "server: ^brimble$"
       }
     ]
   },
@@ -16435,7 +16431,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: brownie"
+        "pattern": "x-powered-by: brownie"
       },
       {
         "type": "script_src",
@@ -16459,7 +16455,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-computed-host: content\\.brushd\\.co"
+        "pattern": "x-computed-host: content\\.brushd\\.co"
       },
       {
         "type": "script_src",
@@ -16531,7 +16527,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.bullseyelocations\\.com"
+        "pattern": "content-security-policy: \\.bullseyelocations\\.com"
       }
     ]
   },
@@ -16793,7 +16789,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^dragonfly cms"
+        "pattern": "x-powered-by: ^dragonfly cms"
       },
       {
         "type": "meta",
@@ -16897,7 +16893,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^cactive$"
+        "pattern": "server: ^cactive$"
       }
     ]
   },
@@ -17027,7 +17023,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: //canny\\.io"
+        "pattern": "content-security-policy: //canny\\.io"
       }
     ]
   },
@@ -17061,7 +17057,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-canvas-meta: login/canvas"
+        "pattern": "x-canvas-meta: login/canvas"
       }
     ]
   },
@@ -17213,7 +17209,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.carrotquest\\.app"
+        "pattern": "content-security-policy: \\.carrotquest\\.app"
       }
     ]
   },
@@ -17367,7 +17363,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: catberry"
+        "pattern": "x-powered-by: catberry"
       }
     ]
   },
@@ -17457,7 +17453,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^nextguest cms"
+        "pattern": "x-powered-by: ^nextguest cms"
       }
     ]
   },
@@ -17467,11 +17463,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: centos"
+        "pattern": "server: centos"
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-by: centos"
+        "pattern": "x-powered-by: centos"
       }
     ]
   },
@@ -17491,7 +17487,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: centminmod"
+        "pattern": "x-powered-by: centminmod"
       }
     ]
   },
@@ -17531,7 +17527,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-origin: business\\.certishopping\\.com"
+        "pattern": "access-control-allow-origin: business\\.certishopping\\.com"
       }
     ]
   },
@@ -17941,7 +17937,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^chimpify$"
+        "pattern": "server: ^chimpify$"
       }
     ]
   },
@@ -18069,7 +18065,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.civicplus\\.com"
+        "pattern": "content-security-policy: \\.civicplus\\.com"
       }
     ]
   },
@@ -18079,11 +18075,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-headers: x-ckan-api-key"
+        "pattern": "access-control-allow-headers: x-ckan-api-key"
       },
       {
         "type": "header",
-        "pattern": "re:link: <http://ckan\\.org/>; rel=shortlink"
+        "pattern": "link: <http://ckan\\.org/>; rel=shortlink"
       },
       {
         "type": "meta",
@@ -18347,7 +18343,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy-report-only: \\.clickhelp\\.com"
+        "pattern": "content-security-policy-report-only: \\.clickhelp\\.com"
       }
     ]
   },
@@ -18615,7 +18611,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: cloudera"
+        "pattern": "server: cloudera"
       }
     ]
   },
@@ -18645,7 +18641,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^cloudfy;"
+        "pattern": "x-powered-by: ^cloudfy;"
       },
       {
         "type": "cookie",
@@ -18669,7 +18665,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: player\\.cloudinary\\.com"
+        "pattern": "content-security-policy: player\\.cloudinary\\.com"
       }
     ]
   },
@@ -18689,7 +18685,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:cache-provider: cloudways-cache-de"
+        "pattern": "cache-provider: cloudways-cache-de"
       }
     ]
   },
@@ -18987,7 +18983,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: antiddos/flowproxy"
+        "pattern": "server: antiddos/flowproxy"
       },
       {
         "type": "cookie",
@@ -19021,7 +19017,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^comgem$"
+        "pattern": "server: ^comgem$"
       }
     ]
   },
@@ -19071,7 +19067,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.commercevision\\.com\\.au"
+        "pattern": "content-security-policy: \\.commercevision\\.com\\.au"
       }
     ]
   },
@@ -19081,7 +19077,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: commerce.js"
+        "pattern": "x-powered-by: commerce.js"
       },
       {
         "type": "script_src",
@@ -20079,7 +20075,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: \\bcraft commerce\\b"
+        "pattern": "x-powered-by: \\bcraft commerce\\b"
       }
     ]
   },
@@ -20223,7 +20219,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: cbx-ws"
+        "pattern": "server: cbx-ws"
       }
     ]
   },
@@ -20385,7 +20381,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-served-by: \\.curaytor\\.io"
+        "pattern": "x-served-by: \\.curaytor\\.io"
       }
     ]
   },
@@ -20581,7 +20577,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^ddos-guard$"
+        "pattern": "server: ^ddos-guard$"
       }
     ]
   },
@@ -20591,7 +20587,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^derak\\.cloud$"
+        "pattern": "server: ^derak\\.cloud$"
       },
       {
         "type": "cookie",
@@ -20639,11 +20635,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:cookie: dnn_ismobile="
+        "pattern": "cookie: dnn_ismobile="
       },
       {
         "type": "header",
-        "pattern": "re:x-compressed-by: dotnetnuke"
+        "pattern": "x-compressed-by: dotnetnuke"
       },
       {
         "type": "html",
@@ -20803,7 +20799,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: daphne"
+        "pattern": "server: daphne"
       }
     ]
   },
@@ -20843,11 +20839,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: darwin"
+        "pattern": "server: darwin"
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-by: darwin"
+        "pattern": "x-powered-by: darwin"
       }
     ]
   },
@@ -20877,7 +20873,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^datadome$"
+        "pattern": "server: ^datadome$"
       },
       {
         "type": "script_src",
@@ -20997,7 +20993,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.datocms-assets\\.com"
+        "pattern": "content-security-policy: \\.datocms-assets\\.com"
       }
     ]
   },
@@ -21007,7 +21003,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:reporting-endpoints: daxkosecurity\\.report-uri\\.com"
+        "pattern": "reporting-endpoints: daxkosecurity\\.report-uri\\.com"
       },
       {
         "type": "script_src",
@@ -21061,7 +21057,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: debian"
+        "pattern": "server: debian"
       },
       {
         "type": "header",
@@ -21229,7 +21225,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: destinet"
+        "pattern": "server: destinet"
       }
     ]
   },
@@ -21239,7 +21235,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^deta$"
+        "pattern": "server: ^deta$"
       }
     ]
   },
@@ -21349,7 +21345,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^diamondcdn$"
+        "pattern": "server: ^diamondcdn$"
       }
     ]
   },
@@ -21399,7 +21395,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:www-authenticate: ^digest"
+        "pattern": "www-authenticate: ^digest"
       }
     ]
   },
@@ -21511,7 +21507,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-distributor: yes"
+        "pattern": "x-distributor: yes"
       },
       {
         "type": "script_src",
@@ -21641,7 +21637,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: dokeos"
+        "pattern": "x-powered-by: dokeos"
       },
       {
         "type": "html",
@@ -21773,15 +21769,15 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^dorsa cloud$"
+        "pattern": "server: ^dorsa cloud$"
       },
       {
         "type": "header",
-        "pattern": "re:x-cdn-provider: ^dorsa cloud"
+        "pattern": "x-cdn-provider: ^dorsa cloud"
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^dorsa cloud"
+        "pattern": "x-powered-by: ^dorsa cloud"
       }
     ]
   },
@@ -22403,7 +22399,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^ezproxy$"
+        "pattern": "server: ^ezproxy$"
       }
     ]
   },
@@ -22717,7 +22713,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-headers: ecomz_client_id"
+        "pattern": "access-control-allow-headers: ecomz_client_id"
       },
       {
         "type": "script_src",
@@ -22745,7 +22741,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^tencentedgeone$"
+        "pattern": "server: ^tencentedgeone$"
       }
     ]
   },
@@ -22851,7 +22847,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.eggplant\\.cloud"
+        "pattern": "content-security-policy: \\.eggplant\\.cloud"
       },
       {
         "type": "script_src",
@@ -22957,7 +22953,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: elementor cloud"
+        "pattern": "x-powered-by: elementor cloud"
       }
     ]
   },
@@ -23027,7 +23023,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-headers: \\.elloha\\.com"
+        "pattern": "access-control-allow-headers: \\.elloha\\.com"
       }
     ]
   },
@@ -23221,7 +23217,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:set-cookie: ^empretienda_session"
+        "pattern": "set-cookie: ^empretienda_session"
       }
     ]
   },
@@ -23309,7 +23305,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-server-powered-by: ^engintron$"
+        "pattern": "x-server-powered-by: ^engintron$"
       }
     ]
   },
@@ -23627,7 +23623,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^etherpad"
+        "pattern": "server: ^etherpad"
       },
       {
         "type": "script_src",
@@ -24115,7 +24111,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: farazibilisim\\.com\\.tr"
+        "pattern": "x-powered-by: farazibilisim\\.com\\.tr"
       }
     ]
   },
@@ -24241,7 +24237,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^fat-free framework$"
+        "pattern": "x-powered-by: ^fat-free framework$"
       }
     ]
   },
@@ -24291,7 +24287,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: fedora"
+        "pattern": "server: fedora"
       }
     ]
   },
@@ -24401,7 +24397,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^ferron$"
+        "pattern": "server: ^ferron$"
       }
     ]
   },
@@ -24491,7 +24487,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^fing"
+        "pattern": "server: ^fing"
       }
     ]
   },
@@ -24545,7 +24541,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: fbs"
+        "pattern": "server: fbs"
       }
     ]
   },
@@ -24637,7 +24633,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy-report-only: \\.fitizzy\\.com"
+        "pattern": "content-security-policy-report-only: \\.fitizzy\\.com"
       },
       {
         "type": "script_src",
@@ -24887,7 +24883,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^flipsnack$"
+        "pattern": "server: ^flipsnack$"
       },
       {
         "type": "script_src",
@@ -25163,7 +25159,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.fohr\\.co"
+        "pattern": "content-security-policy: \\.fohr\\.co"
       },
       {
         "type": "meta",
@@ -25585,7 +25581,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^framer/"
+        "pattern": "server: ^framer/"
       },
       {
         "type": "script_src",
@@ -26461,11 +26457,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.genially\\.com"
+        "pattern": "content-security-policy: \\.genially\\.com"
       },
       {
         "type": "header",
-        "pattern": "re:server: ^genially"
+        "pattern": "server: ^genially"
       }
     ]
   },
@@ -26495,7 +26491,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: gentoo"
+        "pattern": "x-powered-by: gentoo"
       }
     ]
   },
@@ -26975,7 +26971,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.goinstore\\.com"
+        "pattern": "content-security-policy: \\.goinstore\\.com"
       },
       {
         "type": "script_src",
@@ -26999,7 +26995,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: goahead"
+        "pattern": "server: goahead"
       }
     ]
   },
@@ -27009,7 +27005,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: goanywhere"
+        "pattern": "server: goanywhere"
       }
     ]
   },
@@ -27019,7 +27015,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^gocache$"
+        "pattern": "server: ^gocache$"
       }
     ]
   },
@@ -27063,7 +27059,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:via: ^1\\.1 mysimplestore\\.com$"
+        "pattern": "via: ^1\\.1 mysimplestore\\.com$"
       }
     ]
   },
@@ -27151,7 +27147,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.goldenvolunteer\\.com"
+        "pattern": "content-security-policy: \\.goldenvolunteer\\.com"
       }
     ]
   },
@@ -27161,7 +27157,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:author: ^gomag$"
+        "pattern": "author: ^gomag$"
       }
     ]
   },
@@ -27171,7 +27167,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: app\\.gong\\.io"
+        "pattern": "content-security-policy: app\\.gong\\.io"
       }
     ]
   },
@@ -27251,7 +27247,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^google frontend$"
+        "pattern": "server: ^google frontend$"
       }
     ]
   },
@@ -27379,7 +27375,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: gws"
+        "pattern": "server: gws"
       }
     ]
   },
@@ -27419,7 +27415,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-cache: \\.swiftserve\\.com"
+        "pattern": "x-cache: \\.swiftserve\\.com"
       }
     ]
   },
@@ -27525,7 +27521,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:set-cookie: graphicsflowprodapi\\.azurewebsites\\.net"
+        "pattern": "set-cookie: graphicsflowprodapi\\.azurewebsites\\.net"
       }
     ]
   },
@@ -27787,7 +27783,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^guardflame$"
+        "pattern": "server: ^guardflame$"
       }
     ]
   },
@@ -27831,7 +27827,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:platform: ^guideit$"
+        "pattern": "platform: ^guideit$"
       }
     ]
   },
@@ -27841,7 +27837,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-origin: www\\.guildquality\\.com"
+        "pattern": "access-control-allow-origin: www\\.guildquality\\.com"
       }
     ]
   },
@@ -27945,7 +27941,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^lotus-domino$"
+        "pattern": "server: ^lotus-domino$"
       }
     ]
   },
@@ -27995,11 +27991,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:alt-svc: h2"
+        "pattern": "alt-svc: h2"
       },
       {
         "type": "header",
-        "pattern": "re:x-firefox-spdy: h2"
+        "pattern": "x-firefox-spdy: h2"
       }
     ]
   },
@@ -28009,11 +28005,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:alt-svc: h3"
+        "pattern": "alt-svc: h3"
       },
       {
         "type": "header",
-        "pattern": "re:x-firefox-http3: h3"
+        "pattern": "x-firefox-http3: h3"
       }
     ]
   },
@@ -28207,7 +28203,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-origin: harborbyte\\.com"
+        "pattern": "access-control-allow-origin: harborbyte\\.com"
       },
       {
         "type": "meta",
@@ -28309,7 +28305,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-hello: ^headway$"
+        "pattern": "x-hello: ^headway$"
       }
     ]
   },
@@ -28353,7 +28349,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-origin: uploads\\.heightsplatform\\.com"
+        "pattern": "access-control-allow-origin: uploads\\.heightsplatform\\.com"
       },
       {
         "type": "cookie",
@@ -28367,7 +28363,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: helhost"
+        "pattern": "x-powered-by: helhost"
       }
     ]
   },
@@ -28377,7 +28373,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: adrikikicp development"
+        "pattern": "x-powered-by: adrikikicp development"
       },
       {
         "type": "script_src",
@@ -28499,7 +28495,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.hetrixtools\\.com"
+        "pattern": "content-security-policy: \\.hetrixtools\\.com"
       },
       {
         "type": "script_src",
@@ -28645,7 +28641,7 @@
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-by: vanilla"
+        "pattern": "x-powered-by: vanilla"
       }
     ]
   },
@@ -28813,7 +28809,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: hono"
+        "pattern": "x-powered-by: hono"
       }
     ]
   },
@@ -28833,7 +28829,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:platform: hostinger"
+        "pattern": "platform: hostinger"
       }
     ]
   },
@@ -28843,7 +28839,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: hcdn"
+        "pattern": "server: hcdn"
       }
     ]
   },
@@ -28853,7 +28849,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^hostinger horizons$"
+        "pattern": "x-powered-by: ^hostinger horizons$"
       },
       {
         "type": "meta",
@@ -29003,7 +28999,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: hubspot"
+        "pattern": "x-powered-by: hubspot"
       },
       {
         "type": "meta",
@@ -29211,7 +29207,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: hypercorn"
+        "pattern": "server: hypercorn"
       }
     ]
   },
@@ -29261,7 +29257,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-built-with: ^hyva themes$"
+        "pattern": "x-built-with: ^hyva themes$"
       }
     ]
   },
@@ -29495,11 +29491,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^ikas$"
+        "pattern": "server: ^ikas$"
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^ikas$"
+        "pattern": "x-powered-by: ^ikas$"
       }
     ]
   },
@@ -29559,7 +29555,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-server: imagekit\\.io"
+        "pattern": "x-server: imagekit\\.io"
       }
     ]
   },
@@ -29715,11 +29711,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.inmoment\\.com"
+        "pattern": "content-security-policy: \\.inmoment\\.com"
       },
       {
         "type": "header",
-        "pattern": "re:content-security-policy-report-only: \\.inmoment\\.com"
+        "pattern": "content-security-policy-report-only: \\.inmoment\\.com"
       },
       {
         "type": "script_src",
@@ -29743,7 +29739,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-cdn: incapsula"
+        "pattern": "x-cdn: incapsula"
       }
     ]
   },
@@ -29753,7 +29749,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-webkit-csp: incident-io-team\\.vercel\\.app"
+        "pattern": "x-webkit-csp: incident-io-team\\.vercel\\.app"
       }
     ]
   },
@@ -29811,7 +29807,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:vary: x-inertia"
+        "pattern": "vary: x-inertia"
       }
     ]
   },
@@ -29945,7 +29941,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-origin: app\\.inso\\.pl"
+        "pattern": "access-control-allow-origin: app\\.inso\\.pl"
       }
     ]
   },
@@ -30437,7 +30433,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:powered: jet-enterprise"
+        "pattern": "powered: jet-enterprise"
       }
     ]
   },
@@ -30511,7 +30507,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:node: ^jadu-web-."
+        "pattern": "node: ^jadu-web-."
       }
     ]
   },
@@ -30675,7 +30671,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: jibres"
+        "pattern": "x-powered-by: jibres"
       },
       {
         "type": "script_src",
@@ -31399,7 +31395,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: kemal"
+        "pattern": "x-powered-by: kemal"
       }
     ]
   },
@@ -31445,7 +31441,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:www-authenticate: ^kerberos"
+        "pattern": "www-authenticate: ^kerberos"
       }
     ]
   },
@@ -31465,7 +31461,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^kestrel"
+        "pattern": "server: ^kestrel"
       }
     ]
   },
@@ -32031,7 +32027,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.kc-usercontent\\.com"
+        "pattern": "content-security-policy: \\.kc-usercontent\\.com"
       }
     ]
   },
@@ -32149,11 +32145,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^ktor/debug$"
+        "pattern": "server: ^ktor/debug$"
       },
       {
         "type": "header",
-        "pattern": "re:x-engine: ^ktor$"
+        "pattern": "x-engine: ^ktor$"
       }
     ]
   },
@@ -32809,7 +32805,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-origin: www\\.lendi\\.pl"
+        "pattern": "access-control-allow-origin: www\\.lendi\\.pl"
       },
       {
         "type": "script_src",
@@ -32873,7 +32869,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.lever\\.co"
+        "pattern": "content-security-policy: \\.lever\\.co"
       }
     ]
   },
@@ -32903,7 +32899,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.lianacms\\.com"
+        "pattern": "content-security-policy: \\.lianacms\\.com"
       },
       {
         "type": "meta",
@@ -33153,7 +33149,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: px\\.ads\\.linkedin\\.com"
+        "pattern": "content-security-policy: px\\.ads\\.linkedin\\.com"
       },
       {
         "type": "html",
@@ -33249,7 +33245,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-turbo-charged-by: litespeed"
+        "pattern": "x-turbo-charged-by: litespeed"
       },
       {
         "type": "script_src",
@@ -33391,7 +33387,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: livestreet cms"
+        "pattern": "x-powered-by: livestreet cms"
       }
     ]
   },
@@ -33461,7 +33457,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^llamalink"
+        "pattern": "server: ^llamalink"
       }
     ]
   },
@@ -33609,7 +33605,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: vtex-integrated-store"
+        "pattern": "x-powered-by: vtex-integrated-store"
       }
     ]
   },
@@ -33681,7 +33677,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.cloud\\.looker\\.com"
+        "pattern": "content-security-policy: \\.cloud\\.looker\\.com"
       }
     ]
   },
@@ -33909,7 +33905,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: bsdk\\.api\\.ditto.com"
+        "pattern": "content-security-policy: bsdk\\.api\\.ditto.com"
       }
     ]
   },
@@ -33979,7 +33975,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: matori.net"
+        "pattern": "x-powered-by: matori.net"
       }
     ]
   },
@@ -34089,15 +34085,15 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-built-by: mvd studio"
+        "pattern": "x-built-by: mvd studio"
       },
       {
         "type": "header",
-        "pattern": "re:x-generator: mvd studio"
+        "pattern": "x-generator: mvd studio"
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-by: mvd studio"
+        "pattern": "x-powered-by: mvd studio"
       },
       {
         "type": "meta",
@@ -34171,7 +34167,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-dist: ^mage-os$"
+        "pattern": "x-dist: ^mage-os$"
       }
     ]
   },
@@ -34191,7 +34187,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.magicbell\\.com"
+        "pattern": "content-security-policy: \\.magicbell\\.com"
       }
     ]
   },
@@ -34437,7 +34433,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: mainboard\\.com"
+        "pattern": "server: mainboard\\.com"
       }
     ]
   },
@@ -34467,7 +34463,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.makaira\\.io"
+        "pattern": "content-security-policy: \\.makaira\\.io"
       },
       {
         "type": "script_src",
@@ -34511,11 +34507,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-origin: app\\.makeswift\\.com"
+        "pattern": "access-control-allow-origin: app\\.makeswift\\.com"
       },
       {
         "type": "header",
-        "pattern": "re:content-security-policy: app\\.makeswift\\.com"
+        "pattern": "content-security-policy: app\\.makeswift\\.com"
       }
     ]
   },
@@ -34659,7 +34655,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-origin: app\\.mapline\\.com"
+        "pattern": "access-control-allow-origin: app\\.mapline\\.com"
       }
     ]
   },
@@ -34669,7 +34665,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.mappedin\\.com"
+        "pattern": "content-security-policy: \\.mappedin\\.com"
       }
     ]
   },
@@ -35123,7 +35119,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^medium$"
+        "pattern": "x-powered-by: ^medium$"
       },
       {
         "type": "script_src",
@@ -35219,7 +35215,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.meltwater\\.com"
+        "pattern": "content-security-policy: \\.meltwater\\.com"
       }
     ]
   },
@@ -35293,7 +35289,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-origin: frontend\\.menuu\\.com"
+        "pattern": "access-control-allow-origin: frontend\\.menuu\\.com"
       },
       {
         "type": "script_src",
@@ -35349,7 +35345,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-host: \\.mercurycloud\\.fr"
+        "pattern": "x-host: \\.mercurycloud\\.fr"
       },
       {
         "type": "header",
@@ -35363,7 +35359,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.merge\\.dev"
+        "pattern": "content-security-policy: \\.merge\\.dev"
       }
     ]
   },
@@ -35625,7 +35621,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:set-cookie: \\.aspnetcore"
+        "pattern": "set-cookie: \\.aspnetcore"
       },
       {
         "type": "header",
@@ -35633,7 +35629,7 @@
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^asp\\.net"
+        "pattern": "x-powered-by: ^asp\\.net"
       },
       {
         "type": "html",
@@ -35737,7 +35733,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: app\\.powerbi\\.com"
+        "pattern": "content-security-policy: app\\.powerbi\\.com"
       },
       {
         "type": "script_src",
@@ -36047,7 +36043,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.mirvac\\.com"
+        "pattern": "content-security-policy: \\.mirvac\\.com"
       }
     ]
   },
@@ -36125,7 +36121,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^mizbancloud$"
+        "pattern": "server: ^mizbancloud$"
       }
     ]
   },
@@ -36155,7 +36151,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: mobify"
+        "pattern": "x-powered-by: mobify"
       },
       {
         "type": "script_src",
@@ -36237,7 +36233,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.modiface\\.com"
+        "pattern": "content-security-policy: \\.modiface\\.com"
       },
       {
         "type": "script_src",
@@ -36319,7 +36315,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: asset\\.mojohelpdesk\\.com"
+        "pattern": "content-security-policy: asset\\.mojohelpdesk\\.com"
       }
     ]
   },
@@ -36329,11 +36325,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^mojolicious"
+        "pattern": "server: ^mojolicious"
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-by: mojolicious"
+        "pattern": "x-powered-by: mojolicious"
       }
     ]
   },
@@ -36417,7 +36413,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.moneris\\.com"
+        "pattern": "content-security-policy: \\.moneris\\.com"
       }
     ]
   },
@@ -36447,7 +36443,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: mongrel"
+        "pattern": "server: mongrel"
       }
     ]
   },
@@ -36487,7 +36483,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: mono"
+        "pattern": "x-powered-by: mono"
       }
     ]
   },
@@ -36679,7 +36675,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:platform: ^motherhost$"
+        "pattern": "platform: ^motherhost$"
       }
     ]
   },
@@ -36797,7 +36793,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-hosting-provider: mscode\\.pl"
+        "pattern": "x-hosting-provider: mscode\\.pl"
       },
       {
         "type": "meta",
@@ -36929,7 +36925,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-origin: myesalon\\.com"
+        "pattern": "access-control-allow-origin: myesalon\\.com"
       }
     ]
   },
@@ -36939,7 +36935,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.myfonts\\.net"
+        "pattern": "content-security-policy: \\.myfonts\\.net"
       }
     ]
   },
@@ -37103,7 +37099,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:powered: jet-neo"
+        "pattern": "powered: jet-neo"
       }
     ]
   },
@@ -37133,7 +37129,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:www-authenticate: ^ntlm"
+        "pattern": "www-authenticate: ^ntlm"
       }
     ]
   },
@@ -37217,7 +37213,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.narvar\\.com"
+        "pattern": "content-security-policy: \\.narvar\\.com"
       }
     ]
   },
@@ -37425,7 +37421,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-cms: nepso"
+        "pattern": "x-powered-cms: nepso"
       }
     ]
   },
@@ -37505,7 +37501,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^nette framework"
+        "pattern": "x-powered-by: ^nette framework"
       },
       {
         "type": "html",
@@ -37581,7 +37577,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:host-header: newspack"
+        "pattern": "host-header: newspack"
       }
     ]
   },
@@ -37601,7 +37597,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-hostname: nxcli\\.net$"
+        "pattern": "x-hostname: nxcli\\.net$"
       }
     ]
   },
@@ -37689,7 +37685,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^nexuspipe.com"
+        "pattern": "server: ^nexuspipe.com"
       }
     ]
   },
@@ -37719,7 +37715,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: niagahoster"
+        "pattern": "x-powered-by: niagahoster"
       }
     ]
   },
@@ -37729,7 +37725,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^nibiru ecommerce$"
+        "pattern": "x-powered-by: ^nibiru ecommerce$"
       }
     ]
   },
@@ -37889,7 +37885,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-origin: bookings\\.nookal\\.com"
+        "pattern": "access-control-allow-origin: bookings\\.nookal\\.com"
       },
       {
         "type": "script_src",
@@ -37923,7 +37919,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^nordcraft$"
+        "pattern": "x-powered-by: ^nordcraft$"
       },
       {
         "type": "meta",
@@ -37947,7 +37943,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: norse env"
+        "pattern": "x-powered-by: norse env"
       },
       {
         "type": "meta",
@@ -37981,7 +37977,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:portal: ^northstar connect"
+        "pattern": "portal: ^northstar connect"
       }
     ]
   },
@@ -38263,7 +38259,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-origin: widget\\.oclocher\\.fr"
+        "pattern": "access-control-allow-origin: widget\\.oclocher\\.fr"
       },
       {
         "type": "script_src",
@@ -38775,7 +38771,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.speedtestcustom\\.com"
+        "pattern": "content-security-policy: \\.speedtestcustom\\.com"
       },
       {
         "type": "script_src",
@@ -38841,7 +38837,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: opencms"
+        "pattern": "server: opencms"
       },
       {
         "type": "html",
@@ -38869,7 +38865,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: gse"
+        "pattern": "server: gse"
       }
     ]
   },
@@ -38903,7 +38899,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: opennemas"
+        "pattern": "x-powered-by: opennemas"
       },
       {
         "type": "meta",
@@ -39007,7 +39003,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.opinionbar\\.com"
+        "pattern": "content-security-policy: \\.opinionbar\\.com"
       }
     ]
   },
@@ -39101,7 +39097,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.episerver\\.net"
+        "pattern": "content-security-policy: \\.episerver\\.net"
       },
       {
         "type": "script_src",
@@ -39137,7 +39133,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: optimyapp-css\\.s3"
+        "pattern": "content-security-policy: optimyapp-css\\.s3"
       },
       {
         "type": "script_src",
@@ -39291,11 +39287,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-generator: ^orchard$"
+        "pattern": "x-generator: ^orchard$"
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-by: orchardcore"
+        "pattern": "x-powered-by: orchardcore"
       },
       {
         "type": "script_src",
@@ -39313,11 +39309,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-orckestra-commerce: .net client"
+        "pattern": "x-orckestra-commerce: .net client"
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-by: orckestra"
+        "pattern": "x-powered-by: orckestra"
       },
       {
         "type": "meta",
@@ -39345,7 +39341,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.ordergroove\\.com"
+        "pattern": "content-security-policy: \\.ordergroove\\.com"
       },
       {
         "type": "script_src",
@@ -39503,7 +39499,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-origin: ^x-owids-key$"
+        "pattern": "access-control-allow-origin: ^x-owids-key$"
       }
     ]
   },
@@ -39805,7 +39801,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: pagefly"
+        "pattern": "x-powered-by: pagefly"
       },
       {
         "type": "script_src",
@@ -39859,7 +39855,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: pagefai cms"
+        "pattern": "x-powered-by: pagefai cms"
       }
     ]
   },
@@ -39869,7 +39865,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^pagely"
+        "pattern": "server: ^pagely"
       }
     ]
   },
@@ -39899,7 +39895,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-servedby: pagevamp"
+        "pattern": "x-servedby: pagevamp"
       }
     ]
   },
@@ -40031,7 +40027,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^parmincloud$"
+        "pattern": "x-powered-by: ^parmincloud$"
       }
     ]
   },
@@ -40041,7 +40037,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: pars elecom portal"
+        "pattern": "x-powered-by: pars elecom portal"
       },
       {
         "type": "meta",
@@ -40373,7 +40369,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-origin: go\\.mypeachie\\.com"
+        "pattern": "access-control-allow-origin: go\\.mypeachie\\.com"
       }
     ]
   },
@@ -40501,7 +40497,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: pencilblue"
+        "pattern": "x-powered-by: pencilblue"
       }
     ]
   },
@@ -40969,7 +40965,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^pimcore$"
+        "pattern": "x-powered-by: ^pimcore$"
       },
       {
         "type": "script_src",
@@ -41193,7 +41189,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: cdn\\.plaid\\.com/"
+        "pattern": "content-security-policy: cdn\\.plaid\\.com/"
       },
       {
         "type": "script_src",
@@ -41297,7 +41293,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^platformos$"
+        "pattern": "x-powered-by: ^platformos$"
       }
     ]
   },
@@ -41357,7 +41353,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-plenty-shop: ^plentyone shop$"
+        "pattern": "x-plenty-shop: ^plentyone shop$"
       }
     ]
   },
@@ -41979,7 +41975,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.powerschool\\.com"
+        "pattern": "content-security-policy: \\.powerschool\\.com"
       },
       {
         "type": "meta",
@@ -42203,7 +42199,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:host-header: ^pressable"
+        "pattern": "host-header: ^pressable"
       }
     ]
   },
@@ -42403,7 +42399,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: processwire cms"
+        "pattern": "x-powered-by: processwire cms"
       }
     ]
   },
@@ -43123,7 +43119,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^pythonanywhere$"
+        "pattern": "server: ^pythonanywhere$"
       }
     ]
   },
@@ -43553,7 +43549,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:link: fea\\.assettype\\.com/quintype-ace"
+        "pattern": "link: fea\\.assettype\\.com/quintype-ace"
       },
       {
         "type": "cookie",
@@ -43749,7 +43745,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: search\\.roccommerce\\.com"
+        "pattern": "content-security-policy: search\\.roccommerce\\.com"
       }
     ]
   },
@@ -43759,7 +43755,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: rx-web"
+        "pattern": "x-powered-by: rx-web"
       }
     ]
   },
@@ -43769,7 +43765,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:powered-by: ^rabfy$"
+        "pattern": "powered-by: ^rabfy$"
       }
     ]
   },
@@ -43829,7 +43825,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^rainloop"
+        "pattern": "server: ^rainloop"
       },
       {
         "type": "html",
@@ -43979,15 +43975,15 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.rapidsec\\.net"
+        "pattern": "content-security-policy: \\.rapidsec\\.net"
       },
       {
         "type": "header",
-        "pattern": "re:content-security-policy-report-only: \\.rapidsec\\.net"
+        "pattern": "content-security-policy-report-only: \\.rapidsec\\.net"
       },
       {
         "type": "header",
-        "pattern": "re:report-to: \\.rapidsec\\.net"
+        "pattern": "report-to: \\.rapidsec\\.net"
       }
     ]
   },
@@ -44041,11 +44037,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: raspbian"
+        "pattern": "server: raspbian"
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-by: raspbian"
+        "pattern": "x-powered-by: raspbian"
       }
     ]
   },
@@ -44427,11 +44423,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: red hat"
+        "pattern": "server: red hat"
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-by: red hat"
+        "pattern": "x-powered-by: red hat"
       }
     ]
   },
@@ -44515,7 +44511,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.reelevant\\.com"
+        "pattern": "content-security-policy: \\.reelevant\\.com"
       }
     ]
   },
@@ -44665,7 +44661,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.remedo\\.io"
+        "pattern": "content-security-policy: \\.remedo\\.io"
       }
     ]
   },
@@ -45391,7 +45387,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-sdp-app-type: ripple"
+        "pattern": "x-sdp-app-type: ripple"
       }
     ]
   },
@@ -45411,7 +45407,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: riskified server"
+        "pattern": "server: riskified server"
       },
       {
         "type": "html",
@@ -45439,7 +45435,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: roadrunner"
+        "pattern": "server: roadrunner"
       }
     ]
   },
@@ -45449,7 +45445,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: roadiz cms"
+        "pattern": "x-powered-by: roadiz cms"
       },
       {
         "type": "meta",
@@ -45567,7 +45563,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: rofofk"
+        "pattern": "x-powered-by: rofofk"
       },
       {
         "type": "meta",
@@ -45581,7 +45577,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.rokt\\.com"
+        "pattern": "content-security-policy: \\.rokt\\.com"
       },
       {
         "type": "script_src",
@@ -45819,7 +45815,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^s-corepion cms$"
+        "pattern": "x-powered-by: ^s-corepion cms$"
       }
     ]
   },
@@ -45839,7 +45835,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: sap netweaver application server"
+        "pattern": "server: sap netweaver application server"
       }
     ]
   },
@@ -45981,7 +45977,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-firefox-spdy: \\d\\.\\d"
+        "pattern": "x-firefox-spdy: \\d\\.\\d"
       }
     ]
   },
@@ -46005,7 +46001,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:www-authenticate: ^negotiate"
+        "pattern": "www-authenticate: ^negotiate"
       }
     ]
   },
@@ -46263,7 +46259,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.exacttarget\\.com/"
+        "pattern": "content-security-policy: \\.exacttarget\\.com/"
       }
     ]
   },
@@ -46293,11 +46289,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-frame-options: \\.salla\\.sa"
+        "pattern": "x-frame-options: \\.salla\\.sa"
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^salla$"
+        "pattern": "x-powered-by: ^salla$"
       }
     ]
   },
@@ -46327,7 +46323,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: cdn\\.sanity\\.io"
+        "pattern": "content-security-policy: cdn\\.sanity\\.io"
       },
       {
         "type": "script_src",
@@ -46541,11 +46537,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: scientific linux"
+        "pattern": "server: scientific linux"
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-by: scientific linux"
+        "pattern": "x-powered-by: scientific linux"
       }
     ]
   },
@@ -47217,7 +47213,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^seravo"
+        "pattern": "x-powered-by: ^seravo"
       }
     ]
   },
@@ -47493,11 +47489,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.sheerid\\.com"
+        "pattern": "content-security-policy: \\.sheerid\\.com"
       },
       {
         "type": "header",
-        "pattern": "re:content-security-policy-report-only: \\.sheerid\\.com"
+        "pattern": "content-security-policy-report-only: \\.sheerid\\.com"
       }
     ]
   },
@@ -47507,11 +47503,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: dart:io with shelf"
+        "pattern": "server: dart:io with shelf"
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-by: dart with package:shelf"
+        "pattern": "x-powered-by: dart with package:shelf"
       }
     ]
   },
@@ -47545,7 +47541,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: 3dcart"
+        "pattern": "x-powered-by: 3dcart"
       },
       {
         "type": "script_src",
@@ -48239,7 +48235,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: api\\.signalize\\.com"
+        "pattern": "content-security-policy: api\\.signalize\\.com"
       }
     ]
   },
@@ -48279,7 +48275,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:powered: simbel"
+        "pattern": "powered: simbel"
       }
     ]
   },
@@ -48451,7 +48447,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-servedby: simplebo"
+        "pattern": "x-servedby: simplebo"
       }
     ]
   },
@@ -48471,7 +48467,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: sirclo"
+        "pattern": "x-powered-by: sirclo"
       },
       {
         "type": "script_src",
@@ -48889,7 +48885,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:cms-name: ^skilldo$"
+        "pattern": "cms-name: ^skilldo$"
       },
       {
         "type": "header",
@@ -49035,7 +49031,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: slickstack"
+        "pattern": "x-powered-by: slickstack"
       }
     ]
   },
@@ -49361,7 +49357,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:platform: ^smilii$"
+        "pattern": "platform: ^smilii$"
       }
     ]
   },
@@ -49887,7 +49883,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^sotoon$"
+        "pattern": "server: ^sotoon$"
       }
     ]
   },
@@ -50203,7 +50199,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: splunkd"
+        "pattern": "server: splunkd"
       }
     ]
   },
@@ -50447,7 +50443,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-protected-by: ^sqreen$"
+        "pattern": "x-protected-by: ^sqreen$"
       }
     ]
   },
@@ -50497,7 +50493,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: squarespace"
+        "pattern": "server: squarespace"
       },
       {
         "type": "script_src",
@@ -50531,7 +50527,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: squiz matrix"
+        "pattern": "x-powered-by: squiz matrix"
       },
       {
         "type": "html",
@@ -50643,7 +50639,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: stampede\\.ai"
+        "pattern": "x-powered-by: stampede\\.ai"
       },
       {
         "type": "script_src",
@@ -50685,7 +50681,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:cache-control: starhost"
+        "pattern": "cache-control: starhost"
       }
     ]
   },
@@ -50695,7 +50691,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^plack::handler::starlet"
+        "pattern": "server: ^plack::handler::starlet"
       }
     ]
   },
@@ -50715,7 +50711,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^statically$"
+        "pattern": "server: ^statically$"
       },
       {
         "type": "script_src",
@@ -50883,7 +50879,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: storeden"
+        "pattern": "x-powered-by: storeden"
       }
     ]
   },
@@ -50893,7 +50889,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^storefront"
+        "pattern": "x-powered-by: ^storefront"
       },
       {
         "type": "script_src",
@@ -51007,7 +51003,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: strattic"
+        "pattern": "x-powered-by: strattic"
       }
     ]
   },
@@ -51133,7 +51129,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-cms: subrion cms"
+        "pattern": "x-powered-cms: subrion cms"
       },
       {
         "type": "meta",
@@ -51157,11 +51153,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-cluster: substack"
+        "pattern": "x-cluster: substack"
       },
       {
         "type": "header",
-        "pattern": "re:x-served-by: substack"
+        "pattern": "x-served-by: substack"
       }
     ]
   },
@@ -51413,7 +51409,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: api\\.survicate\\.com"
+        "pattern": "content-security-policy: api\\.survicate\\.com"
       },
       {
         "type": "script_src",
@@ -51477,7 +51473,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:set-cookie: \\.swaven\\.com"
+        "pattern": "set-cookie: \\.swaven\\.com"
       },
       {
         "type": "script_src",
@@ -52223,7 +52219,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-hosting-provider: tangled network"
+        "pattern": "x-hosting-provider: tangled network"
       }
     ]
   },
@@ -52453,7 +52449,7 @@
       },
       {
         "type": "header",
-        "pattern": "re:tb-cache-group: ^webstore$\\;confidence:50"
+        "pattern": "tb-cache-group: ^webstore$\\;confidence:50"
       }
     ]
   },
@@ -52721,11 +52717,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.thehotelsnetwork\\.com"
+        "pattern": "content-security-policy: \\.thehotelsnetwork\\.com"
       },
       {
         "type": "header",
-        "pattern": "re:content-security-policy-report-only: \\.thehotelsnetwork\\.com"
+        "pattern": "content-security-policy-report-only: \\.thehotelsnetwork\\.com"
       },
       {
         "type": "script_src",
@@ -53687,7 +53683,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^totalcode$"
+        "pattern": "x-powered-by: ^totalcode$"
       }
     ]
   },
@@ -54525,7 +54521,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-cms: twilight cms"
+        "pattern": "x-powered-cms: twilight cms"
       }
     ]
   },
@@ -54535,7 +54531,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: twistphp"
+        "pattern": "x-powered-by: twistphp"
       }
     ]
   },
@@ -54703,7 +54699,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-generated-by: umi\\.cms"
+        "pattern": "x-generated-by: umi\\.cms"
       }
     ]
   },
@@ -54713,7 +54709,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: unix"
+        "pattern": "server: unix"
       }
     ]
   },
@@ -54753,11 +54749,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ubuntu"
+        "pattern": "server: ubuntu"
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ubuntu"
+        "pattern": "x-powered-by: ubuntu"
       }
     ]
   },
@@ -55067,7 +55063,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: uplisting"
+        "pattern": "server: uplisting"
       }
     ]
   },
@@ -55077,7 +55073,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.uplynk\\.com"
+        "pattern": "content-security-policy: \\.uplynk\\.com"
       }
     ]
   },
@@ -55137,7 +55133,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.uptimerobot\\.com"
+        "pattern": "content-security-policy: \\.uptimerobot\\.com"
       },
       {
         "type": "script_src",
@@ -55327,7 +55323,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: uvicorn"
+        "pattern": "server: uvicorn"
       }
     ]
   },
@@ -55439,11 +55435,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:powered: vtex"
+        "pattern": "powered: vtex"
       },
       {
         "type": "header",
-        "pattern": "re:server: ^vtex io$"
+        "pattern": "server: ^vtex io$"
       },
       {
         "type": "cookie",
@@ -55515,7 +55511,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: vanilla"
+        "pattern": "x-powered-by: vanilla"
       },
       {
         "type": "html",
@@ -55619,7 +55615,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-ventryshield-cache-status: no-cache"
+        "pattern": "x-ventryshield-cache-status: no-cache"
       },
       {
         "type": "cookie",
@@ -55735,7 +55731,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^vergecloud$"
+        "pattern": "server: ^vergecloud$"
       }
     ]
   },
@@ -55913,7 +55909,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.verygoodvault\\.com"
+        "pattern": "content-security-policy: \\.verygoodvault\\.com"
       },
       {
         "type": "script_src",
@@ -56069,7 +56065,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^vikreta$"
+        "pattern": "x-powered-by: ^vikreta$"
       }
     ]
   },
@@ -56109,7 +56105,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^virgool$"
+        "pattern": "x-powered-by: ^virgool$"
       }
     ]
   },
@@ -56803,7 +56799,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^optimized by wpcacheon"
+        "pattern": "x-powered-by: ^optimized by wpcacheon"
       }
     ]
   },
@@ -56901,7 +56897,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: wake"
+        "pattern": "x-powered-by: wake"
       }
     ]
   },
@@ -57129,7 +57125,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: web2py"
+        "pattern": "x-powered-by: web2py"
       },
       {
         "type": "script_src",
@@ -57157,7 +57153,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-type: application/wasm"
+        "pattern": "content-type: application/wasm"
       },
       {
         "type": "script_src",
@@ -57263,7 +57259,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:upgrade: websocket"
+        "pattern": "upgrade: websocket"
       },
       {
         "type": "html",
@@ -57311,7 +57307,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^webcool cms$"
+        "pattern": "x-powered-by: ^webcool cms$"
       }
     ]
   },
@@ -57391,7 +57387,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.weblate\\.org"
+        "pattern": "content-security-policy: \\.weblate\\.org"
       }
     ]
   },
@@ -57701,7 +57697,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: whova\\.com"
+        "pattern": "content-security-policy: whova\\.com"
       },
       {
         "type": "script_src",
@@ -57725,7 +57721,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy-report-only: \\.widde\\.io"
+        "pattern": "content-security-policy-report-only: \\.widde\\.io"
       },
       {
         "type": "script_src",
@@ -57843,7 +57839,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: \\bwince\\b"
+        "pattern": "server: \\bwince\\b"
       }
     ]
   },
@@ -58035,7 +58031,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^wiziserver$"
+        "pattern": "server: ^wiziserver$"
       }
     ]
   },
@@ -58363,7 +58359,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.smarterhq\\.io"
+        "pattern": "content-security-policy: \\.smarterhq\\.io"
       },
       {
         "type": "script_src",
@@ -58445,7 +58441,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-clacks-overhead: ^gnu terry pratchett$"
+        "pattern": "x-clacks-overhead: ^gnu terry pratchett$"
       }
     ]
   },
@@ -58581,11 +58577,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: xeoraengine"
+        "pattern": "server: xeoraengine"
       },
       {
         "type": "header",
-        "pattern": "re:x-powered-by: xeoracube"
+        "pattern": "x-powered-by: xeoracube"
       },
       {
         "type": "html",
@@ -58681,7 +58677,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:access-control-allow-origin: \\.xtime\\.net"
+        "pattern": "access-control-allow-origin: \\.xtime\\.net"
       },
       {
         "type": "script_src",
@@ -58755,7 +58751,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-xrds-location: /ystore/"
+        "pattern": "x-xrds-location: /ystore/"
       },
       {
         "type": "html",
@@ -58969,7 +58965,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:set-cookie: \\.yo-coach\\.com"
+        "pattern": "set-cookie: \\.yo-coach\\.com"
       }
     ]
   },
@@ -59043,7 +59039,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.yoomoney\\.ru"
+        "pattern": "content-security-policy: \\.yoomoney\\.ru"
       },
       {
         "type": "script_src",
@@ -59115,7 +59111,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: youcan\\.private\\.dc/"
+        "pattern": "x-powered-by: youcan\\.private\\.dc/"
       }
     ]
   },
@@ -59475,7 +59471,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^zepio$"
+        "pattern": "x-powered-by: ^zepio$"
       }
     ]
   },
@@ -59811,7 +59807,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^zope/"
+        "pattern": "server: ^zope/"
       }
     ]
   },
@@ -59985,7 +59981,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: actionhero api"
+        "pattern": "x-powered-by: actionhero api"
       },
       {
         "type": "script_src",
@@ -60023,7 +60019,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.authorize\\.net\\s"
+        "pattern": "content-security-policy: \\.authorize\\.net\\s"
       },
       {
         "type": "script_src",
@@ -60161,7 +60157,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.cashewpayments\\.com"
+        "pattern": "content-security-policy: \\.cashewpayments\\.com"
       },
       {
         "type": "script_src",
@@ -60327,7 +60323,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: e107"
+        "pattern": "x-powered-by: e107"
       },
       {
         "type": "script_src",
@@ -60355,7 +60351,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:server: ^ebay server$"
+        "pattern": "server: ^ebay server$"
       }
     ]
   },
@@ -60445,7 +60441,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-drectory-script: ^esyndicat"
+        "pattern": "x-drectory-script: ^esyndicat"
       },
       {
         "type": "meta",
@@ -60473,7 +60469,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^ez publish"
+        "pattern": "x-powered-by: ^ez publish"
       },
       {
         "type": "cookie",
@@ -60511,7 +60507,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^enduro\\.js"
+        "pattern": "x-powered-by: ^enduro\\.js"
       }
     ]
   },
@@ -60551,11 +60547,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.freewebstore\\.com"
+        "pattern": "content-security-policy: \\.freewebstore\\.com"
       },
       {
         "type": "header",
-        "pattern": "re:x-fws-platform: ^freewebstore$"
+        "pattern": "x-fws-platform: ^freewebstore$"
       }
     ]
   },
@@ -60575,7 +60571,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-powered-by: ^genezio$"
+        "pattern": "x-powered-by: ^genezio$"
       }
     ]
   },
@@ -60841,11 +60837,11 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:content-security-policy: \\.icommarketing\\.com"
+        "pattern": "content-security-policy: \\.icommarketing\\.com"
       },
       {
         "type": "header",
-        "pattern": "re:server: ^icommkt$"
+        "pattern": "server: ^icommkt$"
       }
     ]
   },
@@ -61577,7 +61573,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:x-plenty-shop: ceres"
+        "pattern": "x-plenty-shop: ceres"
       }
     ]
   },
@@ -61973,7 +61969,7 @@
     "patterns": [
       {
         "type": "header",
-        "pattern": "re:host-header: wpcloud"
+        "pattern": "host-header: wpcloud"
       }
     ]
   },

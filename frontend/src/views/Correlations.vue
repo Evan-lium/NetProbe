@@ -93,7 +93,7 @@ const activeType = ref<CorrelationType>('ip')
 const loading = ref(false)
 const groups = ref<Partial<Record<CorrelationType, CorrelationCluster[]>>>({})
 const page = ref(1)
-const perPage = usePageSize()
+const perPage = usePageSize('correlations')
 
 const clusters = computed(() => groups.value[activeType.value] || [])
 const pagedClusters = computed(() => {

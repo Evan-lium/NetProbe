@@ -168,16 +168,19 @@ def start_scan(raw_targets: str, options: dict) -> str:
     # 把 UI 配置的 API key 注入环境变量，让 netprobe 工具（fofa/hunter/shodan）能读到
     _inject_api_keys()
 
-    # 如果指定了扫描引擎，加载引擎 config 合并进 options（引擎的 stages/工具/参数覆盖请求字段）
+    # 如果指定了扫描引擎，加载引擎 config 作为默认值
+    # 注意：用户表单显式传入的字段优先，引擎 config 只填充用户没传的字段
     engine_id = options.get("engine_id")
     if engine_id:
         engine_config = _load_engine_config(engine_id)
         if engine_config:
-            # 引擎 config 的工具/参数字段覆盖 options（引擎优先级高于请求默认值）
             for k, v in engine_config.items():
                 if k == "stages":
-                    options["stages"] = v
-                elif v not in (None, "", []):
+                    # stages 总是用引擎的（用户通过勾选框覆盖时已传到 options.stages）
+                    if "stages" not in options:
+                        options["stages"] = v
+                elif v not in (None, "", []) and k not in options:
+                    # 只填充用户没传的字段（用户表单值优先）
                     options[k] = v
 
     _tasks[task_id] = {
@@ -433,6 +436,46 @@ def _write_results_to_db(scan_id: str, hosts: list[dict], base_domain: str):
                     matched_at=v.get("matched_at", ""),
                     extracted_data_json=json.dumps(v.get("extracted_data", {}), ensure_ascii=False),
                 ))
+
+            # 安全头检查 → vulnerabilities（category=security_header）
+            for sh in h.get("_security_findings", []):
+                db.add(Vulnerability(
+                    host_id=host.host_id,
+                    name=sh.get("header", ""),
+                    severity=sh.get("severity", "medium"),
+                    category="security_header",
+                    extracted_data_json=json.dumps(sh, ensure_ascii=False),
+                ))
+            # CORS 检测 → vulnerabilities（category=cors）
+            for cf in h.get("_cors_findings", []):
+                db.add(Vulnerability(
+                    host_id=host.host_id,
+                    name=f"CORS {cf.get('origin','')} — {cf.get('issue','')}",
+                    severity=cf.get("severity", "medium"),
+                    category="cors",
+                    extracted_data_json=json.dumps(cf, ensure_ascii=False),
+                ))
+            # 管理后台 → vulnerabilities（category=admin_panel）
+            for ap in h.get("_admin_panels", []):
+                db.add(Vulnerability(
+                    host_id=host.host_id,
+                    name=f"管理后台: {ap.get('title','')} ({ap.get('url','')})",
+                    severity="info",
+                    category="admin_panel",
+                    url=ap.get("url", ""),
+                    extracted_data_json=json.dumps(ap, ensure_ascii=False),
+                ))
+            # 真实 IP → vulnerabilities（category=origin_ip）
+            origin = h.get("_origin_ips")
+            if origin and origin.get("candidates"):
+                for cand in origin["candidates"][:5]:
+                    db.add(Vulnerability(
+                        host_id=host.host_id,
+                        name=f"CDN真实IP候选: {cand.get('ip','')} (来源: {cand.get('source','')})",
+                        severity="info",
+                        category="origin_ip",
+                        extracted_data_json=json.dumps(cand, ensure_ascii=False),
+                    ))
 
             total_hosts += 1
 
