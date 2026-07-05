@@ -54,7 +54,7 @@
           </template>
         </el-table-column>
         <!-- 状态码 -->
-        <el-table-column label="状态码" width="70" align="center">
+        <el-table-column label="状态码" min-width="70" align="center">
           <template #default="{ row }">
             <el-tag v-if="row._preview?.firstSite?.status" :type="statusTagType(row._preview.firstSite.status)" size="small" effect="dark">{{ row._preview.firstSite.status }}</el-tag>
             <span v-else class="cell-dash">—</span>
@@ -95,11 +95,11 @@
           </template>
         </el-table-column>
         <!-- 扫描次数 -->
-        <el-table-column prop="scan_count" label="扫描" width="60" align="center" sortable>
+        <el-table-column prop="scan_count" label="扫描" min-width="60" align="center" sortable>
           <template #default="{ row }">{{ row.scan_count }}</template>
         </el-table-column>
         <!-- 漏洞数 -->
-        <el-table-column label="漏洞" width="60" align="center" sortable :sort-method="(a: any, b: any) => (a._preview?.vulnCount || 0) - (b._preview?.vulnCount || 0)">
+        <el-table-column label="漏洞" min-width="60" align="center" sortable :sort-method="(a: any, b: any) => (a._preview?.vulnCount || 0) - (b._preview?.vulnCount || 0)">
           <template #default="{ row }">
             <span v-if="(row._preview?.vulnCount || 0) > 0" class="cell-vuln">{{ row._preview.vulnCount }}</span>
             <span v-else class="cell-dash">—</span>
@@ -201,16 +201,16 @@
               </template>
               <div class="tab-content">
                 <el-table :data="detail.ports" size="small" stripe>
-                  <el-table-column prop="port" :label="t('table.port')" width="90">
+                  <el-table-column prop="port" :label="t('table.port')" min-width="90">
                     <template #default="{ row: p }"><span class="mono">{{ p.port }}/{{ p.proto }}</span></template>
                   </el-table-column>
-                  <el-table-column prop="state" :label="t('table.state')" width="80">
+                  <el-table-column prop="state" :label="t('table.state')" min-width="80">
                     <template #default="{ row: p }">
                       <el-tag v-if="p.state === 'open'" type="success" size="small">{{ p.state }}</el-tag>
                       <span v-else class="mono">{{ p.state }}</span>
                     </template>
                   </el-table-column>
-                  <el-table-column prop="service" :label="t('table.service')" width="100">
+                  <el-table-column prop="service" :label="t('table.service')" min-width="100">
                     <template #default="{ row: p }">{{ p.service || '—' }}</template>
                   </el-table-column>
                   <el-table-column prop="product" :label="t('table.product')" min-width="140" show-overflow-tooltip>
@@ -343,7 +343,7 @@
                   <el-table-column prop="path" :label="t('table.path')" min-width="200" show-overflow-tooltip>
                     <template #default="{ row: s }"><span class="mono">{{ s.path }}</span></template>
                   </el-table-column>
-                  <el-table-column prop="severity" :label="t('table.severity')" width="90">
+                  <el-table-column prop="severity" :label="t('table.severity')" min-width="90">
                     <template #default="{ row: s }">
                       <el-tag :type="severityType(s.severity)" size="small">{{ s.severity }}</el-tag>
                     </template>
@@ -371,19 +371,19 @@
                       <span class="mono tech-name">{{ row.name }}</span>
                     </template>
                   </el-table-column>
-                  <el-table-column label="版本" width="120">
+                  <el-table-column label="版本" min-width="120">
                     <template #default="{ row }">
                       <span v-if="row.version" class="mono tech-version">{{ row.version }}</span>
                       <span v-else class="cell-dash">—</span>
                     </template>
                   </el-table-column>
-                  <el-table-column label="类别" width="120">
+                  <el-table-column label="类别" min-width="120">
                     <template #default="{ row }">
                       <el-tag v-if="row.category" :type="techTagType(row)" size="small">{{ row.category }}</el-tag>
                       <span v-else class="cell-dash">—</span>
                     </template>
                   </el-table-column>
-                  <el-table-column label="置信度" width="110" align="center">
+                  <el-table-column label="置信度" min-width="110" align="center">
                     <template #default="{ row }">
                       <span v-if="row.confidence" class="mono" :class="(row.confidence || 0) >= 70 ? 'tech-conf-high' : 'tech-conf-low'">{{ row.confidence }}%</span>
                       <el-tag v-if="row.confidence && (row.confidence || 0) < 70" size="small" type="warning" effect="plain" style="margin-left:4px">推测</el-tag>
@@ -505,7 +505,7 @@
                       <div v-if="j.secrets?.length" class="js-detail-section">
                         <div class="js-section-title danger">⚠ 密钥泄露 ({{ j.secrets.length }})</div>
                         <el-table :data="j.secrets" size="small" max-height="200" class="js-table">
-                          <el-table-column prop="type" label="类型" width="140">
+                          <el-table-column prop="type" label="类型" min-width="140">
                             <template #default="{ row }">
                               <el-tag :type="row.severity === 'high' ? 'danger' : 'warning'" size="small">{{ row.type }}</el-tag>
                             </template>
@@ -513,14 +513,14 @@
                           <el-table-column prop="match" label="匹配内容" show-overflow-tooltip>
                             <template #default="{ row }"><span class="mono">{{ row.match }}</span></template>
                           </el-table-column>
-                          <el-table-column prop="severity" label="级别" width="70" align="center" />
+                          <el-table-column prop="severity" label="级别" min-width="70" align="center" />
                         </el-table>
                       </div>
                       <!-- API 端点（表格 + 分页，避免 chip 平铺乱） -->
                       <div v-if="j.api_endpoints?.length" class="js-detail-section">
                         <div class="js-section-title">API 端点 ({{ j.api_endpoints.length }})</div>
                         <el-table :data="j.api_endpoints.map((url: string, idx: number) => ({ idx, url }))" size="small" max-height="300" class="js-table">
-                          <el-table-column type="index" width="50" />
+                          <el-table-column type="index" min-width="50" />
                           <el-table-column prop="url" label="端点路径" show-overflow-tooltip>
                             <template #default="{ row }"><span class="mono">{{ row.url }}</span></template>
                           </el-table-column>
@@ -552,31 +552,31 @@
                     </template>
                   </el-table-column>
                   <el-table-column prop="scan_name" label="任务" min-width="120" show-overflow-tooltip />
-                  <el-table-column label="端口数" width="80" align="center">
+                  <el-table-column label="端口数" min-width="80" align="center">
                     <template #default="{ row }"><b class="mono">{{ row.port_count }}</b></template>
                   </el-table-column>
-                  <el-table-column label="新增" width="70" align="center">
+                  <el-table-column label="新增" min-width="70" align="center">
                     <template #default="{ row }">
                       <span v-if="row.ports_added" class="diff-add">+{{ row.ports_added }}</span>
                       <span v-else class="diff-zero">—</span>
                     </template>
                   </el-table-column>
-                  <el-table-column label="消失" width="70" align="center">
+                  <el-table-column label="消失" min-width="70" align="center">
                     <template #default="{ row }">
                       <span v-if="row.ports_removed" class="diff-remove">−{{ row.ports_removed }}</span>
                       <span v-else class="diff-zero">—</span>
                     </template>
                   </el-table-column>
-                  <el-table-column label="技术栈" width="70" align="center">
+                  <el-table-column label="技术栈" min-width="70" align="center">
                     <template #default="{ row }"><b class="mono">{{ row.tech_count }}</b></template>
                   </el-table-column>
-                  <el-table-column label="新增" width="70" align="center">
+                  <el-table-column label="新增" min-width="70" align="center">
                     <template #default="{ row }">
                       <span v-if="row.tech_added" class="diff-add">+{{ row.tech_added }}</span>
                       <span v-else class="diff-zero">—</span>
                     </template>
                   </el-table-column>
-                  <el-table-column label="消失" width="70" align="center">
+                  <el-table-column label="消失" min-width="70" align="center">
                     <template #default="{ row }">
                       <span v-if="row.tech_removed" class="diff-remove">−{{ row.tech_removed }}</span>
                       <span v-else class="diff-zero">—</span>

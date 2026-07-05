@@ -32,15 +32,15 @@
               <code class="cron-code">{{ row.cron_expr }}</code>
             </template>
           </el-table-column>
-          <el-table-column :label="t('schedules.enabled')" width="100" align="center">
+          <el-table-column :label="t('schedules.enabled')" min-width="100" align="center">
             <template #default="{ row }">
               <el-switch :model-value="row.enabled" @change="(v: boolean) => handleToggle(row, v)" />
             </template>
           </el-table-column>
-          <el-table-column :label="t('schedules.lastRun')" width="170">
+          <el-table-column :label="t('schedules.lastRun')" min-width="170">
             <template #default="{ row }">{{ formatTime(row.last_run_at) }}</template>
           </el-table-column>
-          <el-table-column :label="t('schedules.nextRun')" width="170">
+          <el-table-column :label="t('schedules.nextRun')" min-width="170">
             <template #default="{ row }">{{ formatTime(row.next_run_at) }}</template>
           </el-table-column>
           <el-table-column :label="t('schedules.actions')" width="220" fixed="right">

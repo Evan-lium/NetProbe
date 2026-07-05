@@ -13,23 +13,23 @@
 
     <el-card>
       <el-table :data="users" v-loading="loading" size="small" stripe style="width: 100%">
-        <el-table-column prop="id" label="ID" width="60" />
+        <el-table-column prop="id" label="ID" min-width="60" />
         <el-table-column prop="username" label="用户名" min-width="80" show-overflow-tooltip>
           <template #default="{ row }">
             <strong>{{ row.username }}</strong>
           </template>
         </el-table-column>
-        <el-table-column label="角色" width="280" align="center">
+        <el-table-column label="角色" min-width="280" align="center">
           <template #default="{ row }">
             <el-tag :type="row.is_admin ? 'danger' : 'info'" size="small">
               {{ row.is_admin ? '管理员' : '普通用户' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" width="280">
+        <el-table-column label="创建时间" min-width="280">
           <template #default="{ row }">{{ formatTime(row.created_at) }}</template>
         </el-table-column>
-        <el-table-column label="最后登录" width="280">
+        <el-table-column label="最后登录" min-width="280">
           <template #default="{ row }">{{ formatTime(row.last_login) }}</template>
         </el-table-column>
         <el-table-column label="操作" width="260" align="center" fixed="right">

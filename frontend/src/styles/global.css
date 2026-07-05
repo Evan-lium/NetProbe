@@ -325,9 +325,15 @@ body {
   letter-spacing: 0.03em;
   font-size: 12px !important;
   color: var(--np-text-secondary) !important;
-  white-space: nowrap;
+  white-space: nowrap !important;
   background: var(--np-bg-app) !important;
   border-bottom: 2px solid var(--np-border-light) !important;
+}
+/* 表头内容：完整展示不截断，列宽自动适应表头 */
+.el-table th.el-table__cell .cell {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
 }
 
 /* 表格统一规范 */

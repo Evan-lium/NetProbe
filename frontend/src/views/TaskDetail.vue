@@ -122,15 +122,15 @@
               <span v-if="row.hostname && row.ip" class="mono host-ip-mini"> {{ row.ip }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="port_count" label="端口" width="70" align="center" sortable />
-          <el-table-column prop="web_count" label="Web" width="70" align="center" sortable />
-          <el-table-column label="漏洞" width="70" align="center" sortable :sort-method="(a:any,b:any) => (a.vuln_count||0)-(b.vuln_count||0)">
+          <el-table-column prop="port_count" label="端口" min-width="70" align="center" sortable />
+          <el-table-column prop="web_count" label="Web" min-width="70" align="center" sortable />
+          <el-table-column label="漏洞" min-width="70" align="center" sortable :sort-method="(a:any,b:any) => (a.vuln_count||0)-(b.vuln_count||0)">
             <template #default="{ row }">
               <span v-if="row.vuln_count" class="vuln-num">{{ row.vuln_count }}</span>
               <span v-else class="config-dash">—</span>
             </template>
           </el-table-column>
-          <el-table-column prop="risk_score" label="风险" width="70" align="center" sortable>
+          <el-table-column prop="risk_score" label="风险" min-width="70" align="center" sortable>
             <template #default="{ row }">
               <span class="risk-num" :class="riskLevel(row.risk_score)">{{ row.risk_score }}</span>
             </template>
@@ -201,9 +201,9 @@
                 <div class="np-section-title"><el-icon :size="14"><Connection /></el-icon> 端口 <span class="np-badge">{{ host.ports.length }}</span></div>
                 <div class="np-table-wrapper">
                   <el-table :data="host.ports" size="small">
-                    <el-table-column prop="port" :label="t('table.port')" width="70"><template #default="{ row }"><span class="mono">{{ row.port }}</span></template></el-table-column>
-                    <el-table-column prop="proto" :label="t('table.proto')" width="65" />
-                    <el-table-column prop="state" :label="t('table.state')" width="80"><template #default="{ row }"><el-tag :type="row.state === 'open' ? 'success' : 'info'" size="small">{{ row.state }}</el-tag></template></el-table-column>
+                    <el-table-column prop="port" :label="t('table.port')" min-width="70"><template #default="{ row }"><span class="mono">{{ row.port }}</span></template></el-table-column>
+                    <el-table-column prop="proto" :label="t('table.proto')" min-width="65" />
+                    <el-table-column prop="state" :label="t('table.state')" min-width="80"><template #default="{ row }"><el-tag :type="row.state === 'open' ? 'success' : 'info'" size="small">{{ row.state }}</el-tag></template></el-table-column>
                     <el-table-column prop="service" :label="t('table.service')" />
                     <el-table-column prop="product" :label="t('table.product')" />
                     <el-table-column prop="version" :label="t('table.version')" />
@@ -216,7 +216,7 @@
                 <div class="np-table-wrapper">
                   <el-table :data="host.web_info" size="small">
                     <el-table-column prop="url" label="URL" min-width="180" show-overflow-tooltip />
-                    <el-table-column prop="status" label="状态码" width="70" />
+                    <el-table-column prop="status" label="状态码" min-width="70" />
                     <el-table-column prop="title" label="标题" min-width="120" show-overflow-tooltip />
                   </el-table>
                 </div>

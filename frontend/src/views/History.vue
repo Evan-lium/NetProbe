@@ -30,26 +30,26 @@
               <div class="row-sub mono" v-if="row.target_raw !== row.base_domain">{{ row.target_raw }}</div>
             </template>
           </el-table-column>
-          <el-table-column prop="status" :label="t('history.status')" width="100">
+          <el-table-column prop="status" :label="t('history.status')" min-width="100">
             <template #default="{ row }">
               <el-tag :type="statusType(row.status)" size="small">{{ row.status }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="host_count" :label="t('history.hosts')" width="70">
+          <el-table-column prop="host_count" :label="t('history.hosts')" min-width="70">
             <template #default="{ row }"><span class="mono">{{ row.host_count }}</span></template>
           </el-table-column>
-          <el-table-column prop="port_count" :label="t('history.ports')" width="70">
+          <el-table-column prop="port_count" :label="t('history.ports')" min-width="70">
             <template #default="{ row }"><span class="mono">{{ row.port_count }}</span></template>
           </el-table-column>
-          <el-table-column prop="web_count" :label="t('history.web')" width="60">
+          <el-table-column prop="web_count" :label="t('history.web')" min-width="60">
             <template #default="{ row }"><span class="mono">{{ row.web_count }}</span></template>
           </el-table-column>
-          <el-table-column prop="duration_secs" :label="t('history.duration')" width="90">
+          <el-table-column prop="duration_secs" :label="t('history.duration')" min-width="90">
             <template #default="{ row }">
               <span class="mono">{{ row.duration_secs != null ? `${row.duration_secs}s` : '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column :label="t('history.date')" width="170">
+          <el-table-column :label="t('history.date')" min-width="170">
             <template #default="{ row }">{{ formatDate(row.started_at) }}</template>
           </el-table-column>
           <el-table-column label="" width="60" fixed="right">

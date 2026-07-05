@@ -47,9 +47,9 @@
         </div>
         <div class="np-table-wrapper">
           <el-table :data="host.ports" size="small">
-            <el-table-column prop="port" :label="t('table.port')" width="70"><template #default="{ row }"><span class="mono">{{ row.port }}</span></template></el-table-column>
-            <el-table-column prop="proto" :label="t('table.proto')" width="65" />
-            <el-table-column prop="state" :label="t('table.state')" width="80"><template #default="{ row }"><el-tag :type="row.state === 'open' ? 'success' : 'info'" size="small">{{ row.state }}</el-tag></template></el-table-column>
+            <el-table-column prop="port" :label="t('table.port')" min-width="70"><template #default="{ row }"><span class="mono">{{ row.port }}</span></template></el-table-column>
+            <el-table-column prop="proto" :label="t('table.proto')" min-width="65" />
+            <el-table-column prop="state" :label="t('table.state')" min-width="80"><template #default="{ row }"><el-tag :type="row.state === 'open' ? 'success' : 'info'" size="small">{{ row.state }}</el-tag></template></el-table-column>
             <el-table-column prop="service" :label="t('table.service')" />
             <el-table-column prop="product" :label="t('table.product')" />
             <el-table-column prop="version" :label="t('table.version')" />
@@ -64,7 +64,7 @@
         <div class="np-table-wrapper">
           <el-table :data="host.web_info" size="small">
             <el-table-column prop="url" :label="t('table.url')" min-width="180" show-overflow-tooltip />
-            <el-table-column prop="status" :label="t('table.status')" width="75"><template #default="{ row }"><span class="mono">{{ row.status }}</span></template></el-table-column>
+            <el-table-column prop="status" :label="t('table.status')" min-width="75"><template #default="{ row }"><span class="mono">{{ row.status }}</span></template></el-table-column>
             <el-table-column prop="title" :label="t('table.title')" show-overflow-tooltip />
             <el-table-column :label="t('table.tech')" min-width="120" show-overflow-tooltip>
               <template #default="{ row }">
@@ -75,7 +75,7 @@
                 <span v-else class="mono" style="color:var(--np-text-muted)">-</span>
               </template>
             </el-table-column>
-            <el-table-column :label="t('table.ssl')" width="80">
+            <el-table-column :label="t('table.ssl')" min-width="80">
               <template #default="{ row }">
                 <el-tag v-if="row.ssl" :type="row.ssl.expired ? 'danger' : 'success'" size="small">{{ row.ssl.protocol || 'SSL' }}</el-tag>
                 <span v-else class="mono" style="color:var(--np-text-muted)">-</span>
@@ -93,8 +93,8 @@
           <el-table :data="host.sensitive" size="small">
             <el-table-column prop="path" :label="t('table.path')" show-overflow-tooltip><template #default="{ row }"><span class="mono">{{ row.path }}</span></template></el-table-column>
             <el-table-column prop="description" :label="t('table.description')" />
-            <el-table-column prop="severity" :label="t('table.severity')" width="85"><template #default="{ row }"><el-tag :type="severityType(row.severity)" size="small">{{ row.severity }}</el-tag></template></el-table-column>
-            <el-table-column prop="status_code" :label="t('table.statusCode')" width="85"><template #default="{ row }"><span class="mono">{{ row.status_code ?? '-' }}</span></template></el-table-column>
+            <el-table-column prop="severity" :label="t('table.severity')" min-width="85"><template #default="{ row }"><el-tag :type="severityType(row.severity)" size="small">{{ row.severity }}</el-tag></template></el-table-column>
+            <el-table-column prop="status_code" :label="t('table.statusCode')" min-width="85"><template #default="{ row }"><span class="mono">{{ row.status_code ?? '-' }}</span></template></el-table-column>
           </el-table>
         </div>
       </div>
@@ -105,8 +105,8 @@
         </div>
         <div class="np-table-wrapper">
           <el-table :data="host.banners" size="small">
-            <el-table-column prop="port" :label="t('table.port')" width="70"><template #default="{ row }"><span class="mono">{{ row.port }}</span></template></el-table-column>
-            <el-table-column prop="service" :label="t('table.service')" width="120" />
+            <el-table-column prop="port" :label="t('table.port')" min-width="70"><template #default="{ row }"><span class="mono">{{ row.port }}</span></template></el-table-column>
+            <el-table-column prop="service" :label="t('table.service')" min-width="120" />
             <el-table-column prop="banner" :label="t('table.banner')" show-overflow-tooltip><template #default="{ row }"><span class="mono">{{ row.banner }}</span></template></el-table-column>
           </el-table>
         </div>

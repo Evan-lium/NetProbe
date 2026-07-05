@@ -30,11 +30,11 @@
         </template>
         <div class="np-table-wrapper">
           <el-table :data="toolList" v-loading="toolsLoading" size="small">
-            <el-table-column prop="label" :label="t('settings.tool')" width="120" />
-            <el-table-column prop="name" :label="t('settings.command')" width="120">
+            <el-table-column prop="label" :label="t('settings.tool')" min-width="120" show-overflow-tooltip />
+            <el-table-column prop="name" :label="t('settings.command')" min-width="120" show-overflow-tooltip>
               <template #default="{ row }"><span class="mono">{{ row.name }}</span></template>
             </el-table-column>
-            <el-table-column :label="t('settings.status')" width="100">
+            <el-table-column :label="t('settings.status')" min-width="100" align="center">
               <template #default="{ row }">
                 <el-tag :type="row.available ? 'success' : 'danger'" size="small">{{ row.available ? t('common.available') : t('common.missing') }}</el-tag>
               </template>

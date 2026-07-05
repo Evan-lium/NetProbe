@@ -17,20 +17,20 @@
         <el-card>
           <el-table :data="pagedRules" v-loading="loading" style="width: 100%">
             <el-table-column prop="name" :label="t('alerts.name')" min-width="160" show-overflow-tooltip />
-            <el-table-column :label="t('alerts.condition')" width="180">
+            <el-table-column :label="t('alerts.condition')" min-width="180">
               <template #default="{ row }">
                 <el-tag size="small">{{ conditionLabel(row.condition_type) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="target" :label="t('alerts.target')" min-width="140" show-overflow-tooltip />
-            <el-table-column :label="t('alerts.enabled')" width="90" align="center">
+            <el-table-column :label="t('alerts.enabled')" min-width="90" align="center">
               <template #default="{ row }">
                 <el-tag :type="row.enabled ? 'success' : 'info'" size="small">
                   {{ row.enabled ? t('alerts.enabledOn') : t('alerts.enabledOff') }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column :label="t('alerts.lastTriggered')" width="170">
+            <el-table-column :label="t('alerts.lastTriggered')" min-width="170">
               <template #default="{ row }">{{ formatTime(row.last_triggered_at) }}</template>
             </el-table-column>
             <el-table-column :label="t('tasks.actions')" width="90" fixed="right">

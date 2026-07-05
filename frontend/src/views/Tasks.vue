@@ -48,7 +48,7 @@
               <span class="task-name">{{ row.name || row.base_domain || row.target_raw }}</span>
             </template>
           </el-table-column>
-          <el-table-column :label="t('tasks.mode')" width="90" align="center">
+          <el-table-column :label="t('tasks.mode')" min-width="90" align="center">
             <template #default="{ row }">
               <el-tag :type="modeTagType(row.scan_mode)" size="small" effect="plain">
                 {{ modeLabel(row.scan_mode) }}
@@ -63,28 +63,28 @@
               <div class="row-sub mono" v-if="row.target_raw && row.target_raw !== row.base_domain">{{ row.target_raw }}</div>
             </template>
           </el-table-column>
-          <el-table-column prop="status" :label="t('tasks.status')" width="110" align="center">
+          <el-table-column prop="status" :label="t('tasks.status')" min-width="110" align="center">
             <template #default="{ row }">
               <el-tag :type="statusType(row.status)" size="small" effect="dark">
                 {{ statusLabel(row.status) }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column :label="t('tasks.hosts')" width="70" align="center">
+          <el-table-column :label="t('tasks.hosts')" min-width="70" align="center">
             <template #default="{ row }"><span class="mono">{{ row.host_count }}</span></template>
           </el-table-column>
-          <el-table-column :label="t('tasks.ports')" width="70" align="center">
+          <el-table-column :label="t('tasks.ports')" min-width="70" align="center">
             <template #default="{ row }"><span class="mono">{{ row.port_count }}</span></template>
           </el-table-column>
-          <el-table-column :label="t('tasks.web')" width="70" align="center">
+          <el-table-column :label="t('tasks.web')" min-width="70" align="center">
             <template #default="{ row }"><span class="mono">{{ row.web_count }}</span></template>
           </el-table-column>
-          <el-table-column :label="t('tasks.duration')" width="100" align="center">
+          <el-table-column :label="t('tasks.duration')" min-width="100" align="center">
             <template #default="{ row }">
               <span class="mono">{{ formatDuration(row) }}</span>
             </template>
           </el-table-column>
-          <el-table-column :label="t('history.date')" width="170">
+          <el-table-column :label="t('history.date')" min-width="170">
             <template #default="{ row }">{{ formatDate(row.started_at) }}</template>
           </el-table-column>
           <el-table-column :label="t('tasks.actions')" width="160" align="center" fixed="right">
