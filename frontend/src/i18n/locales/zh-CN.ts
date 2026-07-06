@@ -10,6 +10,7 @@ export default {
     timeline: '生命周期',
     graph: '关系图谱',
     alerts: '告警',
+    asm: '攻击面管理',
     history: '扫描历史',
     assets: '资产清单',
     settings: '系统设置',

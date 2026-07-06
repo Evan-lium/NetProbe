@@ -134,6 +134,7 @@ const navItems = [
   { path: '/stats', icon: 'DataLine', labelKey: 'nav.stats' },
   { path: '/graph', icon: 'Connection', labelKey: 'nav.graph' },
   { path: '/alerts', icon: 'Bell', labelKey: 'nav.alerts' },
+  { path: '/asm', icon: 'Aim', labelKey: 'nav.asm' },
   { path: '/users', icon: 'UserFilled', labelKey: 'nav.users', adminOnly: true },
   { path: '/settings', icon: 'Setting', labelKey: 'nav.settings' },
 ]

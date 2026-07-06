@@ -83,6 +83,12 @@ const router = createRouter({
     },
     // Redirects from old /history routes
     {
+      path: '/asm',
+      name: 'asm',
+      component: () => import('../views/ASM.vue'),
+      meta: { title: 'ASM', icon: 'Aim' },
+    },
+    {
       path: '/users',
       name: 'users',
       component: () => import('../views/Users.vue'),

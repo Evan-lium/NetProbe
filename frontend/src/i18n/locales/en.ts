@@ -10,6 +10,7 @@ export default {
     timeline: 'Timeline',
     graph: 'Graph',
     alerts: 'Alerts',
+    asm: 'Attack Surface',
     history: 'Scan History',
     assets: 'Asset Inventory',
     settings: 'Settings',
