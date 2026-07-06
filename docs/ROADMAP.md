@@ -1,6 +1,6 @@
 # NetProbe Roadmap
 
-> 版本: 3.0 | 更新: 2026-07-04
+> 版本: 3.3 | 更新: 2026-07-06
 
 ---
 
@@ -97,8 +97,8 @@
 
 ### v3.0 — 协作与高级功能
 
-- [ ] **多用户支持** — 用户认证、权限管理、团队协作
-- [ ] **攻击面管理 (ASM)** — 持续监控模式，自动发现和追踪互联网暴露资产
+- [x] **多用户支持** — JWT 认证 + 管理员/普通用户两档权限 + 用户管理 CRUD
+- [x] **攻击面管理 (ASM)** — ASM 总览仪表盘 + CT 证书监控 + DNS 变更监控 + 巡航模式
 - [x] **JS/SPA 深度分析** — 从 JS bundle 提取 API 端点（8类正则）+ 密钥泄露检测（18类，含 AWS/Google/Slack/Stripe/Azure 等）+ linkfinder 端点提取
 - [ ] **插件系统** — 模块化架构，支持社区贡献的扫描模块和情报源
 - [x] **Docker 部署** — 多阶段 Dockerfile（前端构建 + Python 运行时）+ docker-compose 一键启动，含 nmap/masscan/nuclei/subfinder + Playwright
