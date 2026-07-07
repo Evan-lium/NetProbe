@@ -123,6 +123,12 @@ def detect_technologies(
             version_re = pat.get('version', '')
             if version_re:
                 version = _extract_version(version_re, raw_texts.get(match_type, ''))
+                # 当前 pattern 文本提取失败 → 在所有文本上兜底尝试
+                if not version:
+                    for txt in raw_texts.values():
+                        version = _extract_version(version_re, txt)
+                        if version:
+                            break
             cand = {'confidence': confidence, 'version': version, 'type': match_type}
             if best is None or _better(cand, best):
                 best = cand
@@ -158,7 +164,64 @@ def detect_technologies(
     detected = [d for d in detected
                 if d.get('version') or (d.get('confidence', 0) or 0) >= 90][:15]
 
+    # 近义名称合并：Nginx/Nginx version、Apache/Apache HTTP Server 等归一化
+    detected = _merge_synonyms(detected)
+
     return detected
+
+
+def _normalize_name(name: str) -> str:
+    """产品名归一化，用于近义合并。
+    去掉 version/detect/server 等后缀，统一大小写。
+    """
+    n = name.strip().lower()
+    # 去掉常见后缀
+    for suffix in (' version', '- version', ' detect', '- detect',
+                   ' detection', ' http server', ' web server',
+                   ' detection panel', ' panel'):
+        if n.endswith(suffix):
+            n = n[:-len(suffix)]
+    # 统一连字符
+    n = n.replace('_', ' ').replace('-', ' ')
+    # 合并多空格
+    n = ' '.join(n.split())
+    return n
+
+
+def _merge_synonyms(detected: list[dict]) -> list[dict]:
+    """合并近义名称的检测结果。
+    规则：归一化后同名的，保留置信度最高（或带版本号）的一条。
+    """
+    # 显式近义映射（手工维护，处理特殊情况）
+    SYNONYMS = {
+        'php fpm': 'php',
+        'apache httpd': 'apache',
+        'nginx web server': 'nginx',
+        'mariadb server': 'mariadb',
+    }
+    groups = {}  # normalized → [list of items]
+    order = []
+    for item in detected:
+        norm = _normalize_name(item['name'])
+        norm = SYNONYMS.get(norm, norm)
+        if norm not in groups:
+            groups[norm] = []
+            order.append(norm)
+        groups[norm].append(item)
+
+    result = []
+    for norm in order:
+        items = groups[norm]
+        if len(items) == 1:
+            result.append(items[0])
+            continue
+        # 多条：优先选有版本的，其次置信度高的
+        items.sort(key=lambda x: (
+            1 if x.get('version') else 0,
+            -(x.get('confidence', 0) or 0),
+        ), reverse=True)
+        result.append(items[0])
+    return result
 
 
 def _apply_implies(detected: list[dict], seen: set[str]) -> None:
@@ -194,10 +257,34 @@ def _apply_implies(detected: list[dict], seen: set[str]) -> None:
 
 
 def _better(a: dict, b: dict) -> bool:
-    """比较两个命中结果，a 是否优于 b：优先有版本，其次高置信度。"""
-    if bool(a['version']) != bool(b['version']):
-        return bool(a['version'])
+    """比较两个命中结果，a 是否优于 b。
+    优先级：有版本 > 无版本；版本号更完整（段数多）优先；最后高置信度。
+    例：8.5.51(3段) 优于 1.1(2段)。
+    """
+    av, bv = a.get('version', ''), b.get('version', '')
+    if bool(av) != bool(bv):
+        return bool(av)
+    if av and bv:
+        # 比较版本段数（更完整的版本号通常更准确）
+        a_segs = len(av.split('.'))
+        b_segs = len(bv.split('.'))
+        if a_segs != b_segs:
+            return a_segs > b_segs
     return a['confidence'] > b['confidence']
+
+
+def _safe_search(pattern: str, text: str) -> bool:
+    """安全的正则搜索，编译失败或超时返回 False。
+
+    nuclei/Go 的 RE2 语法与 Python re 略有差异（如未闭合分组），
+    需要容错避免整个识别流程崩溃。
+    """
+    if not text:
+        return False
+    try:
+        return bool(re.search(pattern, text, re.IGNORECASE))
+    except (re.error, Exception):
+        return False
 
 
 def _match_pattern(pat, headers, html, cookies, script_srcs, meta, status_code) -> tuple[bool, str]:
@@ -214,7 +301,7 @@ def _match_pattern(pat, headers, html, cookies, script_srcs, meta, status_code) 
         for k, v in headers.items():
             combined = f'{k}: {v}'
             if is_regex:
-                if re.search(search_str, combined, re.IGNORECASE):
+                if _safe_search(search_str, combined):
                     return True, ptype
             elif search_str in combined:
                 return True, ptype
@@ -222,23 +309,23 @@ def _match_pattern(pat, headers, html, cookies, script_srcs, meta, status_code) 
 
     if ptype == 'html':
         if is_regex:
-            return bool(re.search(search_str, html, re.IGNORECASE)), ptype
+            return _safe_search(search_str, html), ptype
         return search_str in html, ptype
 
     if ptype == 'cookie':
         if is_regex:
-            return bool(re.search(search_str, cookies, re.IGNORECASE)), ptype
+            return _safe_search(search_str, cookies), ptype
         return search_str in cookies, ptype
 
     if ptype == 'meta':
         if is_regex:
-            return bool(re.search(search_str, meta, re.IGNORECASE)), ptype
+            return _safe_search(search_str, meta), ptype
         return search_str in meta, ptype
 
     if ptype == 'script_src':
         for src in script_srcs:
             if is_regex:
-                if re.search(search_str, src, re.IGNORECASE):
+                if _safe_search(search_str, src):
                     return True, ptype
             elif search_str in src:
                 return True, ptype
@@ -266,10 +353,30 @@ def _match_pattern(pat, headers, html, cookies, script_srcs, meta, status_code) 
 def _extract_version(version_re: str, text: str) -> str:
     """从 text 中用正则提取版本号。返回版本字符串或空串。
 
-    version_re 以 re: 开头，第 1 个捕获组为版本号。
+    支持两种前缀：
+      re:XXX   — 正则，第 1 个捕获组为版本号（无捕获组则用整个匹配）
+      kval:Header-Name — 从指定 HTTP header 字段的值提取版本
+                         text 应为 "Key: Value\\nKey2: Value2" 格式
     """
     if not text:
         return ''
+    # kval: 从指定 header 字段提取整个值作为版本
+    if version_re.startswith('kval:'):
+        field = version_re[5:].strip().lower()
+        for line in text.splitlines():
+            if ':' not in line:
+                continue
+            k, v = line.split(':', 1)
+            if k.strip().lower() == field:
+                # 取值里的版本部分（如 nginx/1.18.0 → 1.18.0）
+                v = v.strip()
+                vm = re.search(r'([0-9]+\.[0-9]+(?:\.[0-9]+)?)', v)
+                if vm:
+                    return vm.group(1)
+                # 没有数字版本号 → 返回空（避免把 "Apache" 当版本）
+                return ''
+        return ''
+    # re: 正则提取
     pattern = version_re[3:] if version_re.startswith('re:') else version_re
     try:
         m = re.search(pattern, text, re.IGNORECASE)
