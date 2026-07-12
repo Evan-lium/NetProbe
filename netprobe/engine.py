@@ -940,6 +940,15 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
         else:
             emit('progress', text='  ✓ 漏洞扫描跳过: 无 Web 站点')
 
+        # ── WAF/防护层识别（纯内存分析，无网络请求）──
+        try:
+            from .waf_detect import detect_waf_for_hosts
+            waf_count = detect_waf_for_hosts(all_hosts)
+            if waf_count:
+                emit('progress', text=f'  · WAF 识别: {waf_count} 台主机检测到防护层')
+        except Exception:
+            pass
+
         # ── 安全响应头检查（同类安全检测，复用 vuln 阶段开关）──
         try:
             from .security_headers import check_security_headers_for_hosts
@@ -969,6 +978,34 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
                 emit('progress', text=f'    ✓ CORS 检测完成: 无发现 ({elapsed:.1f}s)')
         except Exception as e:
             emit('progress', text=f'  CORS 检测失败（不影响主流程）: {e}')
+
+        # ── SSL/TLS 深度检测（弱协议/弱加密/证书问题）──
+        try:
+            from .ssl_check import check_ssl_for_hosts
+            emit('progress', text='  · SSL/TLS 深度检测 ...')
+            t0 = time.time()
+            ssl_total = check_ssl_for_hosts(all_hosts)
+            elapsed = time.time() - t0
+            if ssl_total:
+                emit('progress', text=f'    ✓ SSL/TLS 检测完成: {ssl_total} 个缺陷 ({elapsed:.1f}s)')
+            else:
+                emit('progress', text=f'    ✓ SSL/TLS 检测完成: 无发现 ({elapsed:.1f}s)')
+        except Exception as e:
+            emit('progress', text=f'  SSL/TLS 检测失败（不影响主流程）: {e}')
+
+        # ── 未授权接口枚举（Swagger/actuator/phpinfo/.env/druid 等）──
+        try:
+            from .unauth_scan import scan_unauth_for_hosts
+            emit('progress', text='  · 未授权接口枚举 (Swagger/actuator/.env/druid ...) ...')
+            t0 = time.time()
+            unauth_total = scan_unauth_for_hosts(all_hosts)
+            elapsed = time.time() - t0
+            if unauth_total:
+                emit('progress', text=f'    ✓ 未授权接口枚举完成: {unauth_total} 个暴露 ({elapsed:.1f}s)')
+            else:
+                emit('progress', text=f'    ✓ 未授权接口枚举完成: 无发现 ({elapsed:.1f}s)')
+        except Exception as e:
+            emit('progress', text=f'  未授权接口枚举失败（不影响主流程）: {e}')
 
         # ── 端口弱口令爆破（SSH/MySQL/Redis/FTP/PostgreSQL，复用 vuln 开关）──
         try:
@@ -1101,6 +1138,20 @@ def scan_target(target: str, options: dict, emit) -> list[dict]:
         emit('progress', text=f'  ✓ DNS 记录收集完成: {dns_count} 个域名 ({elapsed:.1f}s)')
     else:
         emit('progress', text=f'  ✓ DNS 记录收集完成: 无结果 ({elapsed:.1f}s)')
+
+    # ── 邮件安全基线检测（SPF/DKIM/DMARC/MTA-STS）──
+    try:
+        from .mail_security import check_mail_security_for_hosts
+        emit('progress', text='  · 邮件安全基线检测 (SPF/DKIM/DMARC/MTA-STS) ...')
+        t0 = time.time()
+        mail_total = check_mail_security_for_hosts(all_hosts)
+        elapsed = time.time() - t0
+        if mail_total:
+            emit('progress', text=f'    ✓ 邮件安全检测完成: {mail_total} 个缺陷 ({elapsed:.1f}s)')
+        else:
+            emit('progress', text=f'    ✓ 邮件安全检测完成: 无发现 ({elapsed:.1f}s)')
+    except Exception as e:
+        emit('progress', text=f'  邮件安全检测失败（不影响主流程）: {e}')
 
     # ── CDN 真实 IP 发现（WHOIS/DNS 阶段后，复用 vuln 开关）──
     if _stage_enabled(options, 'vuln'):

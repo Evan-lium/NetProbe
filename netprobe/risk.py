@@ -96,6 +96,36 @@ def compute_risk_score(host: dict) -> dict:
                     'severity': cve.get('severity', ''),
                 })
             cves_found.extend(cves)
+
+    # 从指纹技术栈（web_info.tech）查 CVE — 补充端口检测覆盖不到的 Web 组件
+    try:
+        from .cve_match import match_tech_to_cves
+        # 收集所有 web_info 里的 tech
+        all_tech = []
+        for w in host.get('web_info', []):
+            all_tech.extend(w.get('tech') or [])
+        if all_tech:
+            tech_cves = match_tech_to_cves(all_tech)
+            if tech_cves:
+                cve_score += min(len(tech_cves) * 8, 20)  # 技术栈 CVE 封顶 20
+                for tc in tech_cves[:5]:
+                    cve_details.append({
+                        'product': tc.get('matched_at', ''),
+                        'version': '',
+                        'cve_id': tc.get('cve', ''),
+                        'cvss_score': float(tc.get('cvss_score', 0) or 0),
+                        'severity': tc.get('severity', ''),
+                    })
+                # 追加到 vulnerabilities，写入 DB 供前端展示
+                host.setdefault('vulnerabilities', []).extend(tech_cves)
+                cves_found.extend([
+                    {'cve_id': tc.get('cve', ''), 'cvss_score': float(tc.get('cvss_score', 0) or 0),
+                     'severity': tc.get('severity', '')}
+                    for tc in tech_cves
+                ])
+    except Exception:
+        pass  # CVE 关联失败不影响主流程
+
     cve_score = min(cve_score, CAP_CVE)
     factors['cve'] = {'score': cve_score, 'details': cve_details}
 
