@@ -322,8 +322,12 @@
                   <div class="web-head">
                     <a :href="site.url" target="_blank" rel="noopener" class="web-url mono">{{ site.url }}</a>
                     <el-tag v-if="site.status" :type="statusTagType(site.status)" size="small" effect="dark">{{ site.status }}</el-tag>
+                    <el-tag v-if="site.cdn" size="small" type="warning" effect="plain">CDN: {{ site.cdn }}</el-tag>
                   </div>
                   <div class="web-title" v-if="site.title">{{ site.title }}</div>
+                  <div class="web-redirect" v-if="site.redirect">
+                    <span class="web-meta-label">→ {{ site.redirect }}</span>
+                  </div>
                   <div class="web-tags" v-if="site.tech?.length">
                     <el-tooltip
                       v-for="(tech, ti) in site.tech"
@@ -337,6 +341,33 @@
                       </el-tag>
                     </el-tooltip>
                   </div>
+                  <!-- 截图 -->
+                  <div class="web-screenshot" v-if="site.screenshot">
+                    <img :src="`/screenshots/${site.screenshot.split('/').pop()}`" :alt="site.url" loading="lazy" @error="(e:any) => e.target.style.display='none'" />
+                  </div>
+                  <!-- SSL 证书 -->
+                  <el-collapse v-if="site.ssl" class="web-ssl-collapse">
+                    <el-collapse-item title="SSL 证书" name="ssl">
+                      <div class="ssl-detail">
+                        <div class="ssl-row" v-if="site.ssl.subject"><span>主体</span><span class="mono">{{ site.ssl.subject }}</span></div>
+                        <div class="ssl-row" v-if="site.ssl.issuer"><span>签发</span><span class="mono">{{ site.ssl.issuer }}</span></div>
+                        <div class="ssl-row" v-if="site.ssl.not_before"><span>生效</span><span class="mono">{{ site.ssl.not_before }}</span></div>
+                        <div class="ssl-row" v-if="site.ssl.not_after"><span>过期</span><span class="mono" :class="{ 'ssl-expired': sslExpired(site.ssl.not_after) }">{{ site.ssl.not_after }}</span></div>
+                        <div class="ssl-row" v-if="site.ssl.san"><span>SAN</span><span class="mono">{{ site.ssl.san }}</span></div>
+                      </div>
+                    </el-collapse-item>
+                  </el-collapse>
+                  <!-- HTTP 响应头 -->
+                  <el-collapse v-if="site.headers && Object.keys(site.headers).length" class="web-headers-collapse">
+                    <el-collapse-item :title="`HTTP 响应头 (${Object.keys(site.headers).length})`" name="headers">
+                      <div class="headers-list">
+                        <div class="header-row" v-for="(val, key) in site.headers" :key="key">
+                          <span class="header-key mono">{{ key }}</span>
+                          <span class="header-val mono">{{ val }}</span>
+                        </div>
+                      </div>
+                    </el-collapse-item>
+                  </el-collapse>
                 </div>
               </div>
             </el-tab-pane>
@@ -715,10 +746,10 @@ async function loadData() {
     items.value = (res.items || []).map(it => ({
       ...it,
       rowKey: `${it.hostname}::${it.ip}`,
-      _previewed: false,
+      // 后端已预聚合 _preview，直接用；兼容无 preview 的旧数据
+      _preview: it._preview || undefined,
+      _previewed: !!it._preview,
     }))
-    // 后台并发预取详情（限流，避免瞬间打爆后端）
-    prefetchPreviews(items.value)
   } finally {
     loading.value = false
   }
@@ -931,6 +962,16 @@ function statusTagType(status: number) {
   return 'danger'
 }
 
+/** SSL 证书是否已过期 */
+function sslExpired(notAfter: string): boolean {
+  if (!notAfter) return false
+  try {
+    return new Date(notAfter) < new Date()
+  } catch {
+    return false
+  }
+}
+
 /** 敏感路径等级 → el-tag 类型 */
 function severityType(sev: string) {
   const s = (sev || '').toLowerCase()
@@ -950,6 +991,7 @@ const vulnGroups = computed(() => {
     weak_password: { key: 'weak_password', label: '弱口令', icon: '🔑', items: [] },
     admin_panel: { key: 'admin_panel', label: '管理后台', icon: '⚙', items: [] },
     origin_ip:   { key: 'origin_ip', label: 'CDN真实IP', icon: '📍', items: [] },
+    robots:      { key: 'robots', label: 'robots/sitemap', icon: '🗺', items: [] },
     other:       { key: 'other', label: '其他', icon: '📋', items: [] },
   }
   for (const v of vulns) {
@@ -1358,6 +1400,67 @@ onMounted(async () => {
   flex-wrap: wrap;
   gap: var(--np-space-1);
   margin-top: var(--np-space-2);
+}
+.web-redirect {
+  margin-top: 2px;
+  font-size: 12px;
+}
+.web-meta-label {
+  color: var(--np-text-muted);
+  word-break: break-all;
+}
+.web-screenshot {
+  margin-top: var(--np-space-2);
+  border-radius: var(--np-radius-sm);
+  overflow: hidden;
+  max-width: 400px;
+}
+.web-screenshot img {
+  width: 100%;
+  border: 1px solid var(--np-border);
+  border-radius: var(--np-radius-sm);
+}
+.web-ssl-collapse,
+.web-headers-collapse {
+  margin-top: var(--np-space-2);
+  border-top: 1px dashed var(--np-border-light);
+}
+.ssl-detail,
+.headers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+.ssl-row {
+  display: flex;
+  gap: var(--np-space-2);
+}
+.ssl-row > span:first-child {
+  width: 50px;
+  color: var(--np-text-muted);
+  flex-shrink: 0;
+}
+.ssl-row > span:last-child {
+  word-break: break-all;
+}
+.ssl-expired { color: var(--np-danger); font-weight: 600; }
+.header-row {
+  display: flex;
+  gap: var(--np-space-2);
+  padding: 2px 0;
+  border-bottom: 1px solid var(--np-border-light);
+}
+.header-key {
+  width: 180px;
+  color: var(--np-blue-500);
+  font-weight: 500;
+  flex-shrink: 0;
+  word-break: break-all;
+}
+.header-val {
+  word-break: break-all;
+  color: var(--np-text-secondary);
 }
 
 /* 漏洞列表 */

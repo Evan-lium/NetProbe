@@ -3,6 +3,11 @@ import { ref } from 'vue'
 import type { Host, SSEEvent } from '../types'
 
 export const useScanStore = defineStore('scan', () => {
+  function _streamUrl(taskId: string): string {
+    // EventSource 无法设置 Authorization 头，通过 query 参数传 token
+    const token = localStorage.getItem('netprobe_token') || ''
+    return `/api/stream/${taskId}?token=${encodeURIComponent(token)}`
+  }
   const scanId = ref('')
   const status = ref<'idle' | 'running' | 'done' | 'error'>('idle')
   const baseDomain = ref('')
@@ -25,7 +30,7 @@ export const useScanStore = defineStore('scan', () => {
     status.value = 'running'
     logs.value = []
 
-    const es = new EventSource(`/api/stream/${taskId}`)
+    const es = new EventSource(_streamUrl(taskId))
     eventSource.value = es
 
     es.onmessage = (e) => {

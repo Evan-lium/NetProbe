@@ -3,15 +3,37 @@
 # 访问: http://localhost:8000
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: netprobe-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: netprobe
+      POSTGRES_PASSWORD: netprobe123
+      POSTGRES_DB: netprobe
+      TZ: Asia/Shanghai
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U netprobe"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   netprobe:
     build: .
     image: netprobe:latest
     container_name: netprobe
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "8000:8000"
     volumes:
-      # 数据持久化：数据库 + 配置 + 截图
+      # 数据持久化：配置 + 截图（DB 已迁到 PostgreSQL）
       - ./data:/app/data
       # 扫描报告输出（可选）
       - ./output:/app/output
@@ -19,6 +41,7 @@ services:
       - nuclei-templates:/root/nuclei-templates
     environment:
       TZ: Asia/Shanghai
+      DATABASE_URL: postgresql://netprobe:netprobe123@postgres:5432/netprobe
       # 情报源 API Keys（也可在 UI 设置页配置，二选一）
       # FOFA_EMAIL: ""
       # FOFA_KEY: ""
@@ -31,4 +54,5 @@ services:
     #   - NET_RAW
 
 volumes:
+  pg-data:
   nuclei-templates:

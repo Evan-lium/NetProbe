@@ -144,10 +144,13 @@ def get_asset_detail(hostname: str, ip: str) -> dict | None:
             web_info.append({
                 "url": w.url, "port": w.port, "status": w.status_code,
                 "title": w.title,
+                "redirect": w.redirect or "",
                 "tech": tech,
                 "ssl": json.loads(w.ssl_json) if w.ssl_json and w.ssl_json != "null" else None,
                 "cdn": w.cdn_detected or "",
                 "favicon_hash": w.favicon_hash or "",
+                "headers": json.loads(w.headers_json) if w.headers_json else {},
+                "screenshot": w.screenshot_path or "",
             })
         # 技术栈列表（按置信度降序）
         all_tech_list = sorted(all_tech.values(), key=lambda x: -(x.get("confidence") or 0))
@@ -276,6 +279,25 @@ def _compute_asset_timeline(db, hosts: list) -> list[dict]:
     scan_order = [s.scan_id for s in scans]
     scan_time = {s.scan_id: s for s in scans}
 
+    # 批量预加载所有 host 的端口和技术栈（消除 N+1）
+    all_host_ids = [h.host_id for h in hosts]
+    ports_by_host = {}
+    for p in db.query(Port).filter(Port.host_id.in_(all_host_ids)).all():
+        if p.state == "open":
+            ports_by_host.setdefault(p.host_id, set()).add(f"{p.port}/{p.proto}")
+    tech_by_host = {}
+    for w in db.query(WebInfo).filter(WebInfo.host_id.in_(all_host_ids)).all():
+        try:
+            tech = json.loads(w.tech_json) if w.tech_json else []
+            names = set()
+            for t in tech:
+                name = t.get("name") if isinstance(t, dict) else t
+                if name:
+                    names.add(name)
+            tech_by_host.setdefault(w.host_id, set()).update(names)
+        except json.JSONDecodeError:
+            pass
+
     points = []
     prev_ports = None
     prev_tech = None
@@ -286,23 +308,9 @@ def _compute_asset_timeline(db, hosts: list) -> list[dict]:
         if not h or not scan:
             continue
 
-        # 本次扫描的端口集（port/proto）
-        curr_ports = set()
-        for p in db.query(Port).filter(Port.host_id == h.host_id).all():
-            if p.state == "open":
-                curr_ports.add(f"{p.port}/{p.proto}")
-
-        # 本次扫描的技术栈集
-        curr_tech = set()
-        for w in db.query(WebInfo).filter(WebInfo.host_id == h.host_id).all():
-            try:
-                tech = json.loads(w.tech_json) if w.tech_json else []
-                for t in tech:
-                    name = t.get("name") if isinstance(t, dict) else t
-                    if name:
-                        curr_tech.add(name)
-            except json.JSONDecodeError:
-                pass
+        # 从预加载数据取（无额外查询）
+        curr_ports = ports_by_host.get(h.host_id, set()).copy()
+        curr_tech = tech_by_host.get(h.host_id, set()).copy()
 
         if prev_ports is None:
             ports_added = len(curr_ports)

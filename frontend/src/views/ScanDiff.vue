@@ -6,6 +6,12 @@
         <h2 class="np-page-title">{{ t('diff.title') }}</h2>
         <span class="np-page-desc">{{ t('diff.desc') }}</span>
       </div>
+      <div class="np-page-actions">
+        <el-button @click="goBack">
+          <el-icon><ArrowLeft /></el-icon>
+          返回
+        </el-button>
+      </div>
     </div>
 
     <!-- 扫描选择栏 -->
@@ -62,9 +68,9 @@
       <el-empty :description="t('diff.noDiff')" />
     </el-card>
 
-    <!-- 对比结果 -->
+    <!-- 对比结果：左右分栏 -->
     <template v-else>
-      <!-- Summary 卡片 -->
+      <!-- Summary 统计条 -->
       <div class="np-stat-grid">
         <div class="np-stat-card np-stat-card--success">
           <div class="np-stat-num">{{ diff.summary.hosts_added }}</div>
@@ -84,80 +90,154 @@
         </div>
       </div>
 
-      <!-- 主机差异列表 -->
-      <el-card v-for="h in diff.hosts" :key="h.hostname + h.ip" class="host-diff-card">
-        <div class="host-diff-header">
-          <span class="host-name">{{ h.hostname }}</span>
-          <span class="host-ip" v-if="h.ip">{{ h.ip }}</span>
-          <el-tag :type="statusTagType(h.status)" size="small" effect="dark">
-            {{ t(`diff.status${cap(h.status)}`) }}
-          </el-tag>
+      <!-- 左右对比表头 -->
+      <div class="diff-columns-header">
+        <div class="diff-col-header diff-col-a">
+          <span class="diff-col-label">扫描 A</span>
+          <span class="diff-col-id mono">{{ diff.scan_a?.scan_id?.slice(0, 8) || scanA.slice(0, 8) }}</span>
         </div>
+        <div class="diff-col-divider"></div>
+        <div class="diff-col-header diff-col-b">
+          <span class="diff-col-label">扫描 B</span>
+          <span class="diff-col-id mono">{{ diff.scan_b?.scan_id?.slice(0, 8) || scanB.slice(0, 8) }}</span>
+        </div>
+      </div>
 
-        <div class="host-diff-body">
-          <!-- 端口差异 -->
-          <div class="dim-section" v-if="hasDim(h.ports)">
-            <div class="dim-title">{{ t('scanResult.ports') }}</div>
-            <div class="np-tag-group">
-              <span v-for="p in h.ports.added" :key="'pa' + p.port + p.proto" class="np-tag-add">
-                + {{ p.port }}/{{ p.proto }} {{ p.service }}
-              </span>
-              <span v-for="p in h.ports.removed" :key="'pr' + p.port + p.proto" class="np-tag-remove">
-                − {{ p.port }}/{{ p.proto }} {{ p.service }}
-              </span>
-              <span v-for="(c, i) in h.ports.changed" :key="'pc' + i" class="np-tag-change">
-                ~ {{ c.key[0] }}/{{ c.key[1] }}: {{ c.from.service || '?' }} → {{ c.to.service || '?' }}
-              </span>
-            </div>
+      <!-- 主机差异：左右对比 -->
+      <div class="diff-host-list">
+        <div v-for="h in diff.hosts" :key="h.hostname + h.ip" class="host-diff-row">
+          <!-- 主机名行（跨两列） -->
+          <div class="host-diff-title">
+            <span class="host-name">{{ h.hostname }}</span>
+            <span class="host-ip" v-if="h.ip">{{ h.ip }}</span>
+            <el-tag :type="statusTagType(h.status)" size="small" effect="dark">
+              {{ t(`diff.status${cap(h.status)}`) }}
+            </el-tag>
           </div>
 
-          <!-- Web 站点差异 -->
-          <div class="dim-section" v-if="hasWeb(h.web)">
-            <div class="dim-title">{{ t('scanResult.webSites') }}</div>
-            <div class="np-tag-group">
-              <span v-for="w in h.web.added" :key="'wa' + w.url" class="np-tag-add">
-                + {{ w.title || w.url }} [{{ w.status }}]
-              </span>
-              <span v-for="w in h.web.removed" :key="'wr' + w.url" class="np-tag-remove">
-                − {{ w.title || w.url }} [{{ w.status }}]
-              </span>
-              <span v-for="c in h.web.changed" :key="'wc' + c.url" class="np-tag-change">
-                ~ {{ c.url }}
-                <template v-if="c.changes.tech">
-                  ({{ c.changes.tech.added?.length || 0 }}+ / {{ c.changes.tech.removed?.length || 0 }}−)
-                </template>
-              </span>
+          <!-- 左右分栏内容 -->
+          <div class="host-diff-columns">
+            <!-- 左：扫描 A -->
+            <div class="diff-side diff-side-a">
+              <template v-if="h.status === 'added'">
+                <span class="diff-empty">— 不存在 —</span>
+              </template>
+              <template v-else>
+                <!-- 端口 -->
+                <div class="dim-section" v-if="h.ports.removed.length || h.ports.changed.length">
+                  <div class="dim-title">{{ t('scanResult.ports') }}</div>
+                  <div class="np-tag-group">
+                    <span v-for="p in h.ports.removed" :key="'pr' + p.port + p.proto" class="np-tag-remove">
+                      − {{ p.port }}/{{ p.proto }} {{ p.service }}
+                    </span>
+                    <span v-for="(c, i) in h.ports.changed" :key="'pc' + i" class="np-tag-change">
+                      ~ {{ c.key[0] }}/{{ c.key[1] }}: {{ c.from.service || '?' }} {{ c.from.version || '' }}
+                    </span>
+                  </div>
+                </div>
+                <!-- Web -->
+                <div class="dim-section" v-if="h.web.removed.length || h.web.changed.length">
+                  <div class="dim-title">{{ t('scanResult.webSites') }}</div>
+                  <div class="np-tag-group">
+                    <span v-for="w in h.web.removed" :key="'wr' + w.url" class="np-tag-remove">
+                      − {{ w.title || w.url }} [{{ w.status }}]
+                    </span>
+                    <span v-for="c in h.web.changed" :key="'wc' + c.url" class="np-tag-change">
+                      ~ {{ c.url }}
+                      <template v-if="c.changes.tech">
+                        ({{ c.changes.tech.removed?.length || 0 }} 技术)
+                      </template>
+                    </span>
+                  </div>
+                </div>
+                <!-- 敏感路径 -->
+                <div class="dim-section" v-if="h.sensitive.removed.length">
+                  <div class="dim-title">{{ t('scanResult.sensitivePaths') }}</div>
+                  <div class="np-tag-group">
+                    <span v-for="s in h.sensitive.removed" :key="'sr' + s.path" class="np-tag-remove">− {{ s.path }}</span>
+                  </div>
+                </div>
+                <!-- JS -->
+                <div class="dim-section" v-if="h.js.removed.length">
+                  <div class="dim-title">{{ t('scanResult.jsFindings') }}</div>
+                  <div class="np-tag-group">
+                    <span v-for="j in h.js.removed" :key="'jr' + j.js_url" class="np-tag-remove">− {{ j.js_url }}</span>
+                  </div>
+                </div>
+                <!-- Banner -->
+                <div class="dim-section" v-if="h.banners.removed.length">
+                  <div class="dim-title">{{ t('scanResult.banners') }}</div>
+                  <div class="np-tag-group">
+                    <span v-for="b in h.banners.removed" :key="'br' + b.port + b.service" class="np-tag-remove">− {{ b.port }} {{ b.service }}</span>
+                  </div>
+                </div>
+                <span v-if="isHostEmptyOnSide(h, 'a')" class="diff-empty">无变化</span>
+              </template>
             </div>
-          </div>
 
-          <!-- 敏感路径差异 -->
-          <div class="dim-section" v-if="h.sensitive.added.length || h.sensitive.removed.length">
-            <div class="dim-title">{{ t('scanResult.sensitivePaths') }}</div>
-            <div class="np-tag-group">
-              <span v-for="s in h.sensitive.added" :key="'sa' + s.path" class="np-tag-add">+ {{ s.path }}</span>
-              <span v-for="s in h.sensitive.removed" :key="'sr' + s.path" class="np-tag-remove">− {{ s.path }}</span>
-            </div>
-          </div>
+            <!-- 分隔线 -->
+            <div class="diff-side-divider"></div>
 
-          <!-- JS 分析差异 -->
-          <div class="dim-section" v-if="h.js.added.length || h.js.removed.length">
-            <div class="dim-title">{{ t('scanResult.jsFindings') }}</div>
-            <div class="np-tag-group">
-              <span v-for="j in h.js.added" :key="'ja' + j.js_url" class="np-tag-add">+ {{ j.js_url }}</span>
-              <span v-for="j in h.js.removed" :key="'jr' + j.js_url" class="np-tag-remove">− {{ j.js_url }}</span>
-            </div>
-          </div>
-
-          <!-- Banner 差异 -->
-          <div class="dim-section" v-if="h.banners.added.length || h.banners.removed.length">
-            <div class="dim-title">{{ t('scanResult.banners') }}</div>
-            <div class="np-tag-group">
-              <span v-for="b in h.banners.added" :key="'ba' + b.port + b.service" class="np-tag-add">+ {{ b.port }} {{ b.service }}</span>
-              <span v-for="b in h.banners.removed" :key="'br' + b.port + b.service" class="np-tag-remove">− {{ b.port }} {{ b.service }}</span>
+            <!-- 右：扫描 B -->
+            <div class="diff-side diff-side-b">
+              <template v-if="h.status === 'removed'">
+                <span class="diff-empty">— 不存在 —</span>
+              </template>
+              <template v-else>
+                <!-- 端口 -->
+                <div class="dim-section" v-if="h.ports.added.length || h.ports.changed.length">
+                  <div class="dim-title">{{ t('scanResult.ports') }}</div>
+                  <div class="np-tag-group">
+                    <span v-for="p in h.ports.added" :key="'pa' + p.port + p.proto" class="np-tag-add">
+                      + {{ p.port }}/{{ p.proto }} {{ p.service }}
+                    </span>
+                    <span v-for="(c, i) in h.ports.changed" :key="'pcb' + i" class="np-tag-change">
+                      ~ {{ c.key[0] }}/{{ c.key[1] }}: {{ c.to.service || '?' }} {{ c.to.version || '' }}
+                    </span>
+                  </div>
+                </div>
+                <!-- Web -->
+                <div class="dim-section" v-if="h.web.added.length || h.web.changed.length">
+                  <div class="dim-title">{{ t('scanResult.webSites') }}</div>
+                  <div class="np-tag-group">
+                    <span v-for="w in h.web.added" :key="'wa' + w.url" class="np-tag-add">
+                      + {{ w.title || w.url }} [{{ w.status }}]
+                    </span>
+                    <span v-for="c in h.web.changed" :key="'wcb' + c.url" class="np-tag-change">
+                      ~ {{ c.url }}
+                      <template v-if="c.changes.tech">
+                        ({{ c.changes.tech.added?.length || 0 }} 技术)
+                      </template>
+                    </span>
+                  </div>
+                </div>
+                <!-- 敏感路径 -->
+                <div class="dim-section" v-if="h.sensitive.added.length">
+                  <div class="dim-title">{{ t('scanResult.sensitivePaths') }}</div>
+                  <div class="np-tag-group">
+                    <span v-for="s in h.sensitive.added" :key="'sa' + s.path" class="np-tag-add">+ {{ s.path }}</span>
+                  </div>
+                </div>
+                <!-- JS -->
+                <div class="dim-section" v-if="h.js.added.length">
+                  <div class="dim-title">{{ t('scanResult.jsFindings') }}</div>
+                  <div class="np-tag-group">
+                    <span v-for="j in h.js.added" :key="'ja' + j.js_url" class="np-tag-add">+ {{ j.js_url }}</span>
+                  </div>
+                </div>
+                <!-- Banner -->
+                <div class="dim-section" v-if="h.banners.added.length">
+                  <div class="dim-title">{{ t('scanResult.banners') }}</div>
+                  <div class="np-tag-group">
+                    <span v-for="b in h.banners.added" :key="'ba' + b.port + b.service" class="np-tag-add">+ {{ b.port }} {{ b.service }}</span>
+                  </div>
+                </div>
+                <span v-if="isHostEmptyOnSide(h, 'b')" class="diff-empty">无变化</span>
+              </template>
             </div>
           </div>
         </div>
-      </el-card>
+      </div>
     </template>
   </div>
 </template>
@@ -190,21 +270,35 @@ function statusTagType(status: string): 'success' | 'danger' | 'warning' {
   return 'warning'
 }
 
-function hasDim(p: PortDiff): boolean {
-  return p.added.length > 0 || p.removed.length > 0 || p.changed.length > 0
-}
-
-function hasWeb(w: WebDiff): boolean {
-  return w.added.length > 0 || w.removed.length > 0 || w.changed.length > 0
+/** 判断某侧是否有任何变化内容 */
+function isHostEmptyOnSide(h: any, side: 'a' | 'b'): boolean {
+  if (side === 'a') {
+    return !h.ports.removed.length && !h.ports.changed.length
+      && !h.web.removed.length && !h.web.changed.length
+      && !h.sensitive.removed.length && !h.js.removed.length
+      && !h.banners.removed.length
+  }
+  return !h.ports.added.length && !h.ports.changed.length
+    && !h.web.added.length && !h.web.changed.length
+    && !h.sensitive.added.length && !h.js.added.length
+    && !h.banners.added.length
 }
 
 async function loadCandidates() {
   try {
-    // 只对比已完成的扫描，取较多条以便选择
     const data = await getHistory({ per_page: 100, status: 'done' })
     candidates.value = data.items
   } catch (e: any) {
     ElMessage.error(e.message)
+  }
+}
+
+function goBack() {
+  // 优先返回上一页，没有历史则回任务列表
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    router.push('/tasks')
   }
 }
 
@@ -214,7 +308,6 @@ async function doCompare() {
   diff.value = null
   try {
     diff.value = await getDiff(scanA.value, scanB.value)
-    // 同步到 URL query，便于分享/刷新
     router.replace({ query: { a: scanA.value, b: scanB.value } })
   } catch (e: any) {
     ElMessage.error(e.message)
@@ -223,7 +316,6 @@ async function doCompare() {
   }
 }
 
-// 路由 query 参数变化时自动加载（从 Tasks 多选跳转 / 直接访问 URL）
 watch(
   () => [route.query.a, route.query.b],
   ([a, b]) => {
@@ -241,7 +333,6 @@ onMounted(loadCandidates)
 
 <style scoped>
 .diff-page {
-  
   
 }
 
@@ -272,26 +363,111 @@ onMounted(loadCandidates)
   padding-bottom: 8px;
 }
 
-.host-diff-card {
+/* ── 左右对比表头 ── */
+.diff-columns-header {
+  display: flex;
+  align-items: center;
   margin-bottom: var(--np-space-3);
+  padding: 0 4px;
 }
 
-.host-diff-header {
+.diff-col-header {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--np-radius-md);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.diff-col-a {
+  background: rgba(239, 68, 68, 0.06);
+  color: #dc2626;
+}
+
+.diff-col-b {
+  background: rgba(16, 185, 129, 0.06);
+  color: #059669;
+}
+
+.diff-col-id {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.diff-col-divider {
+  width: 24px;
+  flex-shrink: 0;
+}
+
+/* ── 主机差异行 ── */
+.diff-host-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--np-space-3);
+}
+
+.host-diff-row {
+  background: var(--np-bg-surface);
+  border: 1px solid var(--np-border);
+  border-radius: var(--np-radius-lg);
+  overflow: hidden;
+}
+
+.host-diff-title {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: var(--np-space-3);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--np-border);
+  background: var(--np-bg-app);
 }
 
 .host-name {
   font-size: 15px;
   font-weight: 600;
+  color: var(--np-text-primary);
 }
 
 .host-ip {
   font-size: 13px;
   color: var(--np-text-secondary);
   font-family: var(--np-font-mono);
+}
+
+/* ── 左右分栏 ── */
+.host-diff-columns {
+  display: flex;
+  min-height: 48px;
+}
+
+.diff-side {
+  flex: 1;
+  padding: 12px 16px;
+  min-width: 0;
+}
+
+.diff-side-a {
+  background: rgba(239, 68, 68, 0.02);
+}
+
+.diff-side-b {
+  background: rgba(16, 185, 129, 0.02);
+}
+
+.diff-side-divider {
+  width: 1px;
+  background: var(--np-border);
+  flex-shrink: 0;
+}
+
+.diff-empty {
+  color: var(--np-text-muted);
+  font-size: 13px;
+  font-style: italic;
 }
 
 .dim-section {

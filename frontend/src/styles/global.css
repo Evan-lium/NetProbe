@@ -27,7 +27,7 @@
   /* ── 渐变（品牌强调用）────────────────────────────────── */
   --np-gradient-brand:   linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   --np-gradient-brand-hover: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-  --np-gradient-sidebar: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%);
+  --np-gradient-sidebar: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
 
   /* ── Accent / CTA ──────────────────────────────────────────── */
   --np-amber-400: #fbbf24;
@@ -183,41 +183,57 @@ body {
   border-radius: var(--np-radius-md) !important;
   font-family: var(--np-font-sans) !important;
   font-weight: 500 !important;
-  transition: all var(--np-transition) !important;
+  transition: background-color var(--np-transition), border-color var(--np-transition),
+              color var(--np-transition), box-shadow var(--np-transition) !important;
 }
 
+/* ── 实底按钮：强制白字，对比度 ≥ 4.5:1 ────────────────── */
 .el-button--primary {
   --el-button-bg-color: var(--np-blue-600) !important;
   --el-button-border-color: var(--np-blue-600) !important;
+  --el-button-text-color: #fff !important;
   --el-button-hover-bg-color: var(--np-blue-700) !important;
   --el-button-hover-border-color: var(--np-blue-700) !important;
+  --el-button-hover-text-color: #fff !important;
   --el-button-active-bg-color: var(--np-blue-700) !important;
   --el-button-active-border-color: var(--np-blue-700) !important;
+  --el-button-active-text-color: #fff !important;
 }
 
 .el-button--danger {
   --el-button-bg-color: var(--np-danger) !important;
   --el-button-border-color: var(--np-danger) !important;
+  --el-button-text-color: #fff !important;
   --el-button-hover-bg-color: #dc2626 !important;
   --el-button-hover-border-color: #dc2626 !important;
+  --el-button-hover-text-color: #fff !important;
   --el-button-active-bg-color: #b91c1c !important;
   --el-button-active-border-color: #b91c1c !important;
+  --el-button-active-text-color: #fff !important;
 }
 
 .el-button--success {
   --el-button-bg-color: var(--np-success) !important;
   --el-button-border-color: var(--np-success) !important;
+  --el-button-text-color: #fff !important;
   --el-button-hover-bg-color: #059669 !important;
   --el-button-hover-border-color: #059669 !important;
-  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.25) !important;
+  --el-button-hover-text-color: #fff !important;
+  --el-button-active-bg-color: #047857 !important;
+  --el-button-active-border-color: #047857 !important;
+  --el-button-active-text-color: #fff !important;
 }
 
 .el-button--warning {
   --el-button-bg-color: var(--np-warning) !important;
   --el-button-border-color: var(--np-warning) !important;
+  --el-button-text-color: #fff !important;
   --el-button-hover-bg-color: #d97706 !important;
   --el-button-hover-border-color: #d97706 !important;
-  color: #fff !important;
+  --el-button-hover-text-color: #fff !important;
+  --el-button-active-bg-color: #b45309 !important;
+  --el-button-active-border-color: #b45309 !important;
+  --el-button-active-text-color: #fff !important;
 }
 
 .el-button--default {
@@ -226,7 +242,54 @@ body {
   --el-button-text-color: var(--np-text-secondary) !important;
   --el-button-hover-bg-color: var(--np-info-bg) !important;
   --el-button-hover-border-color: var(--np-blue-400) !important;
-  --el-button-hover-text-color: var(--np-blue-500) !important;
+  --el-button-hover-text-color: var(--np-blue-600) !important;
+  --el-button-active-text-color: var(--np-blue-700) !important;
+}
+
+/* ── plain 按钮（浅底+彩边框，文字加深确保对比度 ≥ 4.5:1）── */
+.el-button.is-plain.el-button--primary {
+  --el-button-bg-color: var(--np-info-bg) !important;
+  --el-button-border-color: var(--np-blue-400) !important;
+  --el-button-text-color: var(--np-blue-700) !important;
+  --el-button-hover-bg-color: var(--np-blue-600) !important;
+  --el-button-hover-border-color: var(--np-blue-600) !important;
+  --el-button-hover-text-color: #fff !important;
+  --el-button-active-bg-color: var(--np-blue-700) !important;
+  --el-button-active-border-color: var(--np-blue-700) !important;
+  --el-button-active-text-color: #fff !important;
+}
+.el-button.is-plain.el-button--danger {
+  --el-button-bg-color: var(--np-danger-bg) !important;
+  --el-button-border-color: #fca5a5 !important;
+  --el-button-text-color: #dc2626 !important;
+  --el-button-hover-bg-color: var(--np-danger) !important;
+  --el-button-hover-border-color: var(--np-danger) !important;
+  --el-button-hover-text-color: #fff !important;
+  --el-button-active-bg-color: #dc2626 !important;
+  --el-button-active-border-color: #dc2626 !important;
+  --el-button-active-text-color: #fff !important;
+}
+.el-button.is-plain.el-button--warning {
+  --el-button-bg-color: var(--np-warning-bg) !important;
+  --el-button-border-color: #fcd34d !important;
+  --el-button-text-color: #b45309 !important;
+  --el-button-hover-bg-color: var(--np-warning) !important;
+  --el-button-hover-border-color: var(--np-warning) !important;
+  --el-button-hover-text-color: #fff !important;
+  --el-button-active-bg-color: #d97706 !important;
+  --el-button-active-border-color: #d97706 !important;
+  --el-button-active-text-color: #fff !important;
+}
+.el-button.is-plain.el-button--success {
+  --el-button-bg-color: var(--np-success-bg) !important;
+  --el-button-border-color: #6ee7b7 !important;
+  --el-button-text-color: #047857 !important;
+  --el-button-hover-bg-color: var(--np-success) !important;
+  --el-button-hover-border-color: var(--np-success) !important;
+  --el-button-hover-text-color: #fff !important;
+  --el-button-active-bg-color: #059669 !important;
+  --el-button-active-border-color: #059669 !important;
+  --el-button-active-text-color: #fff !important;
 }
 
 /* ── link / text 按钮（操作列，去蓝色改中性）────────────── */
@@ -236,40 +299,52 @@ body {
   padding: 2px 6px !important;
 }
 
-/* primary 的 link/text 按钮改中性灰，避免操作列一片蓝 */
+/* link/text 按钮：语义色加深确保白底对比度 ≥ 4.5:1 */
 .el-button.is-link.el-button--primary,
 .el-button.is-text.el-button--primary {
-  color: var(--np-text-secondary) !important;
+  color: var(--np-blue-600) !important;
 }
 .el-button.is-link.el-button--primary:hover,
 .el-button.is-text.el-button--primary:hover {
-  color: var(--np-text-primary) !important;
-  background: var(--np-bg-elevated) !important;
+  color: var(--np-blue-700) !important;
+  background: var(--np-info-bg) !important;
 }
 
 .el-button.is-link.el-button--danger,
 .el-button.is-text.el-button--danger {
-  color: var(--np-danger) !important;
+  color: #dc2626 !important;
 }
 .el-button.is-link.el-button--danger:hover,
 .el-button.is-text.el-button--danger:hover {
-  color: #dc2626 !important;
+  color: #b91c1c !important;
   background: var(--np-danger-bg) !important;
 }
 
-.el-button.is-link.el-button--success {
-  color: var(--np-success) !important;
-}
-.el-button.is-link.el-button--success:hover {
+.el-button.is-link.el-button--success,
+.el-button.is-text.el-button--success {
   color: #059669 !important;
+}
+.el-button.is-link.el-button--success:hover,
+.el-button.is-text.el-button--success:hover {
+  color: #047857 !important;
   background: var(--np-success-bg) !important;
 }
 
-.el-button.is-link.el-button--warning {
-  color: var(--np-warning) !important;
+.el-button.is-link.el-button--warning,
+.el-button.is-text.el-button--warning {
+  color: #b45309 !important;
 }
-.el-button.is-link.el-button--warning:hover {
+.el-button.is-link.el-button--warning:hover,
+.el-button.is-text.el-button--warning:hover {
+  color: #92400e !important;
   background: var(--np-warning-bg) !important;
+}
+
+/* ── disabled 按钮：降低不透明度 + 禁止光标（MD 规范）────── */
+.el-button.is-disabled,
+.el-button.is-disabled:hover {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
 }
 
 /* ── Input / Textarea（focus 加靛蓝 glow）────────────────── */
@@ -313,7 +388,7 @@ body {
   --el-table-bg-color: var(--np-bg-surface) !important;
   --el-table-tr-bg-color: var(--np-bg-surface) !important;
   --el-table-header-bg-color: var(--np-bg-app) !important;
-  --el-table-row-hover-bg-color: rgba(99, 102, 241, 0.06) !important;
+  --el-table-row-hover-bg-color: rgba(59, 130, 246, 0.05) !important;
   --el-table-border-color: var(--np-border) !important;
   --el-table-text-color: var(--np-text-primary) !important;
   --el-table-header-text-color: var(--np-text-secondary) !important;
@@ -595,13 +670,13 @@ body {
    ═══════════════════════════════════════════════════════════════ */
 
 a {
-  color: var(--np-blue-400);
+  color: var(--np-blue-600);
   text-decoration: none;
   transition: color var(--np-transition);
 }
 
 a:hover {
-  color: var(--np-blue-500);
+  color: var(--np-blue-700);
   text-decoration: none;
 }
 

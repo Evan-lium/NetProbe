@@ -285,6 +285,7 @@ def brute_force_for_hosts(hosts: list[dict], options: dict | None = None) -> Non
                     'name': f'弱口令: {service.upper()} {host.get("ip", "")}:{port}',
                     'severity': 'medium' if f.get('note') == 'no-auth' else 'high',
                     'type': 'weak_password',
+                    'category': 'weak_password',
                     'service': service,
                     'port': port,
                     'username': f.get('username', ''),

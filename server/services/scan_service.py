@@ -266,6 +266,7 @@ def _run_scan_task(task_id: str, raw_targets: str, options: dict):
         if task["cancel_event"].is_set():
             task["status"] = "cancelled"
             _update_scan_status(task_id, "cancelled", "用户取消")
+            _flush_progress_log(task_id)  # 取消时也刷盘
             return
 
         if hosts:
@@ -284,6 +285,7 @@ def _run_scan_task(task_id: str, raw_targets: str, options: dict):
         _write_results_to_db(task_id, hosts, label)
 
         emit("done", hosts=hosts, base_domain=label)
+        _flush_progress_log(task_id)  # 刷盘剩余日志
 
         # 扫描完成后检查告警规则（延迟 import 避免循环依赖）
         try:
@@ -296,6 +298,7 @@ def _run_scan_task(task_id: str, raw_targets: str, options: dict):
             emit("error", text=f"扫描异常: {e}")
             task["status"] = "error"
             _update_scan_status(task_id, "error", str(e))
+        _flush_progress_log(task_id)  # 异常时也刷盘
 
 
 def _write_results_to_db(scan_id: str, hosts: list[dict], base_domain: str):
@@ -476,6 +479,19 @@ def _write_results_to_db(scan_id: str, hosts: list[dict], base_domain: str):
                         category="origin_ip",
                         extracted_data_json=json.dumps(cand, ensure_ascii=False),
                     ))
+            # robots.txt / sitemap.xml → vulnerabilities（category=robots）
+            for rf in h.get("_robots_findings", []):
+                robots = rf.get("robots", {})
+                sitemap_n = len(rf.get("sitemap_paths", []))
+                disallow_n = len(robots.get("disallow_paths", []))
+                db.add(Vulnerability(
+                    host_id=host.host_id,
+                    name=f"robots/sitemap: {rf.get('url','')} (Disallow:{disallow_n} Sitemap路径:{sitemap_n})",
+                    severity="info",
+                    category="robots",
+                    url=rf.get("url", ""),
+                    extracted_data_json=json.dumps(rf, ensure_ascii=False),
+                ))
 
             total_hosts += 1
 
@@ -505,28 +521,57 @@ def _update_scan_status(scan_id: str, status: str, error_msg: str = ""):
         db.close()
 
 
-def _append_progress_log(scan_id: str, text: str):
-    """把进度日志追加到 DB 的 progress_log 字段（每行一条）。
+# 进度日志内存缓冲：避免每条日志都写 DB（SQLite 写锁会阻塞 API 读请求）
+# 每个 scan_id 维护一个缓冲区 + 最后写入时间
+_progress_buffers: dict[str, dict] = {}  # scan_id → {lines: [], last_flush: float}
+_PROGRESS_FLUSH_INTERVAL = 3.0  # 秒：最多每 3 秒刷一次 DB
+_PROGRESS_FLUSH_THRESHOLD = 20  # 条：攒满 20 条立即刷
 
-    解决：扫描中刷新页面/重启服务后日志丢失，以及历史任务日志查看。
+
+def _append_progress_log(scan_id: str, text: str):
+    """把进度日志追加到内存缓冲区，批量写入 DB。
+
+    扫描过程中每条日志只追加到内存，每 3 秒或满 20 条才写一次 DB，
+    避免 SQLite 写锁频繁阻塞前端的 API 读请求。
     """
     if not text:
         return
+    import time as _time
+    buf = _progress_buffers.get(scan_id)
+    if buf is None:
+        buf = {'lines': [], 'last_flush': _time.time()}
+        _progress_buffers[scan_id] = buf
+    buf['lines'].append(text)
+    now = _time.time()
+    # 攒够条数或超时才刷盘
+    if len(buf['lines']) >= _PROGRESS_FLUSH_THRESHOLD or (now - buf['last_flush']) >= _PROGRESS_FLUSH_INTERVAL:
+        _flush_progress_log(scan_id)
+
+
+def _flush_progress_log(scan_id: str):
+    """把内存缓冲的日志批量写入 DB。"""
+    import time as _time
+    buf = _progress_buffers.get(scan_id)
+    if not buf or not buf['lines']:
+        return
+    lines_to_write = buf['lines']
+    buf['lines'] = []
+    buf['last_flush'] = _time.time()
+
+    batch_text = '\n'.join(lines_to_write) + '\n'
     db = SessionLocal()
     try:
         scan = db.query(Scan).filter(Scan.scan_id == scan_id).first()
         if scan:
-            # 追加换行分隔，限制总大小防膨胀（保留最后 500 行 ≈ 50KB）
             existing = scan.progress_log or ""
-            new_log = existing + text + "\n"
+            new_log = existing + batch_text
             if len(new_log) > 100_000:
-                # 超限只保留后半部分
-                lines = new_log.split("\n")
-                new_log = "\n".join(lines[-500:])
+                all_lines = new_log.split("\n")
+                new_log = "\n".join(all_lines[-500:])
             scan.progress_log = new_log
             db.commit()
     except Exception:
-        pass  # 日志写入失败不影响扫描
+        pass
     finally:
         db.close()
 

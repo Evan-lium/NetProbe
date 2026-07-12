@@ -2,8 +2,8 @@
 
 import json
 
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import StreamingResponse, JSONResponse
 
 from ..schemas.scan import ScanRequest, ScanResponse
 from ..services.scan_service import get_task, start_scan
@@ -19,12 +19,25 @@ def create_scan(req: ScanRequest):
 
 
 @router.get("/stream/{task_id}")
-def stream_task(task_id: str):
+def stream_task(task_id: str, token: str = Query(default="")):
     """SSE 实时进度流。
+
+    鉴权：EventSource 无法设置 Authorization 头，改用 query 参数 ?token=xxx。
+    中间件已豁免 /api/stream/ 路径，这里自行验证 token。
 
     - 任务在内存：先推 DB 历史日志（解决刷新丢失），再接实时队列
     - 任务不在内存（重启/旧任务）：推 DB 历史日志后结束，不报 404
     """
+    # 验证 token（EventSource 通过 query 参数传递）
+    if token:
+        try:
+            from ..services.auth_service import get_current_user
+            get_current_user(token)
+        except Exception:
+            return JSONResponse(status_code=401, content={"detail": "token 无效或已过期"})
+    else:
+        return JSONResponse(status_code=401, content={"detail": "未登录，请先登录"})
+
     from ..services.scan_service import get_progress_log
     task = get_task(task_id)
     historical_log = get_progress_log(task_id)

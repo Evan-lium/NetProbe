@@ -1,9 +1,25 @@
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-from .config import DB_URL
+from .config import DB_URL, IS_SQLITE
 
-engine = create_engine(DB_URL, connect_args={"check_same_thread": False})
+# SQLite 和 PostgreSQL 的连接参数不同
+if IS_SQLITE:
+    engine = create_engine(
+        DB_URL,
+        connect_args={"check_same_thread": False, "timeout": 30},
+        pool_size=10,
+        max_overflow=20,
+    )
+else:
+    # PostgreSQL：psycopg2 驱动，连接池并发友好
+    engine = create_engine(
+        DB_URL,
+        pool_size=10,
+        max_overflow=20,
+        pool_pre_ping=True,  # 自动检测断连重连
+    )
+
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
@@ -21,6 +37,12 @@ def get_db():
 
 def init_db():
     """Create all tables + 幂等升级已有表的列结构。"""
+    if IS_SQLITE:
+        # SQLite 专有优化：WAL 模式（读写不互斥）
+        with engine.begin() as conn:
+            conn.execute(text("PRAGMA journal_mode=WAL"))
+            conn.execute(text("PRAGMA synchronous=NORMAL"))
+            conn.execute(text("PRAGMA busy_timeout=30000"))
     Base.metadata.create_all(bind=engine)
     ensure_schema()
 
