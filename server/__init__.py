@@ -26,9 +26,12 @@ def create_app() -> FastAPI:
     async def jwt_auth_middleware(request: Request, call_next):
         path = request.url.path
 
-        # 豁免路径：登录/静态文件/文档
+        # 豁免路径：登录/静态文件/文档/SSE 流
+        # SSE 用 EventSource，浏览器原生 API 无法设置 Authorization 头，
+        # 改为通过 query 参数 ?token=xxx 鉴权（在 stream 路由内部验证）
         if (path == "/api/auth/login"
             or path.startswith("/api/auth/me")
+            or path.startswith("/api/stream/")
             or not path.startswith("/api")
             or path in ("/docs", "/openapi.json", "/redoc")):
             return await call_next(request)
@@ -64,10 +67,16 @@ def create_app() -> FastAPI:
     # Register API routes
     include_all_routers(app)
 
-    # Serve Vue build in production
     import os
 
-    dist_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+    # 托管截图静态文件（扫描时 Playwright 截图存到 data/screenshots/）
+    project_root = os.path.dirname(os.path.dirname(__file__))
+    screenshot_dir = os.path.join(project_root, "data", "screenshots")
+    os.makedirs(screenshot_dir, exist_ok=True)
+    app.mount("/screenshots", StaticFiles(directory=screenshot_dir), name="screenshots")
+
+    # Serve Vue build in production
+    dist_dir = os.path.join(project_root, "frontend", "dist")
     if os.path.isdir(dist_dir):
         app.mount("/", StaticFiles(directory=dist_dir, html=True), name="static")
 
