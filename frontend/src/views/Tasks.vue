@@ -41,8 +41,8 @@
         <div class="np-skeleton" style="height: 44px" />
       </div>
       <div class="np-table-wrapper" v-else-if="items.length">
-        <el-table :data="items" style="width: 100%" row-class-name="task-row" @selection-change="onSelectionChange">
-          <el-table-column type="selection" width="42" :selectable="canSelectRow" />
+        <el-table :data="items" style="width: 100%" row-key="scan_id" row-class-name="task-row" @selection-change="onSelectionChange">
+          <el-table-column type="selection" width="42" :selectable="canSelectRow" reserve-selection />
           <el-table-column :label="t('tasks.name')" min-width="140" show-overflow-tooltip>
             <template #default="{ row }">
               <span class="task-name">{{ row.name || row.base_domain || row.target_raw }}</span>
@@ -87,31 +87,33 @@
           <el-table-column :label="t('history.date')" min-width="170">
             <template #default="{ row }">{{ formatDate(row.started_at) }}</template>
           </el-table-column>
-          <el-table-column :label="t('tasks.actions')" width="160" align="center" fixed="right">
+          <el-table-column :label="t('tasks.actions')" width="190" align="center" fixed="right">
             <template #default="{ row }">
-              <el-button
-                v-if="row.status === 'running'"
-                type="warning"
-                size="small"
-                text
-                @click="handleCancel(row)"
-              >
-                {{ t('tasks.cancel') }}
-              </el-button>
-              <router-link :to="`/tasks/${row.scan_id}`">
-                <el-button type="primary" size="small" text>
-                  {{ t('tasks.detail') }}
+              <div class="action-btns">
+                <el-button
+                  v-if="row.status === 'running'"
+                  type="warning"
+                  size="small"
+                  plain
+                  @click="handleCancel(row)"
+                >
+                  {{ t('tasks.cancel') }}
                 </el-button>
-              </router-link>
-              <el-button
-                v-if="row.status !== 'running'"
-                type="danger"
-                size="small"
-                text
-                @click="handleDelete(row)"
-              >
-                {{ t('common.delete') }}
-              </el-button>
+                <router-link :to="`/tasks/${row.scan_id}`">
+                  <el-button type="primary" size="small" plain>
+                    {{ t('tasks.detail') }}
+                  </el-button>
+                </router-link>
+                <el-button
+                  v-if="row.status !== 'running'"
+                  type="danger"
+                  size="small"
+                  plain
+                  @click="handleDelete(row)"
+                >
+                  {{ t('common.delete') }}
+                </el-button>
+              </div>
             </template>
           </el-table-column>
         </el-table>
@@ -417,11 +419,19 @@ async function loadData() {
 
 function startPolling() {
   if (pollTimer) return
-  pollTimer = setInterval(() => {
+  pollTimer = setInterval(async () => {
     // Only poll if there are running tasks
     const hasRunning = items.value.some(i => i.status === 'running')
-    if (hasRunning) loadData()
-    else stopPolling()
+    if (hasRunning) {
+      // 静默刷新：不触发 loading，避免表格闪烁 + selection 丢失
+      try {
+        const res = await getHistory({ page: page.value, per_page: perPage.value, q: query.value, status: statusFilter.value })
+        items.value = res.items
+        total.value = res.total
+      } catch { /* 静默 */ }
+    } else {
+      stopPolling()
+    }
   }, 3000)
 }
 
@@ -595,6 +605,16 @@ function onModeChange() {
 function applyEngineStages(engineId: number | null) {
   if (!engineId) return
   const engine = engines.value.find(e => e.id === engineId)
+  if (!engine) return
+  // 根据引擎名同步 scan_mode（列表展示用）
+  const name = (engine.name || '').toLowerCase()
+  if (name.includes('快速') || name.includes('quick')) {
+    form.scanMode = 'quick'
+  } else if (name.includes('深度') || name.includes('deep')) {
+    form.scanMode = 'deep'
+  } else {
+    form.scanMode = 'normal'
+  }
   if (!engine?.config?.stages) return
   const s = engine.config.stages
   stages.fingerprint = s.fingerprint !== false
@@ -625,6 +645,16 @@ onUnmounted(() => {
 
 .task-list-card {
   min-height: 200px;
+}
+
+/* 操作列按钮：紧凑排列，确保在固定列内完整可见 */
+.action-btns {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .task-loading {

@@ -165,7 +165,7 @@ function connectLiveStream(taskId: string, name: string) {
   liveLogs.value = []
   streamStatus.value = 'running'
 
-  eventSource = new EventSource(`/api/stream/${taskId}`)
+  eventSource = new EventSource(`/api/stream/${taskId}?token=${encodeURIComponent(localStorage.getItem('netprobe_token') || '')}`)
   eventSource.onmessage = (e) => {
     try {
       const data = JSON.parse(e.data)

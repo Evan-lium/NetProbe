@@ -335,7 +335,8 @@ function connectSSE(taskId: string) {
   disconnectSSE()
   isStreaming.value = true
   liveLogs.value = []
-  eventSource = new EventSource(`/api/stream/${taskId}`)
+  const token = localStorage.getItem('netprobe_token') || ''
+  eventSource = new EventSource(`/api/stream/${taskId}?token=${encodeURIComponent(token)}`)
   eventSource.onmessage = (e) => {
     try {
       const data = JSON.parse(e.data)

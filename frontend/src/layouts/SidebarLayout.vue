@@ -21,9 +21,7 @@
             <path d="M2 12l10 5 10-5"/>
           </svg>
         </div>
-        <transition name="fade">
-          <span v-if="!collapsed" class="brand-text">{{ t('brand') }}</span>
-        </transition>
+        <span v-if="!collapsed" class="brand-text">{{ t('brand') }}</span>
       </div>
 
       <nav class="sidebar-nav">
@@ -36,9 +34,7 @@
           @click="drawerOpen = false"
         >
           <el-icon :size="18"><component :is="item.icon" /></el-icon>
-          <transition name="fade">
-            <span v-if="!collapsed" class="nav-label">{{ t(item.labelKey) }}</span>
-          </transition>
+          <span v-if="!collapsed" class="nav-label">{{ t(item.labelKey) }}</span>
         </router-link>
       </nav>
 
@@ -49,9 +45,7 @@
           :title="locale === 'zh-CN' ? 'Switch to English' : '切换到中文'"
         >
           <el-icon :size="14"><Switch /></el-icon>
-          <transition name="fade">
-            <span v-if="!collapsed">{{ locale === 'zh-CN' ? t('lang.en') : t('lang.zh') }}</span>
-          </transition>
+          <span v-if="!collapsed">{{ locale === 'zh-CN' ? t('lang.en') : t('lang.zh') }}</span>
         </button>
         <button
           class="collapse-toggle"
@@ -254,8 +248,8 @@ watch(() => route.path, () => {
 /* ── Sidebar ───────────────────────────────────────────────── */
 .admin-sidebar {
   height: 100vh;
-  background: var(--np-bg-layout);
-  border-right: 1px solid var(--np-border);
+  background: var(--np-gradient-sidebar);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -270,9 +264,8 @@ watch(() => route.path, () => {
   align-items: center;
   padding: 0 16px;
   gap: 10px;
-  border-bottom: 1px solid var(--np-border);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
-  background: var(--np-gradient-sidebar);
 }
 
 .admin-sidebar.collapsed .sidebar-brand {
@@ -318,11 +311,11 @@ watch(() => route.path, () => {
   padding: 0 12px;
   height: 40px;
   border-radius: var(--np-radius-md);
-  color: var(--np-text-secondary);
+  color: rgba(255, 255, 255, 0.85) !important;
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
-  transition: all var(--np-transition);
+  transition: background-color var(--np-transition), color var(--np-transition);
   white-space: nowrap;
   flex-shrink: 0;
   overflow: hidden;
@@ -334,16 +327,16 @@ watch(() => route.path, () => {
 }
 
 .nav-item:hover {
-  background: rgba(99, 102, 241, 0.08);
-  color: var(--np-blue-600);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff !important;
   text-decoration: none;
 }
 
 .nav-item.active {
   background: var(--np-gradient-brand);
-  color: #fff;
+  color: #fff !important;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
 }
 
 .nav-item.active .el-icon {
@@ -356,7 +349,7 @@ watch(() => route.path, () => {
 }
 
 .sidebar-footer {
-  border-top: 1px solid var(--np-border);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding: 8px;
   flex-shrink: 0;
   display: flex;
@@ -382,19 +375,19 @@ watch(() => route.path, () => {
   gap: 4px;
   background: transparent;
   border: none;
-  color: var(--np-text-muted);
+  color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   border-radius: var(--np-radius-md);
   font-size: 12px;
   font-weight: 500;
-  transition: all var(--np-transition);
+  transition: background-color var(--np-transition), color var(--np-transition);
   white-space: nowrap;
   overflow: hidden;
 }
 
 .lang-toggle:hover {
-  background: var(--np-bg-surface);
-  color: var(--np-text-primary);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
 .collapse-toggle {
@@ -405,16 +398,16 @@ watch(() => route.path, () => {
   justify-content: center;
   background: transparent;
   border: none;
-  color: var(--np-text-muted);
+  color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   border-radius: var(--np-radius-md);
-  transition: all var(--np-transition);
+  transition: background-color var(--np-transition), color var(--np-transition);
   flex-shrink: 0;
 }
 
 .collapse-toggle:hover {
-  background: var(--np-bg-surface);
-  color: var(--np-text-primary);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
 /* ── Main Wrapper ──────────────────────────────────────────── */
@@ -454,7 +447,7 @@ watch(() => route.path, () => {
   cursor: pointer;
   padding: 4px;
   border-radius: var(--np-radius-sm);
-  transition: all var(--np-transition);
+  transition: background-color var(--np-transition), color var(--np-transition);
 }
 
 .mobile-toggle:hover {
@@ -509,7 +502,7 @@ watch(() => route.path, () => {
   color: var(--np-text-secondary);
   padding: 4px 8px;
   border-radius: var(--np-radius-md);
-  transition: all var(--np-transition);
+  transition: background-color var(--np-transition), color var(--np-transition);
 }
 .user-info:hover {
   background: var(--np-bg-elevated);
@@ -545,17 +538,6 @@ watch(() => route.path, () => {
   overflow-y: auto;
   padding: 20px 24px;
   flex: 1;
-}
-
-/* ── Transitions ───────────────────────────────────────────── */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 150ms ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
 }
 
 /* ═══ Responsive ═════════════════════════════════════════════ */
