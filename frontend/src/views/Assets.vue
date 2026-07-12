@@ -995,6 +995,9 @@ const vulnGroups = computed(() => {
   const groups: Record<string, { key: string; label: string; icon: string; items: any[] }> = {
     vuln:        { key: 'vuln', label: '已知漏洞', icon: '🔴', items: [] },
     security_header: { key: 'security_header', label: '安全响应头', icon: '🛡', items: [] },
+    ssl_tls:     { key: 'ssl_tls', label: 'SSL/TLS', icon: '🔒', items: [] },
+    mail_security: { key: 'mail_security', label: '邮件安全', icon: '📧', items: [] },
+    unauth_access: { key: 'unauth_access', label: '未授权接口', icon: '🔓', items: [] },
     cors:        { key: 'cors', label: 'CORS 配置', icon: '🌐', items: [] },
     weak_password: { key: 'weak_password', label: '弱口令', icon: '🔑', items: [] },
     admin_panel: { key: 'admin_panel', label: '管理后台', icon: '⚙', items: [] },
@@ -1005,7 +1008,7 @@ const vulnGroups = computed(() => {
   for (const v of vulns) {
     const cat = v.category || ''
     if (cat in groups) groups[cat].items.push(v)
-    else if (['cve', 'exposure', 'misconfig', 'default-login', 'takeover', 'vulnerability', 'detection'].includes(cat)) {
+    else if (['cve', 'cve_fingerprint', 'exposure', 'misconfig', 'default-login', 'takeover', 'vulnerability', 'detection'].includes(cat)) {
       groups.vuln.items.push(v)
     } else {
       groups.other.items.push(v)
