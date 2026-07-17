@@ -1,7 +1,7 @@
 import { ref, watch } from 'vue'
 
 const STORAGE_PREFIX = 'netprobe_page_size_'
-const DEFAULT_SIZE = 20
+const DEFAULT_SIZE = 10
 
 /** 每页条数（按页面 key 独立持久化，互不影响）。
  *
