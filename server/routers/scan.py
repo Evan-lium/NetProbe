@@ -11,14 +11,14 @@ from ..services.scan_service import get_task, start_scan
 router = APIRouter(tags=["scan"])
 
 
-@router.post("/scan", response_model=ScanResponse)
+@router.post("/scan", response_model=ScanResponse, summary="启动扫描任务", description="提交扫描目标+配置，后台线程执行，返回 task_id")
 def create_scan(req: ScanRequest):
     """启动扫描任务。"""
     task_id = start_scan(req.target, req.model_dump())
     return ScanResponse(task_id=task_id)
 
 
-@router.get("/stream/{task_id}")
+@router.get("/stream/{task_id}", summary="SSE 实时进度", description="Server-Sent Events 流，推送扫描进度日志。鉴权用 ?token= query 参数")
 def stream_task(task_id: str, token: str = Query(default="")):
     """SSE 实时进度流。
 

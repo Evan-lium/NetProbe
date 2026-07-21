@@ -53,7 +53,7 @@ def _require_admin(credentials: HTTPAuthorizationCredentials) -> User:
 
 # ── 认证路由 ──────────────────────────────────────────────
 
-@router.post("/auth/login")
+@router.post("/auth/login", summary="用户登录", description="用户名密码登录，返回 JWT token")
 def user_login(req: LoginRequest):
     """用户登录，返回 JWT token。"""
     return login(req.username, req.password)
@@ -72,7 +72,7 @@ def get_me(credentials: HTTPAuthorizationCredentials = Depends(security)):
     }
 
 
-@router.get("/auth/roles")
+@router.get("/auth/roles", summary="获取角色列表", description="返回 RBAC 角色及其权限列表")
 def get_roles(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """返回可用角色列表（前端下拉用）。"""
     from ..models.user import ROLES, ROLE_PERMISSIONS

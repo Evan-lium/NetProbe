@@ -6,7 +6,7 @@ from pydantic import BaseModel
 router = APIRouter(tags=["plugins"])
 
 
-@router.get("/plugins")
+@router.get("/plugins", summary="列出所有插件", description="返回所有已注册的检测插件信息（含启用状态/分类/阶段）")
 def list_plugins():
     """列出所有已注册的插件。"""
     import sys, os
@@ -23,7 +23,7 @@ class PluginToggle(BaseModel):
     enabled: bool
 
 
-@router.patch("/plugins/{name}/toggle")
+@router.patch("/plugins/{name}/toggle", summary="启用/禁用插件", description="切换插件的启用状态，持久化到 data/plugin_states.json")
 def toggle_plugin(name: str, toggle: PluginToggle):
     """启用/禁用插件。"""
     import sys, os

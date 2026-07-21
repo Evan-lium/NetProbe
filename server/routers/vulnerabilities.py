@@ -45,7 +45,7 @@ class VulnStatusUpdate(BaseModel):
     note: Optional[str] = None
 
 
-@router.patch("/vulnerabilities/{vuln_id}/status")
+@router.patch("/vulnerabilities/{vuln_id}/status", summary="更新漏洞状态", description="漏洞生命周期流转：open→confirmed→fixing→fixed→verified→closed / false_positive")
 def update_vuln_status(vuln_id: int, update: VulnStatusUpdate):
     """更新漏洞状态（生命周期流转）。"""
     if update.status not in VALID_STATUSES:
@@ -74,7 +74,7 @@ def update_vuln_status(vuln_id: int, update: VulnStatusUpdate):
         db.close()
 
 
-@router.get("/vulnerabilities/statuses")
+@router.get("/vulnerabilities/statuses", summary="获取漏洞状态列表", description="返回所有可用的漏洞状态值（前端下拉框用）")
 def get_vuln_statuses():
     """返回所有可用状态（前端下拉框用）。"""
     return [
@@ -83,7 +83,7 @@ def get_vuln_statuses():
     ]
 
 
-@router.get("/vulnerabilities/stats")
+@router.get("/vulnerabilities/stats", summary="漏洞状态统计", description="返回漏洞按状态和严重性的分布统计（ASM 仪表盘用）")
 def get_vuln_stats():
     """漏洞状态统计（仪表盘用）。"""
     from sqlalchemy import func

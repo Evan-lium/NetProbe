@@ -18,7 +18,7 @@ from ..utils import to_iso_z
 router = APIRouter(tags=["tasks"])
 
 
-@router.get("/tasks")
+@router.get("/tasks", summary="任务列表", description="返回活跃任务（内存）+ 历史任务（DB），僵尸任务自动修正为 error")
 def list_tasks():
     """返回所有任务：内存中的运行任务 + DB 已完成任务。
 

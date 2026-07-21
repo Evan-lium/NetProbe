@@ -11,7 +11,48 @@ from .services.schedule_service import init_scheduler, shutdown_scheduler
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="NetProbe", version="3.0")
+    app = FastAPI(
+        title="NetProbe API",
+        description="""
+## 开源一体化资产探测与攻击面管理（ASM）平台
+
+### 认证
+所有 `/api/*` 端点需 Bearer JWT 认证（`POST /api/auth/login` 豁免）。
+SSE 流 `/api/stream/{id}` 和下载 `/api/download/{id}/{fmt}` 用 `?token=` query 参数。
+
+### 权限（RBAC）
+| 角色 | 权限 |
+|------|------|
+| admin | 全部 |
+| scanner | scan, view, edit, download_report, manage_vulns |
+| auditor | view, download_report, manage_vulns |
+| viewer | view |
+
+### 默认账号
+首次启动自动创建 `admin / admin`（请尽快修改密码）。
+        """,
+        version="3.8.1",
+        openapi_tags=[
+            {"name": "auth", "description": "认证 / 用户管理 / RBAC 角色"},
+            {"name": "scan", "description": "启动扫描 / SSE 实时进度"},
+            {"name": "tasks", "description": "任务列表 / 取消 / 删除"},
+            {"name": "result", "description": "扫描结果 / 报告下载"},
+            {"name": "history", "description": "扫描历史"},
+            {"name": "assets", "description": "跨扫描资产汇总"},
+            {"name": "asset-tags", "description": "资产标签 / 分组"},
+            {"name": "plugins", "description": "插件管理 / 启用禁用"},
+            {"name": "vulnerabilities", "description": "漏洞生命周期管理"},
+            {"name": "scan-engines", "description": "扫描引擎配置"},
+            {"name": "schedules", "description": "定时扫描（cron）"},
+            {"name": "alerts", "description": "告警规则 / 触发历史"},
+            {"name": "asm", "description": "攻击面管理总览"},
+            {"name": "correlations", "description": "资产关联查询"},
+            {"name": "stats", "description": "统计 / 资产详情"},
+            {"name": "search", "description": "资产检索（IP/favicon/github）"},
+            {"name": "settings", "description": "API Key / 通知 / 配置"},
+            {"name": "tools", "description": "外部工具可用性"},
+        ],
+    )
 
     # CORS (dev only)
     app.add_middleware(

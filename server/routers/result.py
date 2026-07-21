@@ -126,7 +126,7 @@ def get_result(scan_id: str):
         db.close()
 
 
-@router.get("/download/{scan_id}/{fmt}")
+@router.get("/download/{scan_id}/{fmt}", summary="下载扫描报告", description="导出 PDF/HTML/JSON/CSV 格式的渗透测试报告。鉴权用 ?token= query 参数")
 def download_result(scan_id: str, fmt: str, token: str = ""):
     """下载报告 (txt/csv/json/pdf/html)。
 
