@@ -690,6 +690,7 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { getAssets, getAssetDetail } from '../api/scan'
 import api from '../api/index'
@@ -791,27 +792,6 @@ async function loadData() {
 }
 
 /** 限制并发的预取：让卡片逐步显示 web 站点/端口等富信息 */
-async function prefetchPreviews(rows: AssetRow[]) {
-  const CONCURRENCY = 6
-  let cursor = 0
-  const worker = async () => {
-    while (cursor < rows.length) {
-      const idx = cursor++
-      const row = rows[idx]
-      if (row._previewed) continue
-      try {
-        const d = await getAssetDetail(row.hostname, row.ip)
-        row._preview = extractPreview(d)
-      } catch {
-        /* 预取失败静默，点击卡片时再正式加载 */
-      } finally {
-        row._previewed = true
-      }
-    }
-  }
-  await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()))
-}
-
 /** 从详情响应抽取卡片展示所需的轻量结构 */
 function extractPreview(d: any): CardPreview {
   if (!d) return {}

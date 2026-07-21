@@ -159,7 +159,12 @@ export interface AssetSummary {
   scan_count: number
   port_count: number
   web_count: number
+  vuln_count?: number
   risk_score?: number
+  last_scan_at?: string
+  _preview?: any
+  _previewed?: boolean
+  _tags?: string[]
 }
 
 /** 工具状态 */

@@ -248,7 +248,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { getHistory, getDiff } from '../api/scan'
-import type { HistoryItem, ScanDiff, PortDiff, WebDiff } from '../types'
+import type { HistoryItem, ScanDiff } from '../types'
 
 const { t } = useI18n()
 const route = useRoute()
